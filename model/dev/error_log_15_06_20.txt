@@ -1,0 +1,133 @@
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+A
+954/954 [==============================] - 3739s 4s/step - loss: 0.1136 - binary_accuracy: 0.9692 - val_loss: 0.1358 - val_binary_accuracy: 0.9716
+Epoch 2/6
+A
+  1/954 [..............................] - ETA: 53:55 - loss: 0.0496 - binary_accur  2/954 [..............................] - ETA: 53:44 - loss: 0.0746 - binary_accuracy: 0.9831Z
+A
+Z
+A
+  3/954 [..............................] - ETA: 53:39 - loss: 0.1226 - binary_accur  4/954 [..............................] - ETA: 53:34 - loss: 0.1378 - binary_accuracy: 0.9594Z
+A
+Z
+A
+  5/954 [..............................] - ETA: 53:32 - loss: 0.1565 - binary_accur  6/954 [..............................] - ETA: 53:24 - loss: 0.1756 - binary_accuracy: 0.9472Z
+A
+  7/954 [..............................] - ETA: 53:21 - loss: 0.1883 - binary_accuracy: 0.9429Z
+A
+  8/954 [..............................] - ETA: 53:16 - loss: 0.1915 - binary_accur  9/954 [..............................] - ETA: 53:15 - loss: 0.1877 - binary_accuracy: 0.9423Traceback (most recent call last):
+  File "run_model_w_generator_cmd.py", line 194, in <module>
+    validation_steps = val_generator.steps_per_epoch() )
+  File "/home/kiran/anaconda3/envs/my_env/lib/python3.7/site-packages/keras/legacy/interfaces.py", line 91, in wrapper
+    return func(*args, **kwargs)
+  File "/home/kiran/anaconda3/envs/my_env/lib/python3.7/site-packages/keras/engine/training.py", line 1418, in fit_generator
+    initial_epoch=initial_epoch)
+  File "/home/kiran/anaconda3/envs/my_env/lib/python3.7/site-packages/keras/engine/training_generator.py", line 181, in fit_generator
+    generator_output = next(output_generator)
+StopIteration

@@ -1,0 +1,42 @@
+>>> RNN_model.fit_generator(train_generator, 
+...                         steps_per_epoch = train_generator.steps_per_epoch(),
+...                         epochs = epochs,
+...                         callbacks = [early_stopping, reduce_lr_plat],
+...                         shuffle = True,
+...                         validation_data = val_generator,
+...                         validation_steps = val_generator.steps_per_epoch() )
+
+
+
+
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/keras/legacy/interfaces.py", line 91, in wrapper
+    return func(*args, **kwargs)
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/keras/engine/training.py", line 1718, in fit_generator
+    return training_generator.fit_generator(
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/keras/engine/training_generator.py", line 42, in fit_generator
+    model._make_train_function()
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/keras/engine/training.py", line 314, in _make_train_function
+    training_updates = self.optimizer.get_updates(
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/keras/legacy/interfaces.py", line 91, in wrapper
+    return func(*args, **kwargs)
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/keras/backend/tensorflow_backend.py", line 75, in symbolic_fn_wrapper
+    return func(*args, **kwargs)
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/keras/optimizers.py", line 543, in get_updates
+    p_t = p - lr_t * m_t / (K.sqrt(v_t) + self.epsilon)
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/tensorflow/python/ops/math_ops.py", line 987, in binary_op_wrapper
+    y = ops.convert_to_tensor_v2(
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/tensorflow/python/framework/ops.py", line 1278, in convert_to_tensor_v2
+    return convert_to_tensor(
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/tensorflow/python/framework/ops.py", line 1341, in convert_to_tensor
+    ret = conversion_func(value, dtype=dtype, name=name, as_ref=as_ref)
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/tensorflow/python/framework/constant_op.py", line 321, in _constant_tensor_conversion_function
+    return constant(v, dtype=dtype, name=name)
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/tensorflow/python/framework/constant_op.py", line 261, in constant
+    return _constant_impl(value, dtype, shape, name, verify_shape=False,
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/tensorflow/python/framework/constant_op.py", line 298, in _constant_impl
+    tensor_util.make_tensor_proto(
+  File "/home/kiran/anaconda3/envs/tf1_env/lib/python3.8/site-packages/tensorflow/python/framework/tensor_util.py", line 439, in make_tensor_proto
+    raise ValueError("None values not supported.")
+ValueError: None values not supported.

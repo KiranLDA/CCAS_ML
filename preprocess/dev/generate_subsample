@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jun 30 21:32:39 2020
+
+@author: kiran
+"""
+
+save_spec_path = "/media/kiran/D0-P1/animal_data/meerkat/preprocessed/test_data/spectrograms"
+save_mat_path = "/media/kiran/D0-P1/animal_data/meerkat/preprocessed/test_data/label_matrix"
+
+
+import random
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import librosa
+
+# 
+# import postprocess.visualise_prediction_functions as pp
+
+# meerkat calltype options
+# ['_cc_' ,'_sn_' ,'_mo_' ,'_agg_','_ld_' ,'_soc_','_al_' ,'_beep_','_synch_','_oth', '_noise']
+
+#   Find a random spectrogram of a particular call type
+for calltype in ['_cc' ,'_sn' ,'_mo' ,'_agg','_ld' ,'_soc','_al' ,'_beep','_synch','_oth', '_noise']:
+        
+    filei = [i for i in os.listdir(save_spec_path)  if calltype in i] 
+    idxi = [filei.index(i) for i in filei]
+    
+    # select a random file
+    for x in range(10):
+        i= random.choice(idxi) 
+        spec_filename = filei[i]
+        
+        # Load the spectrogram
+        spec = np.asarray(np.load(os.path.join(save_spec_path, spec_filename)).T)
+        spec = spec[np.newaxis, ..., np.newaxis]  
+        
+        # predict using trained model
+        # pred = RNN_model.predict(spec)
+        
+        #Find matching label file and load it
+        label_filename = '_MAT_'.join(  spec_filename.split("_SPEC_"))
+        label = np.load(os.path.join(save_mat_path, label_filename))
+        
+        # save in different folder
+        np.save(os.path.join("/media/kiran/D0-P1/animal_data/meerkat/preprocessed/test_data/subset/spectrograms",spec_filename), spec)     
+        np.save(os.path.join("/media/kiran/D0-P1/animal_data/meerkat/preprocessed/test_data/subset/label_matrix",label_filename), label)                
+        # np.save(os.path.join(save_pred_test_path, save_mat_filename), pred.T) 
+    
+
+
