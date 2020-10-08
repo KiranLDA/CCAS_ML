@@ -14,7 +14,7 @@ Created on Tue Jun  9 12:37:12 2020
 
 # add path to local functions
 import sys
-sys.path.append("/home/kiran/Documents/github/meerkat-calltype-classifyer")
+sys.path.append("/home/kiran/Documents/github/CCAS_ML")
 
 # import own functions
 import preprocess.preprocess_functions as pre
