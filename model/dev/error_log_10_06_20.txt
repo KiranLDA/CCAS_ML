@@ -1,0 +1,67 @@
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+Z
+A
+949/949 [==============================] - 3982s 4s/step - loss: 0.1100 - binary_accuracy: 0.9711 - val_loss: 0.1439 - val_binary_accuracy: 0.9629
+Z
+A
+A
+Epoch 2/6
+A
+  1/949 [..............................] - ETA: 54:54 - loss: 0.0996 - binary_accur  2/949 [..............................] - ETA: 54:49 - loss: 0.0826 - binary_accur  3/949 [..............................] - ETA: 54:44 - loss: 0.0862 - binary_accuracy: 0.9793Z
+A
+Z
+A
+  4/949 [..............................] - ETA: 54:43 - loss: 0.0809 - binary_accur  5/949 [..............................] - ETA: 54:39 - loss: 0.0763 - binary_accur  6/949 [..............................] - ETA: 54:42 - loss: 0.0727 - binary_accuracy: 0.9835Z
+A
+Z
+A
+  7/949 [..............................] - ETA: 54:37 - loss: 0.0733 - binary_accur  8/949 [..............................] - ETA: 54:32 - loss: 0.0746 - binary_accur  9/949 [..............................] - ETA: 54:27 - loss: 0.0740 - binary_accuracy: 0.9832Traceback (most recent call last):
+  File "<stdin>", line 7, in <module>
+  File "/home/kiran/anaconda3/envs/my_env/lib/python3.7/site-packages/keras/legacy/interfaces.py", line 91, in wrapper
+    return func(*args, **kwargs)
+  File "/home/kiran/anaconda3/envs/my_env/lib/python3.7/site-packages/keras/engine/training.py", line 1418, in fit_generator
+    initial_epoch=initial_epoch)
+  File "/home/kiran/anaconda3/envs/my_env/lib/python3.7/site-packages/keras/engine/training_generator.py", line 181, in fit_generator
+    generator_output = next(output_generator)
+StopIteration
+>>> 
+>>> 
+>>> date_time = datetime.datetime.now()
+>>> 
+>>> date_now = str(date_time.date())
+>>> 
+>>> time_now = str(date_time.time())
+>>> 
+>>> sf = "/media/kiran/D0-P1/animal_data/meerkat/saved_models/model_test_" + date_now + "_" + time_now
+>>> 
+>>> if not os.path.isdir(sf):
+...         os.makedirs(sf)
+... 
+>>> RNN_model.save(sf + '/savedmodel' + '.h5')
+Z
+Z
+>>> 

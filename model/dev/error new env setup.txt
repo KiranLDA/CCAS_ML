@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  
+  File "run_model_w_generator_cmd.py", line 135, in <module>
+    x_train, y_train = next(train_generator)
+  
+  File "/home/kiran/Documents/github/meerkat-calltype-classifyer/model/batch_generator.py", line 42, in __next__
+    spectros = np.expand_dims(np.asarray(spectros),4)
+  
+  File "<__array_function__ internals>", line 6, in expand_dims
+  
+  File "/home/kiran/anaconda3/envs/tf15_env/lib/python3.7/site-packages/numpy/lib/shape_base.py", line 597, in expand_dims
+    axis = normalize_axis_tuple(axis, out_ndim)
+  
+  File "/home/kiran/anaconda3/envs/tf15_env/lib/python3.7/site-packages/numpy/core/numeric.py", line 1327, in normalize_axis_tuple
+    axis = tuple([normalize_axis_index(ax, ndim, argname) for ax in axis])
+  
+  File "/home/kiran/anaconda3/envs/tf15_env/lib/python3.7/site-packages/numpy/core/numeric.py", line 1327, in <listcomp>
+    axis = tuple([normalize_axis_index(ax, ndim, argname) for ax in axis])
+numpy.AxisError: axis 4 is out of bounds for array of dimension 4

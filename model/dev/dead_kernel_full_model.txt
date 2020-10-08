@@ -1,0 +1,351 @@
+iteration:  6784
+iteration:  6848
+iteration:  6912
+iteration:  6976
+iteration:  7040
+iteration:  7104
+iteration:  7168
+iteration:  7232
+iteration:  7296
+iteration:  7360
+iteration:  7424
+iteration:  7488
+iteration:  7552
+iteration:  7616
+iteration:  7680
+iteration:  7744
+iteration:  7808
+iteration:  7872
+iteration:  7936
+iteration:  8000
+iteration:  8064
+iteration:  8128
+iteration:  8192
+iteration:  8256
+iteration:  8320
+iteration:  8384
+iteration:  8448
+iteration:  8512
+iteration:  8576
+iteration:  8640
+iteration:  8704
+iteration:  8768
+iteration:  8832
+iteration:  8896
+iteration:  8960
+iteration:  9024
+iteration:  9088
+iteration:  9152
+iteration:  9216
+iteration:  9280
+iteration:  9344
+iteration:  9408
+iteration:  9472
+iteration:  9536
+iteration:  9600
+iteration:  9664
+iteration:  9728
+iteration:  9792
+iteration:  9856
+iteration:  9920
+iteration:  9984
+iteration:  10048
+iteration:  10112
+iteration:  10176
+iteration:  10240
+iteration:  10304
+iteration:  10368
+iteration:  10432
+iteration:  10496
+iteration:  10560
+iteration:  10624
+iteration:  10688
+iteration:  10752
+iteration:  10816
+iteration:  10880
+iteration:  10944
+iteration:  11008
+iteration:  11072
+iteration:  11136
+iteration:  11200
+iteration:  11264
+iteration:  11328
+iteration:  11392
+iteration:  11456
+iteration:  11520
+iteration:  11584
+iteration:  11648
+iteration:  11712
+iteration:  11776
+iteration:  11840
+iteration:  11904
+iteration:  11968
+iteration:  12032
+iteration:  12096
+iteration:  12160
+iteration:  12224
+iteration:  12288
+iteration:  12352
+iteration:  12416
+iteration:  12480
+iteration:  12544
+iteration:  12608
+iteration:  12672
+iteration:  12736
+iteration:  12800
+iteration:  12864
+iteration:  12928
+iteration:  12992
+iteration:  13056
+iteration:  13120
+iteration:  13184
+iteration:  13248
+iteration:  13312
+iteration:  13376
+iteration:  13440
+iteration:  13504
+iteration:  13568
+iteration:  13632
+iteration:  13696
+iteration:  13760
+iteration:  13824
+iteration:  13888
+iteration:  13952
+iteration:  14016
+iteration:  14080
+iteration:  14144
+iteration:  14208
+iteration:  14272
+iteration:  14336
+iteration:  14400
+iteration:  14464
+iteration:  14528
+iteration:  14592
+iteration:  14656
+iteration:  14720
+iteration:  14784
+iteration:  14848
+iteration:  14912
+iteration:  14976
+iteration:  15040
+iteration:  15104
+iteration:  15168
+iteration:  15232
+iteration:  15296
+iteration:  15360
+iteration:  15424
+iteration:  15488
+iteration:  15552
+iteration:  15616
+iteration:  15680
+iteration:  15744
+iteration:  15808
+iteration:  15872
+iteration:  15936
+iteration:  16000
+iteration:  16064
+iteration:  16128
+iteration:  16192
+iteration:  16256
+iteration:  16320
+iteration:  16384
+iteration:  16448
+iteration:  16512
+iteration:  16576
+iteration:  16640
+iteration:  16704
+iteration:  16768
+iteration:  16832
+iteration:  16896
+iteration:  16960
+iteration:  17024
+iteration:  17088
+iteration:  17152
+iteration:  17216
+iteration:  17280
+iteration:  17344
+iteration:  17408
+iteration:  17472
+iteration:  17536
+iteration:  17600
+iteration:  17664
+iteration:  17728
+iteration:  17792
+iteration:  17856
+iteration:  17920
+iteration:  17984
+iteration:  0
+1029/1029 [==============================] - 3928s 4s/step - loss: 0.1129 - binary_accuracy: 0.9697 - val_loss: 0.1591 - val_binary_accuracy: 0.9091
+Epoch 2/16
+iteration:  768
+   1/1029 [..............................] - ETA: 57:26 - loss: 0.0974 - binary_accuracy: 0.9748iteration:  64
+   2/1029 [..............................] - ETA: 57:21 - loss: 0.1356 - binary_accuracy: 0.9581iteration:  832
+   3/1029 [..............................] - ETA: 57:26 - loss: 0.1347 - binary_acc   4/1029 [..............................] - ETA: 57:20 - loss: 0.1283 - binary_accuracy: 0.9614iteration:  128
+   5/1029 [..............................] - ETA: 57:18 - loss: 0.1238 - binary_accuracy: 0.9640iteration:  896
+   6/1029 [..............................] - ETA: 57:21 - loss: 0.1225 - binary_accuracy: 0.9653iteration:  192
+   7/1029 [..............................] - ETA: 57:20 - loss: 0.1230 - binary_accuracy: 0.9652iteration:  960
+   8/1029 [..............................] - ETA: 57:15 - loss: 0.1187 - binary_acc   9/1029 [..............................] - ETA: 57:09 - loss: 0.1161 - binary_accuracy: 0.9682iteration:  256
+  10/1029 [..............................] - ETA: 57:06 - loss: 0.1139 - binary_accuracy: 0.9692iteration:  1024
+  11/1029 [..............................] - ETA: 57:03 - loss: 0.1131 - binary_accuracy: 0.9695iteration:  320
+  12/1029 [..............................] - ETA: 57:01 - loss: 0.1119 - binary_accuracy: 0.9701iteration:  1088
+  13/1029 [..............................] - ETA: 56:57 - loss: 0.1117 - binary_accuracy: 0.9701iteration:  384
+  14/1029 [..............................] - ETA: 56:54 - loss: 0.1101 - binary_accuracy: 0.9706iteration:  1152
+  15/1029 [..............................] - ETA: 56:51 - loss: 0.1080 - binary_acc  16/1029 [..............................] - ETA: 56:45 - loss: 0.1069 - binary_accuracy: 0.9720iteration:  448
+  17/1029 [..............................] - ETA: 56:44 - loss: 0.1051 - binary_accuracy: 0.9727iteration:  1216
+  18/1029 [..............................] - ETA: 57:34 - loss: 0.1038 - binary_accuracy: 0.9732iteration:  512
+iteration:  1280
+  19/1029 [..............................] - ETA: 1:02:07 - loss: 0.1040 - binary_accuracy: 0.9730iteration:  576
+iteration:  1344
+  20/1029 [..............................] - ETA: 1:06:43 - loss: 0.1034 - binary_accuracy: 0.9732iteration:  640
+iteration:  1408
+  21/1029 [..............................] - ETA: 1:10:31 - loss: 0.1056 - binary_accuracy: 0.9724iteration:  1472
+iteration:  1536
+iteration:  1600
+  22/1029 [..............................] - ETA: 1:12:07 - loss: 0.1064 - binary_accuracy: 0.9721iteration:  1664
+iteration:  1728
+  23/1029 [..............................] - ETA: 1:11:25 - loss: 0.1052 - binary_accuracy: 0.9724iteration:  1792
+iteration:  1856
+  24/1029 [..............................] - ETA: 1:10:46 - loss: 0.1042 - binary_accuracy: 0.9727iteration:  1920
+iteration:  1984
+iteration:  2048
+  25/1029 [..............................] - ETA: 1:10:10 - loss: 0.1045 - binary_accuracy: 0.9726iteration:  2112
+iteration:  2176
+  26/1029 [..............................] - ETA: 1:09:36 - loss: 0.1047 - binary_accuracy: 0.9726iteration:  2240
+iteration:  2304
+  27/1029 [..............................] - ETA: 1:09:05 - loss: 0.1041 - binary_accuracy: 0.9728iteration:  2368
+iteration:  2432
+iteration:  2496
+  28/1029 [..............................] - ETA: 1:08:36 - loss: 0.1044 - binary_accuracy: 0.9728iteration:  2560
+  29/1029 [..............................] - ETA: 1:08:08 - loss: 0.1058 - binary_accuracy: 0.9725iteration:  2624
+  30/1029 [..............................] - ETA: 1:07:40 - loss: 0.1085 - binary_accuracy: 0.9717iteration:  2688
+  31/1029 [..............................] - ETA: 1:07:14 - loss: 0.1098 - binary_accuracy: 0.9714iteration:  2752
+  32/1029 [..............................] - ETA: 1:06:49 - loss: 0.1117 - binary_accuracy: 0.9708iteration:  2816
+  33/1029 [..............................] - ETA: 1:06:25 - loss: 0.1139 - binary_accuracy: 0.9700iteration:  2880
+  34/1029 [..............................] - ETA: 1:06:02 - loss: 0.1135 - binary_accuracy: 0.9701iteration:  2944
+  35/1029 [>.............................] - ETA: 1:05:41 - loss: 0.1135 - binary_accuracy: 0.9701iteration:  3008
+  36/1029 [>.............................] - ETA: 1:05:20 - loss: 0.1127 - binary_accuracy: 0.9703iteration:  3072
+  37/1029 [>.............................] - ETA: 1:05:02 - loss: 0.1123 - binary_accuracy: 0.9705iteration:  3136
+  38/1029 [>.............................] - ETA: 1:04:43 - loss: 0.1114 - binary_accuracy: 0.9708iteration:  3200
+  39/1029 [>.............................] - ETA: 1:04:25 - loss: 0.1115 - binary_accuracy: 0.9707iteration:  3264
+  40/1029 [>.............................] - ETA: 1:04:08 - loss: 0.1116 - binary_accuracy: 0.9706iteration:  3328
+  41/1029 [>.............................] - ETA: 1:03:51 - loss: 0.1117 - binary_accuracy: 0.9705iteration:  3392
+  42/1029 [>.............................] - ETA: 1:03:36 - loss: 0.1120 - binary_accuracy: 0.9704iteration:  3456
+  43/1029 [>.............................] - ETA: 1:03:21 - loss: 0.1117 - binary_accuracy: 0.9705iteration:  3520
+  44/1029 [>.............................] - ETA: 1:03:06 - loss: 0.1120 - binary_accuracy: 0.9704iteration:  3584
+  45/1029 [>.............................] - ETA: 1:02:52 - loss: 0.1131 - binary_accuracy: 0.9699iteration:  3648
+  46/1029 [>.............................] - ETA: 1:02:39 - loss: 0.1128 - binary_accuracy: 0.9700iteration:  3712
+  47/1029 [>.............................] - ETA: 1:02:26 - loss: 0.1130 - binary_accuracy: 0.9699iteration:  3776
+  48/1029 [>.............................] - ETA: 1:02:12 - loss: 0.1127 - binary_accuracy: 0.9700iteration:  3840
+  49/1029 [>.............................] - ETA: 1:02:00 - loss: 0.1125 - binary_accuracy: 0.9700iteration:  3904
+  50/1029 [>.............................] - ETA: 1:01:47 - loss: 0.1115 - binary_accuracy: 0.9705iteration:  3968
+  51/1029 [>.............................] - ETA: 1:01:36 - loss: 0.1108 - binary_accuracy: 0.9707iteration:  4032
+  52/1029 [>.............................] - ETA: 1:01:24 - loss: 0.1101 - binary_accuracy: 0.9709iteration:  4096
+  53/1029 [>.............................] - ETA: 1:01:13 - loss: 0.1092 - binary_accuracy: 0.9713iteration:  4160
+  54/1029 [>.............................] - ETA: 1:01:02 - loss: 0.1082 - binary_accuracy: 0.9716iteration:  4224
+  55/1029 [>.............................] - ETA: 1:00:51 - loss: 0.1074 - binary_accuracy: 0.9719iteration:  4288
+  56/1029 [>.............................] - ETA: 1:00:41 - loss: 0.1064 - binary_accuracy: 0.9722iteration:  4352
+  57/1029 [>.............................] - ETA: 1:00:31 - loss: 0.1054 - binary_accuracy: 0.9726iteration:  4416
+  58/1029 [>.............................] - ETA: 1:00:21 - loss: 0.1045 - binary_accuracy: 0.9728iteration:  4480
+  59/1029 [>.............................] - ETA: 1:00:11 - loss: 0.1036 - binary_accuracy: 0.9731iteration:  4544
+  60/1029 [>.............................] - ETA: 1:00:02 - loss: 0.1026 - binary_accuracy: 0.9734iteration:  4608
+  61/1029 [>.............................] - ETA: 59:53 - loss: 0.1016 - binary_accuracy: 0.9737  iteration:  4672
+  62/1029 [>.............................] - ETA: 59:43 - loss: 0.1008 - binary_accuracy: 0.9740iteration:  4736
+  63/1029 [>.............................] - ETA: 59:34 - loss: 0.1001 - binary_accuracy: 0.9742iteration:  4800
+  64/1029 [>.............................] - ETA: 59:26 - loss: 0.0992 - binary_accuracy: 0.9745iteration:  4864
+  65/1029 [>.............................] - ETA: 59:17 - loss: 0.0991 - binary_accuracy: 0.9745iteration:  4928
+  66/1029 [>.............................] - ETA: 59:09 - loss: 0.0983 - binary_accuracy: 0.9748iteration:  4992
+  67/1029 [>.............................] - ETA: 59:00 - loss: 0.0994 - binary_accuracy: 0.9746iteration:  5056
+  68/1029 [>.............................] - ETA: 58:52 - loss: 0.1030 - binary_accuracy: 0.9738iteration:  5120
+  69/1029 [=>............................] - ETA: 58:44 - loss: 0.1030 - binary_accuracy: 0.9738iteration:  5184
+  70/1029 [=>............................] - ETA: 58:37 - loss: 0.1039 - binary_accuracy: 0.9736iteration:  5248
+  71/1029 [=>............................] - ETA: 58:29 - loss: 0.1077 - binary_accuracy: 0.9728iteration:  5312
+  72/1029 [=>............................] - ETA: 58:21 - loss: 0.1119 - binary_accuracy: 0.9717iteration:  5376
+  73/1029 [=>............................] - ETA: 58:14 - loss: 0.1153 - binary_accuracy: 0.9706iteration:  5440
+  74/1029 [=>............................] - ETA: 58:07 - loss: 0.1177 - binary_accuracy: 0.9697iteration:  5504
+  75/1029 [=>............................] - ETA: 57:59 - loss: 0.1197 - binary_accuracy: 0.9688iteration:  5568
+  76/1029 [=>............................] - ETA: 57:52 - loss: 0.1217 - binary_accuracy: 0.9678iteration:  5632
+  77/1029 [=>............................] - ETA: 57:45 - loss: 0.1221 - binary_accuracy: 0.9676iteration:  5696
+  78/1029 [=>............................] - ETA: 57:38 - loss: 0.1223 - binary_accuracy: 0.9675iteration:  5760
+  79/1029 [=>............................] - ETA: 57:31 - loss: 0.1226 - binary_accuracy: 0.9672iteration:  5824
+  80/1029 [=>............................] - ETA: 57:24 - loss: 0.1233 - binary_accuracy: 0.9667iteration:  5888
+  81/1029 [=>............................] - ETA: 57:17 - loss: 0.1237 - binary_accuracy: 0.9661iteration:  5952
+  82/1029 [=>............................] - ETA: 57:11 - loss: 0.1243 - binary_accuracy: 0.9656iteration:  6016
+  83/1029 [=>............................] - ETA: 57:05 - loss: 0.1246 - binary_accuracy: 0.9650iteration:  6080
+  84/1029 [=>............................] - ETA: 56:58 - loss: 0.1255 - binary_accuracy: 0.9643iteration:  6144
+  85/1029 [=>............................] - ETA: 56:52 - loss: 0.1265 - binary_accuracy: 0.9637iteration:  6208
+  86/1029 [=>............................] - ETA: 56:45 - loss: 0.1270 - binary_accuracy: 0.9631iteration:  6272
+  87/1029 [=>............................] - ETA: 56:39 - loss: 0.1272 - binary_accuracy: 0.9626iteration:  6336
+  88/1029 [=>............................] - ETA: 56:33 - loss: 0.1274 - binary_accuracy: 0.9621iteration:  6400
+  89/1029 [=>............................] - ETA: 56:26 - loss: 0.1278 - binary_accuracy: 0.9617iteration:  6464
+  90/1029 [=>............................] - ETA: 56:20 - loss: 0.1280 - binary_accuracy: 0.9612iteration:  6528
+  91/1029 [=>............................] - ETA: 56:14 - loss: 0.1283 - binary_accuracy: 0.9610iteration:  6592
+  92/1029 [=>............................] - ETA: 56:08 - loss: 0.1285 - binary_accuracy: 0.9607iteration:  6656
+  93/1029 [=>............................] - ETA: 56:02 - loss: 0.1291 - binary_accuracy: 0.9603iteration:  6720
+  94/1029 [=>............................] - ETA: 55:56 - loss: 0.1293 - binary_accuracy: 0.9602iteration:  6784
+  95/1029 [=>............................] - ETA: 55:51 - loss: 0.1295 - binary_accuracy: 0.9602iteration:  6848
+  96/1029 [=>............................] - ETA: 55:45 - loss: 0.1294 - binary_accuracy: 0.9602iteration:  6912
+  97/1029 [=>............................] - ETA: 55:39 - loss: 0.1296 - binary_accuracy: 0.9602iteration:  6976
+  98/1029 [=>............................] - ETA: 55:34 - loss: 0.1299 - binary_accuracy: 0.9600iteration:  7040
+  99/1029 [=>............................] - ETA: 55:28 - loss: 0.1303 - binary_accuracy: 0.9599iteration:  7104
+ 100/1029 [=>............................] - ETA: 55:23 - loss: 0.1305 - binary_accuracy: 0.9599iteration:  7168
+ 101/1029 [=>............................] - ETA: 55:18 - loss: 0.1323 - binary_accuracy: 0.9592iteration:  7232
+ 102/1029 [=>............................] - ETA: 55:12 - loss: 0.1336 - binary_accuracy: 0.9588iteration:  7296
+ 103/1029 [==>...........................] - ETA: 55:06 - loss: 0.1335 - binary_accuracy: 0.9589iteration:  7360
+ 104/1029 [==>...........................] - ETA: 55:01 - loss: 0.1340 - binary_accuracy: 0.9589iteration:  7424
+ 105/1029 [==>...........................] - ETA: 54:56 - loss: 0.1346 - binary_accuracy: 0.9589iteration:  7488
+ 106/1029 [==>...........................] - ETA: 54:50 - loss: 0.1346 - binary_accuracy: 0.9591iteration:  7552
+ 107/1029 [==>...........................] - ETA: 54:45 - loss: 0.1344 - binary_accuracy: 0.9593iteration:  7616
+ 108/1029 [==>...........................] - ETA: 54:40 - loss: 0.1342 - binary_accuracy: 0.9595iteration:  7680
+ 109/1029 [==>...........................] - ETA: 54:35 - loss: 0.1342 - binary_accuracy: 0.9595iteration:  7744
+ 110/1029 [==>...........................] - ETA: 54:30 - loss: 0.1345 - binary_accuracy: 0.9593iteration:  7808
+ 111/1029 [==>...........................] - ETA: 54:25 - loss: 0.1344 - binary_accuracy: 0.9594iteration:  7872
+ 112/1029 [==>...........................] - ETA: 54:19 - loss: 0.1347 - binary_accuracy: 0.9593iteration:  7936
+ 113/1029 [==>...........................] - ETA: 54:14 - loss: 0.1353 - binary_accuracy: 0.9590iteration:  8000
+ 114/1029 [==>...........................] - ETA: 54:09 - loss: 0.1355 - binary_accuracy: 0.9590iteration:  8064
+ 115/1029 [==>...........................] - ETA: 54:04 - loss: 0.1356 - binary_accuracy: 0.9591iteration:  8128
+ 116/1029 [==>...........................] - ETA: 53:59 - loss: 0.1358 - binary_accuracy: 0.9590iteration:  8192
+ 117/1029 [==>...........................] - ETA: 53:55 - loss: 0.1357 - binary_accuracy: 0.9590iteration:  8256
+ 118/1029 [==>...........................] - ETA: 53:50 - loss: 0.1359 - binary_accuracy: 0.9589iteration:  8320
+ 119/1029 [==>...........................] - ETA: 53:45 - loss: 0.1361 - binary_accuracy: 0.9587iteration:  8384
+ 120/1029 [==>...........................] - ETA: 53:40 - loss: 0.1366 - binary_accuracy: 0.9586iteration:  8448
+ 121/1029 [==>...........................] - ETA: 53:35 - loss: 0.1368 - binary_accuracy: 0.9585iteration:  8512
+ 122/1029 [==>...........................] - ETA: 53:30 - loss: 0.1368 - binary_accuracy: 0.9585iteration:  8576
+ 123/1029 [==>...........................] - ETA: 53:26 - loss: 0.1368 - binary_accuracy: 0.9585iteration:  8640
+ 124/1029 [==>...........................] - ETA: 53:21 - loss: 0.1368 - binary_accuracy: 0.9586iteration:  8704
+ 125/1029 [==>...........................] - ETA: 53:16 - loss: 0.1367 - binary_accuracy: 0.9586iteration:  8768
+ 126/1029 [==>...........................] - ETA: 53:11 - loss: 0.1372 - binary_accuracy: 0.9584iteration:  8832
+ 127/1029 [==>...........................] - ETA: 53:07 - loss: 0.1373 - binary_accuracy: 0.9583iteration:  8896
+ 128/1029 [==>...........................] - ETA: 53:02 - loss: 0.1372 - binary_accuracy: 0.9584iteration:  8960
+ 129/1029 [==>...........................] - ETA: 52:57 - loss: 0.1371 - binary_accuracy: 0.9584iteration:  9024
+ 130/1029 [==>...........................] - ETA: 52:53 - loss: 0.1374 - binary_accuracy: 0.9582iteration:  9088
+ 131/1029 [==>...........................] - ETA: 52:48 - loss: 0.1379 - binary_accuracy: 0.9579iteration:  9152
+ 132/1029 [==>...........................] - ETA: 52:44 - loss: 0.1383 - binary_accuracy: 0.9577iteration:  9216
+ 133/1029 [==>...........................] - ETA: 52:39 - loss: 0.1383 - binary_accuracy: 0.9577iteration:  9280
+ 134/1029 [==>...........................] - ETA: 52:34 - loss: 0.1382 - binary_accuracy: 0.9577iteration:  9344
+ 135/1029 [==>...........................] - ETA: 52:30 - loss: 0.1381 - binary_accuracy: 0.9578iteration:  9408
+ 136/1029 [==>...........................] - ETA: 52:25 - loss: 0.1380 - binary_accuracy: 0.9579iteration:  9472
+ 137/1029 [==>...........................] - ETA: 52:21 - loss: 0.1379 - binary_accuracy: 0.9579iteration:  9536
+ 138/1029 [===>..........................] - ETA: 52:16 - loss: 0.1378 - binary_accuracy: 0.9580iteration:  9600
+ 139/1029 [===>..........................] - ETA: 52:12 - loss: 0.1377 - binary_accuracy: 0.9580iteration:  9664
+ 140/1029 [===>..........................] - ETA: 52:07 - loss: 0.1376 - binary_accuracy: 0.9581iteration:  9728
+ 141/1029 [===>..........................] - ETA: 52:03 - loss: 0.1376 - binary_accuracy: 0.9581iteration:  9792
+ 142/1029 [===>..........................] - ETA: 51:58 - loss: 0.1379 - binary_accuracy: 0.9579iteration:  9856
+ 143/1029 [===>..........................] - ETA: 51:56 - loss: 0.1381 - binary_accuracy: 0.9578iteration:  9920
+ 144/1029 [===>..........................] - ETA: 51:52 - loss: 0.1380 - binary_accuracy: 0.9579iteration:  9984
+ 145/1029 [===>..........................] - ETA: 51:47 - loss: 0.1378 - binary_accuracy: 0.9580iteration:  10048
+ 146/1029 [===>..........................] - ETA: 51:43 - loss: 0.1378 - binary_accuracy: 0.9580iteration:  10112
+ 147/1029 [===>..........................] - ETA: 51:39 - loss: 0.1376 - binary_accuracy: 0.9581iteration:  10176
+ 148/1029 [===>..........................] - ETA: 51:34 - loss: 0.1374 - binary_accuracy: 0.9582iteration:  10240
+ 149/1029 [===>..........................] - ETA: 51:30 - loss: 0.1370 - binary_accuracy: 0.9583iteration:  10304
+ 150/1029 [===>..........................] - ETA: 51:25 - loss: 0.1367 - binary_accuracy: 0.9585iteration:  10368
+ 151/1029 [===>..........................] - ETA: 51:21 - loss: 0.1364 - binary_accuracy: 0.9586iteration:  10432
+ 152/1029 [===>..........................] - ETA: 51:17 - loss: 0.1360 - binary_accuracy: 0.9588iteration:  10496
+ 153/1029 [===>..........................] - ETA: 51:13 - loss: 0.1361 - binary_accuracy: 0.9587iteration:  10560
+ 154/1029 [===>..........................] - ETA: 51:09 - loss: 0.1359 - binary_accuracy: 0.9588iteration:  10624
+ 155/1029 [===>..........................] - ETA: 51:04 - loss: 0.1359 - binary_accuracy: 0.9588iteration:  10688
+ 156/1029 [===>..........................] - ETA: 51:00 - loss: 0.1356 - binary_accuracy: 0.9590iteration:  10752
+ 157/1029 [===>..........................] - ETA: 50:57 - loss: 0.1354 - binary_accuracy: 0.9591iteration:  10816
+ 158/1029 [===>..........................] - ETA: 50:53 - loss: 0.1351 - binary_accuracy: 0.9592iteration:  10880
+ 159/1029 [===>..........................] - ETA: 50:50 - loss: 0.1347 - binary_accuracy: 0.9593iteration:  10944
+Killed
+(my_env) kiran@cl-ubu01:~/Documents/github/meerkat-calltype-classifyer/model$ 

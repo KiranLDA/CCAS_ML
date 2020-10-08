@@ -1,0 +1,34 @@
+# how to create a conda env with specific version of tf and py
+conda create --name tf_env tensorflow-gpu=1.9 python=3.7 seaborn matplotlib pandas numpy librosa
+
+conda create --name tf15_env tensorflow-gpu=1.15 python=3.7 
+conda activate tf15_env
+conda install seaborn matplotlib pandas
+pip install librosa
+conda install -c conda-forge keras
+python run_model_w_generator_cmd.py
+
+
+conda create --name tf115_env tensorflow-gpu=1.15 python=3.7 keras=2.2.4
+conda activate tf115_env
+conda install seaborn matplotlib pandas
+pip install librosa
+python run_model_w_generator_cmd.py
+
+
+
+
+conda env remove -n ML1_env
+
+conda create --name ML1_env tensorflow-gpu=1.15 python=3.7 keras=2.2.4 numpy=1.17.4
+conda activate ML1_env
+conda install seaborn matplotlib pandas
+conda install -c conda-forge librosa=0.7.1
+conda install spyder=4.1.3
+
+python run_model_w_generator_cmd.py
+
+
+conda install -c numba numba
+#pip install librosa=0.7.1
+
