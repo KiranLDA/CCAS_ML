@@ -10,6 +10,7 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 tf.Session(config=config)
 # newer version
+# another comment
 
 class Evaluate:
     def __init__(self, label_list, prediction_list, noise_label = "noise", IoU_threshold = 0.5, gap_threshold = 5, high_thresh = "", call_analysis = "normal"):
