@@ -22,6 +22,8 @@ import postprocess.evaluation_metrics_functions as metrics
 import postprocess.merge_predictions_functions as ppm
 import model.batch_generator as bg
 import postprocess.visualise_prediction_functions as pp
+from model.callback_functions import LossHistory
+
 
 # 
 import numpy as np
@@ -49,7 +51,7 @@ from keras.layers import Reshape, Permute
 from keras.layers import TimeDistributed, Dense, Dropout, BatchNormalization
 from keras.models import load_model
 from keras.layers import GRU, Bidirectional, GlobalAveragePooling2D
-
+from keras.callbacks import TensorBoard
 
 # postprocessfrom decimal import Decimal
 from decimal import Decimal
@@ -63,7 +65,7 @@ import pickle
 #----------------------------------------------------------------------------------
 
 other_ignored_in_training = True
-run_name = "NoiseAugmented_NoOther"
+run_name = "NoiseAugmented_ProportionallyWeighted_NoOther"
 
 #------------------
 # File paths
@@ -91,6 +93,8 @@ if not os.path.isdir(save_data_path):
 train_path = os.path.join(save_data_path,'train_data')
 if not os.path.isdir(train_path):
         os.makedirs(train_path)
+
+# train_path = "/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/train_data"
         
 save_spec_train_path = os.path.join(train_path , "spectrograms")
 if not os.path.isdir(save_spec_train_path):
@@ -146,6 +150,9 @@ if not os.path.isdir(save_model_path):
         os.makedirs(save_model_path)
         
 
+save_tensorboard_path = os.path.join(save_model_path, 'tensorboard_logs')
+if not os.path.isdir(save_tensorboard_path):
+    os.makedirs(save_tensorboard_path)      
 
 #------------------
 # rolling window parameters
@@ -581,6 +588,7 @@ for calli in calls:
 #give greatest weight to classes that are rarely seen
 max_call = max([(value, key) for key, value in call_count.items()])[0]
 weight_dict = call_count
+weight_dict[label_for_other] = 1
 for i in weight_dict:
     # weight_dict[i] = float(1-(weight_dict[i]/max_call))
     weight_dict[i] = float(max_call/weight_dict[i])
@@ -608,7 +616,7 @@ for i in x_val_filelist:
 
 # sys.path.append("/home/kiran/Documents/github/meerkat-calltype-classifyer/")
 batch = 32
-epochs = 16 #16
+epochs = 100#16 #16
 
 train_generator = bg.Weighted_Batch_Generator(x_train_filelist, y_train_filelist, train_weights_list, batch, True)
 val_generator = bg.Weighted_Batch_Generator(x_val_filelist, y_val_filelist, val_weights_list, batch, True)
@@ -717,15 +725,26 @@ adam = optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=
 # Compile the model
 RNN_model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['binary_accuracy'])
 
-# learning rate / loss
+# Setup callbycks: learning rate / loss /tensorboard
 early_stopping = EarlyStopping(monitor='val_loss', patience=100, restore_best_weights=True, verbose=1)
 reduce_lr_plat = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=25, verbose=1,
                                    mode='auto', min_delta=0.0001, cooldown=0, min_lr=0.000001)
+loss = LossHistory()
+
+#tensorboard
+tensorboard = TensorBoard(# Write to logs directory, e.g. logs/30Oct-05:00
+                          log_dir = save_tensorboard_path, #"/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/trained_model/tensorboard_logs", #"logs/{}".format(time.strftime('%d%b-%H%M')),        
+                          histogram_freq=0,
+                          write_graph=True,  # Show the network
+                          write_grads=True   # Show gradients
+                          )    
+
+
 # fit model
 RNN_model.fit_generator(train_generator, 
                         steps_per_epoch = train_generator.steps_per_epoch(),
                         epochs = epochs,
-                        callbacks = [early_stopping, reduce_lr_plat],
+                        callbacks = [early_stopping, reduce_lr_plat, loss, tensorboard],
                         # class_weight = weight_dict,
                         validation_data = val_generator,
                         validation_steps = val_generator.steps_per_epoch())
@@ -938,10 +957,10 @@ for file_ID in testing_filenames:
                 for row in pred_list:
                     f.write(str(row) +"\n")
                 
-        # for low_thr in [0.1,0.3]:
-        #     for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
-        for low_thr in [0.1]:
-            for high_thr in [0.2,0.3,0.4]: 
+        for low_thr in [0.2]:#[0.1,0.3]:
+            for high_thr in [0.5,0.7,0.9]: #[0.5,0.7,0.8,0.9,0.95]: 
+        # for low_thr in [0.1]:
+        #     for high_thr in [0.2,0.3,0.4]: 
                 
                 low_thr = round(low_thr,2)                               
                 high_thr = round(high_thr,2)
@@ -1032,6 +1051,14 @@ with open(os.path.join(save_model_path, "skipped_testing_files.txt"), "w") as f:
     for s in skipped_files:
         f.write(str(s) +"\n")
        
+##############################################################################################
+#Loop through tables and remove duplicates of rows (bevause files are created through appending)
+pred_tables = glob.glob(save_pred_table_test_path+ "/*PRED_TABLE*.txt")
+for file in pred_tables:
+    df = pd.read_csv(file, delimiter=';') 
+    # df = df.drop_duplicates(keep=False)
+    df = df[df['Label'] != 'Label']
+    df.to_csv(file, header=True, index=None, sep=';', mode = 'w')
 
 
 ##############################################################################################
@@ -1047,10 +1074,12 @@ with open(os.path.join(save_model_path, "skipped_testing_files.txt"), "w") as f:
 # skipped = [os.path.split(path)[1] for path in skipped_files]
 file_ID_list = [file_ID for file_ID in testing_filenames if file_ID not in skipped_files]
 label_list =  [os.path.join(save_label_table_test_path,file_ID + "_LABEL_TABLE.txt" ) for file_ID in file_ID_list]
+for low_thr in [0.2]:#[0.1,0.3]:
+    for high_thr in [0.5,0.7,0.9]: #[0.5,0.7,0.8,0.9,0.95]: 
 # for low_thr in [0.1,0.3]:
 #     for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
-for low_thr in [0.1]:
-    for high_thr in [0.2,0.3,0.4]: 
+# for low_thr in [0.1]:
+#     for high_thr in [0.2,0.3,0.4]: 
         
         low_thr = round(low_thr,2)                               
         high_thr = round(high_thr,2) 
@@ -1095,8 +1124,10 @@ import csv
 import math
 
 
-for low_thr in [0.1,0.3]:
-    for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
+# for low_thr in [0.1,0.3]:
+#     for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
+for low_thr in [0.2]:#[0.1,0.3]:
+    for high_thr in [0.5,0.7,0.9]: #[0.5,0.7,0.8,0.9,0.95]: 
         
         low_thr = round(low_thr,2)                               
         high_thr = round(high_thr,2) 
@@ -1116,26 +1147,22 @@ for low_thr in [0.1,0.3]:
         df_cm.index.name= None
         df_cm.columns.name= None
         
-        # replace FP and FN with noise
-        df_cm['noise'] = df_cm['FN'] 
-        df_cm.loc['noise']=df_cm.loc['FP']
+        # # replace FP and FN with noise
+        # df_cm['noise'] = df_cm['FN'] 
+        # df_cm.loc['noise']=df_cm.loc['FP']
         
-        # remove FP and FN
-        df_cm = df_cm.drop("FN", axis=1)
-        df_cm = df_cm.drop("FP", axis=0)
+        # # remove FP and FN
+        # df_cm = df_cm.drop("FN", axis=1)
+        # df_cm = df_cm.drop("FP", axis=0)
+        ####
         
         # #move last negatives to end
         # col_name = "FN"
         # last_col = df_cm.pop(col_name)
         # df_cm.insert(df_cm.shape[1], col_name, last_col)
         
-        # # remove noise
-        # df_cm = df_cm.drop("noise", axis=1)
-        # df_cm = df_cm.drop("noise", axis=0)
-       
-       
-        #make sure it is a float
-        df_cm = df_cm.astype(float)
+        # # remove noi        for low_thr in [0.1,0.3]:
+            # for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
         
         #normalise the confusion matrix
         if normalise == True:

@@ -167,6 +167,7 @@ class Evaluate:
         
         # Finding the true positives
         for idx in range(np.size(gt_indices,0)):
+            print("******************* Finding True Positives *******************")
             print(idx)
             match[idx] = pd.DataFrame(columns = col, index = row)
             for c in col:
@@ -188,6 +189,7 @@ class Evaluate:
         
         # Finding the wrong detections and false negatives:
         for idx in range(np.size(gt_indices,0)):
+            print("******************* Finding False Negatives *******************")
             print(idx)
             for call in self.call_types:
                 if isinstance(gt_indices.at[idx,call], list):
@@ -298,6 +300,7 @@ class Evaluate:
         time_frag = pd.DataFrame(columns = self.call_types, index = range(len(self.GT_path))) # KD range(len(label_list)))
         idx = 0
         for idx in range(len(gt_indices)):
+            print("******************* Performing time fragmentation *******************")
             print(idx)
             # maxtime = 0
             # for call in self.call_types:
