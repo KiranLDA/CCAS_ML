@@ -235,7 +235,10 @@ call_types = {
 # 'overlap':["%"]
 # 'nf':["nf","nonfoc"]
 
-
+#------------------
+#### ML parameters
+batch = 32
+epochs = 100#16 #16
 
 
 
@@ -615,8 +618,7 @@ for i in x_val_filelist:
 #----------------------------------------------------------------------------------------------------
 
 # sys.path.append("/home/kiran/Documents/github/meerkat-calltype-classifyer/")
-batch = 32
-epochs = 100#16 #16
+
 
 train_generator = bg.Weighted_Batch_Generator(x_train_filelist, y_train_filelist, train_weights_list, batch, True)
 val_generator = bg.Weighted_Batch_Generator(x_val_filelist, y_val_filelist, val_weights_list, batch, True)
@@ -745,7 +747,6 @@ RNN_model.fit_generator(train_generator,
                         steps_per_epoch = train_generator.steps_per_epoch(),
                         epochs = epochs,
                         callbacks = [early_stopping, reduce_lr_plat, loss, tensorboard],
-                        # class_weight = weight_dict,
                         validation_data = val_generator,
                         validation_steps = val_generator.steps_per_epoch())
 
