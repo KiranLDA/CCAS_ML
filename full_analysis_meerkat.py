@@ -1056,12 +1056,14 @@ for low_thr in [0.1]:
         high_thr = round(high_thr,2) 
         
         pred_list = [os.path.join(save_pred_table_test_path,file_ID + "_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt" ) for file_ID in file_ID_list ]
-        evaluation = metrics.Evaluate(label_list, pred_list, 0.5, 5) # 0.99 is 0.5
+        evaluation = metrics.Evaluate(label_list, pred_list, 0.5, 5) 
         Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset = evaluation.main()
         
         # specify file names
         precision_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Precision.csv'
+        new_precision_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_New_Precision.csv'
         recall_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Recall.csv'
+        new_recall_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_New_Recall.csv'
         cat_frag_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Category_fragmentation.csv'
         time_frag_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Time_fragmentation.csv'
         confusion_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Confusion_matrix.csv'
@@ -1072,13 +1074,15 @@ for low_thr in [0.1]:
         
         # save files
         Prec.to_csv( os.path.join(save_metrics_path, precision_filename))
+        Prec2.to_csv(os.path.join(save_metrics_path, new_precision_filename))
         Rec.to_csv( os.path.join(save_metrics_path, recall_filename))
+        Rec2.to_csv( os.path.join(save_metrics_path, new_recall_filename))
         cat_frag.to_csv( os.path.join(save_metrics_path, cat_frag_filename))
         time_frag.to_csv(os.path.join(save_metrics_path, time_frag_filename))
         cf.to_csv(os.path.join(save_metrics_path, confusion_filename))
         gt_indices.to_csv(os.path.join(save_metrics_path, gt_filename ))
         pred_indices.to_csv(os.path.join(save_metrics_path, pred_filename ))                  
-        with open(os.path.join(save_metrics_path, match_filename), "wb") as fp:   #Picklin
+        with open(os.path.join(save_metrics_path, match_filename), "wb") as fp:   #Pickling
                   pickle.dump(match, fp)
         with open(os.path.join(save_metrics_path, timediff_filename), "wb") as fp:   #Pickling
             pickle.dump(offset, fp)    
