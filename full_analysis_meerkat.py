@@ -1124,7 +1124,7 @@ import matplotlib.pyplot as plt
 import csv
 import math
 
-
+# normalise = True
 # for low_thr in [0.1,0.3]:
 #     for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
 for low_thr in [0.2]:#[0.1,0.3]:
@@ -1149,14 +1149,16 @@ for low_thr in [0.2]:#[0.1,0.3]:
         df_cm.columns.name= None
         
         # # replace FP and FN with noise
-        # df_cm['noise'] = df_cm['FN'] 
-        # df_cm.loc['noise']=df_cm.loc['FP']
+        df_cm['noise'] = df_cm['FN'] 
+        df_cm.loc['noise']=df_cm.loc['FP']
         
-        # # remove FP and FN
-        # df_cm = df_cm.drop("FN", axis=1)
-        # df_cm = df_cm.drop("FP", axis=0)
+        # remove FP and FN
+        df_cm = df_cm.drop("FN", axis=1)
+        df_cm = df_cm.drop("FP", axis=0)
         ####
         
+        
+        df_cm = df_cm.apply(pd.to_numeric)
         # #move last negatives to end
         # col_name = "FN"
         # last_col = df_cm.pop(col_name)
@@ -1182,6 +1184,7 @@ for low_thr in [0.2]:#[0.1,0.3]:
         ax.set_title(str(low_thr) + "-" + str(high_thr) )
         plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
         plt.show()
+
 
 
 
