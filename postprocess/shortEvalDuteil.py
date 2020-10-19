@@ -214,6 +214,19 @@ class Evaluate:
         Prec = pd.DataFrame(Prec, index=[0])
         return Prec
     
+    def new_precision(self, cf):
+        Prec2 = dict.fromkeys(self.call_types,0)
+        for call in self.call_types:
+            all_preds = sum(cf[call])
+            if all_preds == 0:
+                Prec2[call] = np.nan
+            else:
+                Prec2[call] = (all_preds - cf.at[self.noise_label,call]) / all_preds
+            if(np.isnan(Prec2[call])):
+                Prec2[call] = 1
+        Prec2 = pd.DataFrame(Prec2, index=[0])
+        return Prec2
+    
     def recall(self, TPos,FNeg):
         '''Recall is TP / (TP+FN)'''
         Rec = dict.fromkeys(self.call_types,0)
@@ -265,7 +278,6 @@ class Evaluate:
         col = self.call_types.copy()
         col.add('FN')
         row = self.call_types.copy()
-        # row.add('FP')
         paired_pred = pd.DataFrame(columns = self.call_types, index = range(pred_indices.shape[0]))
         for idx in range(np.size(pred_indices,0)):
             for pred in self.call_types:
@@ -374,11 +386,6 @@ class Evaluate:
                     for row in range(len(call_list)):
                         if call in match2[idx].at[row,'Lab'] and match2[idx].at[row, call] != match2[idx].at[row, call]:
                             match2[idx].at[row, call] = 'FN'
-                    # match2[idx].replace({call : np.nan}, False)
-                    # for row in range(len(call_list)):
-                    #     if call in match2[idx].at[row,'Lab']:
-                    #         if match[idx].at[self.call_types,call]
-                    #             match2[idx].at[row, call] = True
         return match2
                         
                 
@@ -396,7 +403,6 @@ class Evaluate:
         col = self.call_types.copy()
         col.add('FN')
         row = self.call_types.copy()
-        # row.add('FP')
         cf = pd.DataFrame(columns = col, index = row)
         for call in row:
             for pred in col:
@@ -502,7 +508,7 @@ class Evaluate:
             self.call_types = set(["call","noncall"])
             self.noise_label = "noncall"
         
-        for focus in [0]:#,1]:
+        for focus in [0,1]:
             if(focus == 0):
                 focality = "nonfoc"
             else:
@@ -524,17 +530,17 @@ class Evaluate:
             for call in self.call_types:
                 TPos[call] = cf.at[call,call]
                 for pred in self.call_types:
-                    if pred != call: # and pred != self.noise_label:
+                    if pred != call: 
                         FPos[pred] += cf.at[call,pred]
             TPos = pd.DataFrame(TPos, index=[0])
             FPos = pd.DataFrame(FPos)
             FPos = FPos.transpose()
-            FPos.rename(index={self.noise_label: 0}, inplace=True)
-            
+            FPos.rename(index={self.noise_label: 0}, inplace=True)            
             
             Prec = self.precision(TPos,FPos)
             Rec = self.recall(TPos,FNeg)
             Rec2 = self.call_by_call_recall(cf)
+            Prec2 = self.new_precision(cf)
             
             offset = self.time_difference(match, gt_indices[focus], pred_indices)
             
@@ -543,14 +549,10 @@ class Evaluate:
             time_frag = self.time_fragmentation(match, gt_indices[focus], pred_indices, 100)
             
             for i in range(len(cat_frag)):
-                time_frag.rename(index={i: prediction_list[i][94:len(prediction_list[i])]}, inplace=True)
-                cat_frag.rename(index={i: prediction_list[i][94:len(prediction_list[i])]}, inplace=True)
-                gt_indices[focus].rename(index={i: prediction_list[i][94:len(prediction_list[i])]}, inplace=True)
+                time_frag.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
+                cat_frag.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
+                gt_indices[focus].rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
                 
-            
-            # metrics_folder = "/home/mathieu/Documents/meetings and logs/metrics/"
-            # metrics_folder = "/media/mathieu/Elements/metrics_KD/new_metrics/all call types/0" + str(self.high_thresh)
-            # metrics_folder = "/home/mathieu/Documents/Detecting-and-Classifying-Animal-Calls/KiranLDA/weirdness_test/metrics"
             metrics_folder = os.path.join("/media/mathieu/Elements/code/KiranLDA/results/model_2020-09-15_18:57:17.170622/test_newrun" , str(self.high_thresh) , "metrics")
             file_name = focality
             if(self.call_analysis == "all_types_combined"):
@@ -562,6 +564,7 @@ class Evaluate:
             file_name = os.path.join(metrics_folder, focality)
             
             Prec.to_csv(os.path.join(metrics_folder, file_name +'_Precision.csv'))
+            Prec2.to_csv(os.path.join(metrics_folder, file_name +'_NewPrecision.csv'))
             Rec.to_csv(os.path.join(metrics_folder, file_name +'_Recall.csv'))
             Rec2.to_csv(os.path.join(metrics_folder, file_name +'_NewRecall.csv'))
             cat_frag.to_csv(os.path.join(metrics_folder, file_name +'_Category fragmentation.csv'))
@@ -576,15 +579,11 @@ class Evaluate:
             self.call_types.add(self.noise_label)
             
         for i in range(len(cat_frag)):
-            pred_indices.rename(index={i: prediction_list[i][94:len(prediction_list[i])]}, inplace=True)
+            pred_indices.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
         pred_indices.to_csv(os.path.join(metrics_folder, file_name +'_Predictions.csv'))
         
         print("Done!")
         
-
-
-            
-
 
 def list_files(directory, ext=".txt"):
     "list_files(directory) - Grab all .txt or specified extension files in specified directory"
@@ -611,7 +610,7 @@ if __name__=="__main__":
         if len(prediction_list) != len(label_list):
             raise ValueError("Numbers of files don't match")
         # evaluate = Evaluate(label_list, prediction_list, noise_label = "noise", IoU_threshold = 0.5, gap_threshold = 5, high_thresh = thresh, call_analysis = "oth")
-        evaluate = Evaluate(label_list, prediction_list)
+        evaluate = Evaluate(label_list, prediction_list, high_thresh = thresh)
         '''call_analysis can be: 
             - "all_types_combined": all call_types except noise are treated as the same call type
             - "NAME_OF_CALL_TYPE": only calls of type NAME_OF_CALL_TYPE will be processed

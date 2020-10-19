@@ -530,18 +530,18 @@ class Evaluate:
             
             time_frag = self.time_fragmentation(match, gt_indices, pred_indices, 100)
             
-            for i in range(len(time_frag)):
-                time_frag.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
-                cat_frag.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
-                gt_indices[focus].rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
-                pred_indices.rename(index={i: self.pred_path[i][94:len(self.pred_path[i])]}, inplace=True)
+            # for i in range(len(time_frag)):
+            #     time_frag.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
+            #     cat_frag.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
+            #     gt_indices[focus].rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
+            #     pred_indices.rename(index={i: self.pred_path[i][94:len(self.pred_path[i])]}, inplace=True)
                 
         # for i in range(len(cat_frag)):
         #     pred_indices.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
         # pred_indices.to_csv(os.path.join(metrics_folder, file_name +'_Predictions.csv'))
         
         #KD#
-        return Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset
+        return Prec, Prec2, Rec, Rec2, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset
 
         #KD#
         # precision_filename = 'Precision.csv'

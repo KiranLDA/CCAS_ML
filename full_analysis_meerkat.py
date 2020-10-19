@@ -1057,7 +1057,7 @@ for low_thr in [0.1]:
         
         pred_list = [os.path.join(save_pred_table_test_path,file_ID + "_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt" ) for file_ID in file_ID_list ]
         evaluation = metrics.Evaluate(label_list, pred_list, 0.5, 5) 
-        Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset = evaluation.main()
+        Prec, Prec2, Rec, Rec2, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset = evaluation.main()
         
         # specify file names
         precision_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Precision.csv'
