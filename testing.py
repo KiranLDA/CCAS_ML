@@ -16,7 +16,7 @@ Created on Tue Jun  9 12:37:12 2020
 # import sys
 # sys.path.append("/home/kiran/Documents/github/CCAS_ML")
 import os
-os.chdir("/home/coati/Documents/github/CCAS_ML")
+os.chdir("/home/baboon/Documents/github/CCAS_ML")
 
 
 # import own functions
@@ -68,18 +68,21 @@ import pickle
 #----------------------------------------------------------------------------------
 
 other_ignored_in_training = True
-run_name = "NoiseAugmented_ProportionallyWeighted_NoOther"
+run_name = "Test"
 
 #------------------
 # File paths
 #------------------
-label_dirs = ["/home/kiran/Documents/ML/meerkats_2017/labels_CSV", #2017 meerkats
-            "/home/kiran/Documents/ML/meerkats_2019/labels_csv"]
-audio_dirs= ["/media/kiran/Kiran Meerkat/Kalahari2017",
-             "/media/kiran/Kiran Meerkat/Meerkat data 2019"]
+label_dirs = ["/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2017/labels_CSV",
+              "/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2019/labels_CSV"]
+# label_dirs = ["/home/kiran/Documents/ML/meerkats_2017/labels_CSV", #2017 meerkats
+#             "/home/kiran/Documents/ML/meerkats_2019/labels_csv"]
+audio_dirs= ["/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2017",
+             "/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2019"]
+
 
 # basically the root directory for train, test and model
-save_data_path = os.path.join('/media/kiran/D0-P1/animal_data/meerkat', run_name)
+save_data_path = os.path.join('/home/baboon/Documents/meerkat_ML', run_name)
 if not os.path.isdir(save_data_path):
         os.makedirs(save_data_path)
 
@@ -330,7 +333,7 @@ else:
 
 
 training_filenames = training_filenames[0:5]
-testing_filenames = testing_filenames[0:2]
+testing_filenames = testing_filenames[0:1]
 
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
