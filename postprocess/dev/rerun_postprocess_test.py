@@ -8,8 +8,7 @@ Created on Fri Oct 23 15:59:33 2020
 import os
 os.chdir("/home/baboon/Documents/github/CCAS_ML")
 
-
-
+import pickle
 import keras
 import os
 import glob
@@ -35,6 +34,18 @@ label_dirs = ["/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2017
             "/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2019/labels_CSV"]
 audio_dirs= ["/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2017",
              "/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2019"]
+#------------------
+# rolling window parameters
+spec_window_size = 1
+slide = 0.5
+
+#------------------
+# fast fourier parameters for mel spectrogram generation
+fft_win = 0.01 #0.03
+fft_hop = fft_win/2
+n_mels = 30 #128
+window = "hann"
+normalise = True
 
 #------------------
 # label munging parameters i.e. reading in audition or raven files
