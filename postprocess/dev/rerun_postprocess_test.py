@@ -5,6 +5,10 @@ Created on Fri Oct 23 15:59:33 2020
 
 @author: kiran
 """
+import os
+os.chdir("/home/baboon/Documents/github/CCAS_ML")
+
+
 
 import keras
 import os
@@ -12,17 +16,25 @@ import glob
 from itertools import compress
 import ntpath
 import numpy as np
+import pandas as pd
 import warnings
 import librosa
+import seaborn as sn
+import pandas as pd
+import matplotlib.pyplot as plt
+import csv
+import math
 
 import preprocess.preprocess_functions as pre
+import postprocess.merge_predictions_functions as ppm
+import postprocess.evaluation_metrics_functions as metrics
 
 # Find the input data
 #-----------------------------------------------------------------
-label_dirs = ["/home/kiran/Documents/ML/meerkats_2017/labels_CSV", #2017 meerkats
-            "/home/kiran/Documents/ML/meerkats_2019/labels_csv"]
-audio_dirs= ["/media/kiran/Kiran Meerkat/Kalahari2017",
-             "/media/kiran/Kiran Meerkat/Meerkat data 2019"]
+label_dirs = ["/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2017/labels_CSV", #2017 meerkats
+            "/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2019/labels_CSV"]
+audio_dirs= ["/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2017",
+             "/home/baboon/Dropbox/CCAS_big_data/meerkat_data/meerkat_data_2019"]
 
 #------------------
 # label munging parameters i.e. reading in audition or raven files
@@ -36,7 +48,7 @@ label_for_other = "oth"
 label_for_noise = "noise"
 label_for_startstop = ['start', 'stop', 'skip', 'end']
 
-
+normalise = True
 #------------------
 # call dictionary - 
 # this is a dictionary containing as keys the category you want your ML algo to output
@@ -105,31 +117,28 @@ for filepathi in label_filepaths:
 
 #-----------------------------------------------------
 
-# list of model files
-models_paths = ["/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/trained_model/NoiseAugmented_NoOther_2020-10-06_22:35:04.511239/savedmodel.h5",
-                "/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_ProportionallyWeighted_NoOther/trained_model/NoiseAugmented_ProportionallyWeighted_NoOther_2020-10-14_03:12:32.817594/savedmodel.h5",
-                "/media/kiran/D0-P1/animal_data/meerkat/new_run_sep_2020/model_2020-09-15_18:57:17.170622/savedmodel.h5"]
+root_paths = ["/home/baboon/Dropbox/CCAS_big_data/ML_data/NoiseAugmented_NoOther/new_evaluation",
+              "/home/baboon/Dropbox/CCAS_big_data/ML_data/NoiseAugmented_ProportionallyWeighted_NoOther/new_evaluation",
+              "/home/baboon/Dropbox/CCAS_big_data/ML_data/new_run_sep_2020/new_evaluation"]
 
-testing_filepaths =["/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/trained_model/testing_files_used.txt",
-                    "/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_ProportionallyWeighted_NoOther/trained_model/testing_files_used.txt",
-                    "/media/kiran/D0-P1/animal_data/meerkat/new_run_sep_2020/test_data/testing_files_used.txt"]
-
-metrics_filepaths = ["/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/test_data",
-                     "/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_ProportionallyWeighted_NoOther/test_data",
-                     "/media/kiran/D0-P1/animal_data/meerkat/new_run_sep_2020/test_data"]
+models_paths = ["/home/baboon/Dropbox/CCAS_big_data/ML_data/NoiseAugmented_NoOther/new_evaluation/NoiseAugmented_NoOther_2020-10-06_22:35:04.511239/savedmodel.h5",
+                "/home/baboon/Dropbox/CCAS_big_data/ML_data/NoiseAugmented_ProportionallyWeighted_NoOther/new_evaluation/NoiseAugmented_ProportionallyWeighted_NoOther_2020-10-14_03:12:32.817594/savedmodel.h5",    
+                "/home/baboon/Dropbox/CCAS_big_data/ML_data/new_run_sep_2020/new_evaluation/model_2020-09-15_18:57:17.170622/savedmodel.h5"]
 
 
-skipped_files = []
+
+
 # for every model run
 for i in range(0,len(models_paths)):    
     # load the model
     RNN_model = keras.models.load_model(models_paths[i])    
     
     # find the testing files for that model
-    with open(testing_filepaths[i]) as f:
+    with open( os.path.join(root_paths[i], "testing_files_used.txt")) as f:
         content = f.readlines()    
     testing_filenames = [x.strip() for x in content] 
-      
+     
+    skipped_files = []
     # for every test files for that model
     for file_ID in testing_filenames:
         
@@ -169,12 +178,12 @@ for i in range(0,len(models_paths)):
             continue 
         
         # save the label_table
-        # save_label_table_filename = file_ID + "_LABEL_TABLE.txt"
+        save_label_table_filename = file_ID + "_LABEL_TABLE.txt"
         
-        # # If the file hasn't already been processed save it
-        # if not os.path.isfile(os.path.join(os.path.join(metrics_filepaths[i], "label_table", save_label_table_filename)):
-        #     label_table.to_csv(os.path.join(metrics_filepaths[i], "label_table", save_label_table_filename), 
-        #                    header=True, index=None, sep=';')
+        # If the file hasn't already been processed save it
+        if not os.path.isfile(os.path.join(root_paths[i], "label_table", save_label_table_filename)):
+            label_table.to_csv(os.path.join(root_paths[i], "label_table", save_label_table_filename), 
+                               header=True, index=None, sep=';')
         
         
         # load the audio data
@@ -200,8 +209,8 @@ for i in range(0,len(models_paths)):
             toi = loop_times[int(loopi + 1)] # define the end of the labelling periods
             
             # if the file exists, load it
-            if os.path.exists(os.path.join(metrics_filepaths[i],"predictions","stack", file_ID + '_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.npy')):
-                pred_list = np.load( os.path.join(smetrics_filepaths[i],"predictions","stack", , file_ID + '_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.npy'))
+            if os.path.exists(os.path.join(root_paths[i],"predictions", file_ID + '_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.npy')):
+                pred_list = np.load( os.path.join(root_paths[i],"predictions", file_ID + '_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.npy'))
             # if not, generate it
             else:
             
@@ -251,8 +260,8 @@ for i in range(0,len(models_paths)):
                         pred_list.append(np.squeeze(pred))
                         
                 # save the prediction list  
-                np.save( os.path.join(save_pred_stack_test_path, file_ID + '_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.npy'), pred_list)
-                with open(os.path.join(save_pred_stack_test_path, file_ID + '_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.txt'), "w") as f:
+                np.save( os.path.join(root_paths[i],"predictions" , file_ID + '_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.npy'), pred_list)
+                with open(os.path.join(root_paths[i], "predictions" ,file_ID + '_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.txt'), "w") as f:
                     for row in pred_list:
                         f.write(str(row) +"\n")
                     
@@ -321,36 +330,24 @@ for i in range(0,len(models_paths)):
                     
                     
                     # for each on/off labelling chunk, we can save the prediction and append it to the previous chunk
-                    pred_table.to_csv(os.path.join(save_pred_table_test_path, save_pred_table_filename), 
+                    pred_table.to_csv(os.path.join(root_paths[i], "pred_table", save_pred_table_filename), 
                                       header=True, index=None, sep=';', mode = 'a')
                     
                     
                     
-            
-    '''
-    # load the saved file
-    with open(os.path.join(save_pred_stack_test_path, file_ID + '_PRED_STACK.txt')) as f:
-        content = f.readlines()
-    # remove whitespace characters like `\n` at the end of each line
-    pred_list = [x.strip() for x in content] 
-    
-    
-    #or
-    pred_list = np.load( os.path.join(save_pred_stack_test_path, file_ID + '_PRED_STACK.npy'))
-       
-    '''
+
             
     # save the files that were skipped
     print(skipped_files)
     
     # save a copy of the training and testing diles
-    with open(os.path.join(save_model_path, "skipped_testing_files.txt"), "w") as f:
+    with open(os.path.join(root_paths[i], "skipped_testing_files.txt"), "w") as f:
         for s in skipped_files:
             f.write(str(s) +"\n")
            
     ##############################################################################################
     #Loop through tables and remove duplicates of rows (bevause files are created through appending)
-    pred_tables = glob.glob(save_pred_table_test_path+ "/*PRED_TABLE*.txt")
+    pred_tables = glob.glob(root_paths[i]+ "/*PRED_TABLE*.txt")
     for file in pred_tables:
         df = pd.read_csv(file, delimiter=';') 
         # df = df.drop_duplicates(keep=False)
@@ -370,18 +367,14 @@ for i in range(0,len(models_paths)):
     
     # skipped = [os.path.split(path)[1] for path in skipped_files]
     file_ID_list = [file_ID for file_ID in testing_filenames if file_ID not in skipped_files]
-    label_list =  [os.path.join(save_label_table_test_path,file_ID + "_LABEL_TABLE.txt" ) for file_ID in file_ID_list]
+    label_list =  [os.path.join(root_paths[i], "label_table", file_ID + "_LABEL_TABLE.txt" ) for file_ID in file_ID_list]
     for low_thr in [0.2]:#[0.1,0.3]:
-        for high_thr in [0.5,0.7,0.9]: #[0.5,0.7,0.8,0.9,0.95]: 
-    # for low_thr in [0.1,0.3]:
-    #     for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
-    # for low_thr in [0.1]:
-    #     for high_thr in [0.2,0.3,0.4]: 
+        for high_thr in [0.5,0.7,0.9]: 
             
             low_thr = round(low_thr,2)                               
             high_thr = round(high_thr,2) 
             
-            pred_list = [os.path.join(save_pred_table_test_path,file_ID + "_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt" ) for file_ID in file_ID_list ]
+            pred_list = [os.path.join(root_paths[i], "pred_table", file_ID + "_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt" ) for file_ID in file_ID_list ]
             evaluation = metrics.Evaluate(label_list, pred_list, 0.5, 5) # 0.99 is 0.5
             Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset = evaluation.main()
             
@@ -397,16 +390,16 @@ for i in range(0,len(models_paths)):
             timediff_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + "_Time_difference.txt"    
             
             # save files
-            Prec.to_csv( os.path.join(save_metrics_path, precision_filename))
-            Rec.to_csv( os.path.join(save_metrics_path, recall_filename))
-            cat_frag.to_csv( os.path.join(save_metrics_path, cat_frag_filename))
-            time_frag.to_csv(os.path.join(save_metrics_path, time_frag_filename))
-            cf.to_csv(os.path.join(save_metrics_path, confusion_filename))
-            gt_indices.to_csv(os.path.join(save_metrics_path, gt_filename ))
-            pred_indices.to_csv(os.path.join(save_metrics_path, pred_filename ))                  
-            with open(os.path.join(save_metrics_path, match_filename), "wb") as fp:   #Picklin
+            Prec.to_csv( os.path.join(root_paths[i], "metrics", precision_filename))
+            Rec.to_csv( os.path.join(root_paths[i], "metrics", recall_filename))
+            cat_frag.to_csv( os.path.join(root_paths[i], "metrics", cat_frag_filename))
+            time_frag.to_csv(os.path.join(root_paths[i], "metrics", time_frag_filename))
+            cf.to_csv(os.path.join(root_paths[i], "metrics", confusion_filename))
+            gt_indices.to_csv(os.path.join(root_paths[i], "metrics", gt_filename ))
+            pred_indices.to_csv(os.path.join(root_paths[i], "metrics", pred_filename ))                  
+            with open(os.path.join(root_paths[i], "metrics", match_filename), "wb") as fp:   #Picklin
                       pickle.dump(match, fp)
-            with open(os.path.join(save_metrics_path, timediff_filename), "wb") as fp:   #Pickling
+            with open(os.path.join(root_paths[i], "metrics", timediff_filename), "wb") as fp:   #Pickling
                 pickle.dump(offset, fp)    
     
     
@@ -414,21 +407,12 @@ for i in range(0,len(models_paths)):
     # plot overall confusion matrix
     #########################################################################
     
-    import seaborn as sn
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    import csv
-    import math
-    
-    # normalise = True
-    # for low_thr in [0.1,0.3]:
-    #     for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
-    for low_thr in [0.2]:#[0.1,0.3]:
-        for high_thr in [0.5,0.7,0.9]: #[0.5,0.7,0.8,0.9,0.95]: 
+    for low_thr in [0.2]:
+        for high_thr in [0.5,0.7,0.9]: 
             
             low_thr = round(low_thr,2)                               
             high_thr = round(high_thr,2) 
-            confusion_filename = os.path.join(save_metrics_path, "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Confusion_matrix.csv')
+            confusion_filename = os.path.join(root_paths[i], "metrics", "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Confusion_matrix.csv')
             with open(confusion_filename, newline='') as csvfile:
                 array = list(csv.reader(csvfile))
         
@@ -478,7 +462,7 @@ for i in range(0,len(models_paths)):
             sn.set(font_scale=1.1) # for label size
             sn.heatmap((df_cm), annot=True, annot_kws={"size": 10}, ax= ax) # font size
             ax.set_title(str(low_thr) + "-" + str(high_thr) )
-            plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
+            plt.savefig(os.path.join(root_paths[i], "metrics", "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
             plt.show()
     
     
