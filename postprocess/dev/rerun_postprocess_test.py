@@ -304,7 +304,8 @@ for i in range(0,len(models_paths)):
                     table = pd.DataFrame(detections)
                     table["Label"] = table["category"]
                     table["Start"] = round(table["start"]*fft_hop + fromi, 3)#table["start"].apply(Decimal)*Decimal(fft_hop) + Decimal(fromi)
-                    table["Duration"] = round( (table["end"]-table["start"])*fft_hop, 3)#(table["end"].apply(Decimal)-table["start"].apply(Decimal))*Decimal(fft_hop)
+                    table["Duration"] = round( (table["end"]-table["start"])*fft_hop, 3)
+                    #(table["end"].apply(Decimal)-table["start"].apply(Decimal))*Decimal(fft_hop)
                     table["End"] = round(table["end"]*fft_hop + fromi, 3)#table["Start"].apply(Decimal) + table["Duration"].apply(Decimal)
                     
                     #keep only the useful columns
@@ -502,6 +503,7 @@ for i in range(0,len(models_paths)):
             
             low_thr = round(low_thr,2)                               
             high_thr = round(high_thr,2) 
+            save_pred_table_filename = file_ID + "_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt"
             
             for file_ID in testing_filenames:
                 # file_ID = testing_filenames[1]
@@ -612,13 +614,14 @@ for i in range(0,len(models_paths)):
                                              high_thr=high_thr, 
                                              debug=1)
             
-                    #convert these detections to a predictions table                
+                    #convert these detections to a predictions table     
                     table = pd.DataFrame(detections)
                     table["Label"] = table["category"]
-                    table["Start"] = table["start"].apply(Decimal)*Decimal(fft_hop) + Decimal(fromi) 
-                    table["Duration"] = (table["end"].apply(Decimal)-table["start"].apply(Decimal))*Decimal(fft_hop)
-                    table["End"] = table["Start"].apply(Decimal) + table["Duration"].apply(Decimal)
+                    table["Start"] = round(table["start"]*fft_hop + fromi, 3)#table["start"].apply(Decimal)*Decimal(fft_hop) + Decimal(fromi)
+                    table["Duration"] = round( (table["end"]-table["start"])*fft_hop, 3)#(table["end"].apply(Decimal)-table["start"].apply(Decimal))*Decimal(fft_hop)
+                    table["End"] = round(table["end"]*fft_hop + fromi, 3)#table["Start"].apply(Decimal) + table["Duration"].apply(Decimal)
                     
+                   
                     #keep only the useful columns
                     # table = table[["Label","Start","Duration", "End"]]            
                     table = table[["Label","Start","Duration", "End", "scores"]]  
