@@ -14,6 +14,8 @@ Created on Tue Jun  9 12:37:12 2020
 
 # add path to local functions
 # import sys
+import os
+os.chdir("/home/kiran/Documents/github/CCAS_ML")
 # sys.path.append("/home/kiran/Documents/github/CCAS_ML")
 
 # import own functions
@@ -57,6 +59,12 @@ from keras.callbacks import TensorBoard
 from decimal import Decimal
 import pandas as pd
 import pickle
+
+
+
+from preprocess.initialise_params import InitialiseParams
+InitialiseParams("/home/kiran/Documents/github/CCAS_ML/params.txt")
+
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
@@ -149,7 +157,6 @@ save_model_path = os.path.join(save_data_path, 'trained_model')
 if not os.path.isdir(save_model_path):
         os.makedirs(save_model_path)
         
-
 save_tensorboard_path = os.path.join(save_model_path, 'tensorboard_logs')
 if not os.path.isdir(save_tensorboard_path):
     os.makedirs(save_tensorboard_path)      
@@ -175,7 +182,7 @@ filters = 128 #y_train.shape[1] #
 
 #------------------
 # split between the training and the test set
-train_test_split = 0.75
+train_test_split = 0.90
 train_val_split = 0.75
 
 #------------------
@@ -199,7 +206,6 @@ convert_to_seconds = True
 label_for_other = "oth"
 label_for_noise = "noise"
 label_for_startstop = ['start', 'stop', 'skip', 'end']
-
 
 #------------------
 # call dictionary - 
