@@ -105,13 +105,9 @@ class Evaluate:
         '''Precision is TP / (TP+FP)'''
         Prec = dict.fromkeys(self.call_types,0)
         for call in self.call_types:
-            divi = TPos.at[0,call] + FPos.at[0,call]
-            if divi == 0:
-                Prec[call] = 1.
-            else:
-                Prec[call] = TPos.at[0,call] / divi
-            # if(np.isnan(Prec[call])):
-            #     Prec[call] = 1
+            Prec[call] = TPos.at[0,call] / (TPos.at[0,call] + FPos.at[0,call])
+            if(np.isnan(Prec[call])):
+                Prec[call] = 1
         Prec = pd.DataFrame(Prec, index=[0])
         return Prec
     
@@ -119,13 +115,9 @@ class Evaluate:
         '''Recall is TP / (TP+FN)'''
         Rec = dict.fromkeys(self.call_types,0)
         for call in self.call_types:
-            divii =  (TPos.at[0,call] + FNeg.at[call])
-            if divii == 0:
-                Rec[call] = 1.
-            else:
-                Rec[call] = TPos.at[0,call] / divii
-            # if(np.isnan(Rec[call])):
-            #     Rec[call] = 1
+            Rec[call] = TPos.at[0,call] / (TPos.at[0,call] + FNeg.at[call])
+            if(np.isnan(Rec[call])):
+                Rec[call] = 1
         Rec = pd.DataFrame(Rec, index=[0])
         return Rec
     
@@ -174,8 +166,7 @@ class Evaluate:
                     paired_call.at[idx,call] = []
         
         # Finding the true positives
-        print("******************* Finding True Positives *******************")
-        for idx in range(np.size(gt_indices,0)):            
+        for idx in range(np.size(gt_indices,0)):
             print(idx)
             match[idx] = pd.DataFrame(columns = col, index = row)
             for c in col:
@@ -196,8 +187,7 @@ class Evaluate:
                                     match[idx].at[pred,pred].append([call_nb,pred_nb])
         
         # Finding the wrong detections and false negatives:
-        print("******************* Finding False Negatives *******************")
-        for idx in range(np.size(gt_indices,0)):            
+        for idx in range(np.size(gt_indices,0)):
             print(idx)
             for call in self.call_types:
                 if isinstance(gt_indices.at[idx,call], list):
@@ -307,8 +297,7 @@ class Evaluate:
         is taken into account'''
         time_frag = pd.DataFrame(columns = self.call_types, index = range(len(self.GT_path))) # KD range(len(label_list)))
         idx = 0
-        print("******************* Performing time fragmentation *******************")
-        for idx in range(len(gt_indices)):           
+        for idx in range(len(gt_indices)):
             print(idx)
             # maxtime = 0
             # for call in self.call_types:
@@ -415,10 +404,10 @@ class Evaluate:
             # gt_indices.rename(index={i: prediction_list[i][94:len(prediction_list[i])]}, inplace=True)
             # pred_indices.rename(index={i: prediction_list[i][94:len(prediction_list[i])]}, inplace=True)
         
-        #KD#
+        # KD #
         return Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset
 
-        #KD#
+        # KD #
         # precision_filename = 'Precision.csv'
         # recall_filename ='Recall.csv'
         # cat_frag_filename = 'Category_fragmentation.csv'

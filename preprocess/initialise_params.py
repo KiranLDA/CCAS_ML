@@ -20,3 +20,12 @@ class InitialiseParams():
             raise ValueError(f"Error is occuring on line {err.lineno}, column {err.colno} in file {self.file} \nError:  {err.msg}")
         for key, value in variables.items():
             setattr(self, key, value)
+            
+
+# class InitialiseParams():
+#     def __init__(self, file):
+#         self.file = file
+#         with open(self.file) as f:
+#                 variables = json.load(f)
+#         for key, value in variables.items():
+#             setattr(self, key, value)

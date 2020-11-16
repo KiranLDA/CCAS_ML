@@ -1064,7 +1064,7 @@ pred_tables = glob.glob(save_pred_table_test_path+ "/*PRED_TABLE*.txt")
 for file in pred_tables:
     df = pd.read_csv(file, delimiter=';') 
     # df = df.drop_duplicates(keep=False)
-    df = df[df['Label'] != 'Label']
+    df = df.loc[df['Label'] != 'Label']
     df.to_csv(file, header=True, index=None, sep=';', mode = 'w')
 
 
