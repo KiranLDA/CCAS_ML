@@ -372,13 +372,13 @@ import postprocess.merge_predictions_functions as ppm
         df = df[df['Label'] != 'Label']
         df.to_csv(file, header=True, index=None, sep=';', mode = 'w')
     '''
-    pred_tables = glob.glob(root_paths[i]+"/pred_table"+ "/*PRED_TABLE*.txt")
-    for file in pred_tables:
-        df = pd.read_csv(file, delimiter=';') 
-        # df = df.drop_duplicates(keep=False)
-        df = df.loc[df['Label'] != 'Label']        
-        new_filename = root_paths[i]+"/pred_table/edited/"+ os.path.basename(file)
-        df.to_csv(new_filename, header=True, index=None, sep=';', mode = 'w')
+    # pred_tables = glob.glob(root_paths[i]+"/pred_table"+ "/*PRED_TABLE*.txt")
+    # for file in pred_tables:
+    #     df = pd.read_csv(file, delimiter=';') 
+    #     # df = df.drop_duplicates(keep=False)
+    #     df = df.loc[df['Label'] != 'Label']        
+    #     new_filename = root_paths[i]+"/pred_table/edited/"+ os.path.basename(file)
+    #     df.to_csv(new_filename, header=True, index=None, sep=';', mode = 'w')
     
     with open( os.path.join(root_paths[i], "skipped_testing_files.txt")) as f:
         content = f.readlines()    
@@ -395,40 +395,41 @@ import postprocess.merge_predictions_functions as ppm
     #########################################################################
     # overlap = 0.5
     # skipped = [os.path.split(path)[1] for path in skipped_files]
+    normalise=False
     file_ID_list = [file_ID for file_ID in testing_filenames if file_ID not in skipped_files]
     label_list =  [os.path.join(root_paths[i], "label_table", file_ID + "_LABEL_TABLE.txt" ) for file_ID in file_ID_list]
     for overlap in [0.01,0.5]:
-        for low_thr in [0.2]:
-            for high_thr in [0.5,0.7,0.9]: 
+        # for low_thr in [0.2]:
+        #     for high_thr in [0.5,0.7,0.9]: 
                 
-                low_thr = round(low_thr,2)                               
-                high_thr = round(high_thr,2) 
+        #         low_thr = round(low_thr,2)                               
+        #         high_thr = round(high_thr,2) 
                 
-                predictions_list = [os.path.join(root_paths[i], "pred_table","edited", file_ID + "_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt" ) for file_ID in file_ID_list ]
-                evaluation = metrics.Evaluate(label_list, predictions_list, overlap, 5) # 0.99 is 0.5
-                Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset = evaluation.main()
+        #         predictions_list = [os.path.join(root_paths[i], "pred_table","edited", file_ID + "_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt" ) for file_ID in file_ID_list ]
+        #         evaluation = metrics.Evaluate(label_list, predictions_list, overlap, 5) # 0.99 is 0.5
+        #         Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset = evaluation.main()
                 
-                # specify file names
-                precision_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Precision_2.csv'
-                recall_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Recall_2.csv'
-                cat_frag_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Category_fragmentation_2.csv'
-                time_frag_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Time_fragmentation_2.csv'
-                confusion_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Confusion_matrix_2.csv'
-                gt_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + "_Label_indices_2.csv"
-                pred_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + "_Prection_indices_2.csv"
-                match_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + "_Matching_table_2.txt"
-                timediff_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + "_Time_difference_2.txt"    
+        #         # specify file names
+        #         precision_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Precision_2.csv'
+        #         recall_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Recall_2.csv'
+        #         cat_frag_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Category_fragmentation_2.csv'
+        #         time_frag_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Time_fragmentation_2.csv'
+        #         confusion_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_Confusion_matrix_2.csv'
+        #         gt_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + "_Label_indices_2.csv"
+        #         pred_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + "_Prection_indices_2.csv"
+        #         match_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + "_Matching_table_2.txt"
+        #         timediff_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + "_Time_difference_2.txt"    
                 
-                # save files
-                Prec.to_csv( os.path.join(root_paths[i], "metrics_old", precision_filename))
-                Rec.to_csv( os.path.join(root_paths[i], "metrics_old", recall_filename))
-                cat_frag.to_csv( os.path.join(root_paths[i], "metrics_old", cat_frag_filename))
-                time_frag.to_csv(os.path.join(root_paths[i], "metrics_old", time_frag_filename))
-                cf.to_csv(os.path.join(root_paths[i], "metrics_old", confusion_filename))
-                gt_indices.to_csv(os.path.join(root_paths[i], "metrics_old", gt_filename ))
-                pred_indices.to_csv(os.path.join(root_paths[i], "metrics_old", pred_filename ))                  
-                with open(os.path.join(root_paths[i], "metrics_old", match_filename), "wb") as fp:   #Picklin
-                          pickle.dump(match, fp)
+        #         # save files
+        #         Prec.to_csv( os.path.join(root_paths[i], "metrics_old", precision_filename))
+        #         Rec.to_csv( os.path.join(root_paths[i], "metrics_old", recall_filename))
+        #         cat_frag.to_csv( os.path.join(root_paths[i], "metrics_old", cat_frag_filename))
+        #         time_frag.to_csv(os.path.join(root_paths[i], "metrics_old", time_frag_filename))
+        #         cf.to_csv(os.path.join(root_paths[i], "metrics_old", confusion_filename))
+        #         gt_indices.to_csv(os.path.join(root_paths[i], "metrics_old", gt_filename ))
+        #         pred_indices.to_csv(os.path.join(root_paths[i], "metrics_old", pred_filename ))                  
+        #         with open(os.path.join(root_paths[i], "metrics_old", match_filename), "wb") as fp:   #Picklin
+        #                   pickle.dump(match, fp)
     
         #########################################################################
         # plot overall confusion matrix
@@ -489,7 +490,7 @@ import postprocess.merge_predictions_functions as ppm
                 sn.set(font_scale=1.1) # for label size
                 sn.heatmap((df_cm), annot=True, annot_kws={"size": 10}, ax= ax) # font size
                 ax.set_title(str(low_thr) + "-" + str(high_thr) )
-                plt.savefig(os.path.join(root_paths[i], "metrics_old", "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_2.png'))
+                plt.savefig(os.path.join(root_paths[i], "metrics_old", "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) +'_overlap_' + str(overlap) + '_non-normal.png'))
                 plt.show()
     
     

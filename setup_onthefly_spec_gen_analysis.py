@@ -77,3 +77,13 @@ call_table_dict[label_for_noise]=noise_table[["Label", "Start", "Duration","End"
 
 
 call_table_dict
+
+
+
+
+'''
+model.fit_generator(data_generator_for_classif(clips_dir = clips_dir,batch_size = batch_size), 
+                    epochs=epochs, use_multiprocessing=True, 
+                    workers=16, 
+                    steps_per_epoch=steps_per_epoch)
+'''
