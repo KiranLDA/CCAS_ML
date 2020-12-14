@@ -62,8 +62,8 @@ import pickle
 
 
 
-from preprocess.initialise_params import InitialiseParams
-InitialiseParams("/home/kiran/Documents/github/CCAS_ML/params.txt")
+# from preprocess.initialise_params import InitialiseParams
+# InitialiseParams("/home/kiran/Documents/github/CCAS_ML/params.txt")
 
 
 #----------------------------------------------------------------------------------

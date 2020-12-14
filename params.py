@@ -44,7 +44,9 @@ window = "hann"
 normalise = True
 
 #------------------
-# ML parameters
+#### ML parameters
+batch = 32
+epochs = 100 #16 #16
 dense_neurons = 1024
 dropout = 0.5
 filters = 128 #y_train.shape[1] #
@@ -110,8 +112,5 @@ call_types = {
 # 'overlap':["%"]
 # 'nf':["nf","nonfoc"]
 
-#------------------
-#### ML parameters
-batch = 32
-epochs = 100#16 #16
+
 

@@ -61,11 +61,7 @@ import pandas as pd
 import pickle
 
 
-
-# from preprocess.initialise_params import InitialiseParams
-# InitialiseParams("/home/kiran/Documents/github/CCAS_ML/params.txt")
-
-import params
+from params import *
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
@@ -80,7 +76,6 @@ import params
 # unless you have a different file structure
 # They will create a specific file sub directory pattern in save_data_path
 #####
-save_data_path = params.save_data_path
 
 # because we are still in a development phase, I want to use the same training and testing sets for each model
 
@@ -279,7 +274,7 @@ for file_ID in training_filenames:
         label_table.to_csv(os.path.join(save_label_table_train_path, save_label_table_filename), header=True, index=None, sep=';')
         
         #save the label tables with other, but for the purpose of labelling, remove other
-        if params.other_ignored_in_training:
+        if other_ignored_in_training:
             label_table = label_table[label_table[label_for_other] == False]
             label_table= label_table.reset_index(drop=True)
         
