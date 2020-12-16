@@ -14,11 +14,11 @@ import pandas as pd
 # for every training file get the label table
 
 
-
-from preprocess.initialise_params import InitialiseParams
-initialising = InitialiseParams("/home/kiran/Documents/github/CCAS_ML/params.txt")
-initialising.call_types
-initialising.items()
+from params import *
+# from preprocess.initialise_params import InitialiseParams
+# initialising = InitialiseParams("/home/kiran/Documents/github/CCAS_ML/params.txt")
+# initialising.call_types
+# initialising.items()
 
 mega_table = pd.DataFrame()
 mega_noise_table = pd.DataFrame()

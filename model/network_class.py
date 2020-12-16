@@ -104,7 +104,7 @@ class network():
         dense_3B = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
         drop_3B)
         
-        # softmax
+        # Fork into two outputs
         output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='sigmoid'), name="output_calltype")(drop_3A)
         output_callpresence = TimeDistributed(Dense(2, activation='softmax'), name="output_callpresence")(drop_3B)
         # hardcoded 2 here for call/notcall

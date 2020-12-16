@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun  9 12:37:12 2020
+Created on Wed Dec 16 10:16:32 2020
 
 @author: kiran
 """
@@ -26,16 +26,13 @@ import model.batch_generator as bg
 import postprocess.visualise_prediction_functions as pp
 from model.callback_functions import LossHistory
 
-
-# 
+# proprocessing packages
 import numpy as np
 import librosa
 import warnings
 import ntpath
-# import re
 import os
-# from glob import glob
-from itertools import compress  #chain, 
+from itertools import compress
 from random import random, shuffle
 from math import floor
 import statistics
@@ -60,8 +57,9 @@ from decimal import Decimal
 import pandas as pd
 import pickle
 
-
-from params import *
+import postprocess.cleaning as cl
+# 
+# from params import *
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
@@ -69,13 +67,28 @@ from params import *
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
+other_ignored_in_training = True
+run_name = "NoiseAugmented_ProportionallyWeighted_NoOther"
 
+#------------------
+# File paths
+#------------------
+label_dirs = ["/home/kiran/Documents/ML/meerkats_2017/labels_CSV", #2017 meerkats
+            "/home/kiran/Documents/ML/meerkats_2019/labels_csv"]
+audio_dirs= ["/media/kiran/Kiran Meerkat/Kalahari2017",
+             "/media/kiran/Kiran Meerkat/Meerkat data 2019"]
+
+# basically the root directory for train, test and model
+save_data_path = os.path.join('/media/kiran/D0-P1/animal_data/meerkat', run_name)
+if not os.path.isdir(save_data_path):
+        os.makedirs(save_data_path)
 
 #####
 # Note that the lines below don't need to be modified 
 # unless you have a different file structure
 # They will create a specific file sub directory pattern in save_data_path
 #####
+
 
 # because we are still in a development phase, I want to use the same training and testing sets for each model
 
@@ -116,7 +129,7 @@ save_pred_test_path = os.path.join(test_path , "predictions")
 if not os.path.isdir(save_pred_test_path):
         os.makedirs(save_pred_test_path)
         
-        
+ # Predictions       
 save_metrics_path = os.path.join(test_path , "metrics")
 if not os.path.isdir(save_metrics_path):
         os.makedirs(save_metrics_path)
@@ -143,17 +156,98 @@ save_tensorboard_path = os.path.join(save_model_path, 'tensorboard_logs')
 if not os.path.isdir(save_tensorboard_path):
     os.makedirs(save_tensorboard_path)      
 
+#------------------
+# rolling window parameters
+spec_window_size = 1
+slide = 0.5
+
+#------------------
+# fast fourier parameters for mel spectrogram generation
+fft_win = 0.01 #0.03
+fft_hop = fft_win/2
+n_mels = 30 #128
+window = "hann"
+normalise = True
+
+#------------------
+# ML parameters
+dense_neurons = 1024
+dropout = 0.5
+filters = 128 #y_train.shape[1] #
+
+#------------------
+# split between the training and the test set
+train_test_split = 0.90
+train_val_split = 0.75
+
+#------------------
+# data augmentation parameters
+n_steps = -2 # for pitch shift
+stretch_factor = 0.99 #If rate > 1, then the signal is sped up. If rate < 1, then the signal is slowed down.
+scaling_factor = 0.1
+random_range = 0.1
+#-----------------------------
+# thresholding parameters
+low_thr = 0.2
+
+#------------------
+# label munging parameters i.e. reading in audition or raven files
+sep='\t'
+engine = None
+start_column = "Start"
+duration_column = "Duration"
+label_column = "Name"
+convert_to_seconds = True
+label_for_other = "oth"
+label_for_noise = "noise"
+label_for_startstop = ['start', 'stop', 'skip', 'end']
+
+#------------------
+# call dictionary - 
+# this is a dictionary containing as keys the category you want your ML algo to output
+# and for each call category, how it is likely to be noted in the label column of the audition or raven file
+# For example, Marker is usually for a close call.
+# Note that these are regural expressions and are not case sensitive
+call_types = {
+    'cc' :["cc","Marker", "Marque"],
+    'sn' :["sn","subm", "short","^s$", "s "],
+    'mo' :["mo","MOV","MOVE"],
+    'agg':["AG","AGG","AGGRESS","CHAT","GROWL"],
+    'ld' :["ld","LD","lead","LEAD"],
+    'soc':["soc","SOCIAL", "so "],
+    'al' :["al","ALARM"],
+    'beep':["beep"],
+    'synch':["sync"],
+    'oth':["oth","other","lc", "lost",
+           "hyb","HYBRID","fu","sq","\+",
+           "ukn","unknown",          
+           "x",
+           "\%","\*","\#","\?","\$"
+           ],
+    'noise':['start','stop','end','skip']
+    }
+
+# parameters that might be useful later that currently aren't dealt with
+# 'hyb':["hyb","HYB","hybrid","HYBRID","fu","sq","+"],
+# 'ukn':["ukn","unknown","UKN","UNKNOWN"]
+# 'nf' :["nf","nonfoc","NONFOC"],
+# 'noise':["x","X"]
+# 'overlap':["%"]
+
+
+#------------------
+#### ML parameters
+batch = 32
+epochs = 100#16 #16
+
+# get rid of the focal follows (going around behind the meerkat with a microphone)
+to_rm = ["SOUNDFOC", "PROCESSED", "LABEL" , "label", "_SS"]
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
-#             1 - PREPROCESSING - SETTING UP DIRECTORIES
+#             1 - PREPROCESSING - FINDING ALL THE FILES 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
-
-
-# if any files are skipped because they are problematic, they are put here 
-skipped_files =[]
-
 
 
 # Find the input data
@@ -171,12 +265,10 @@ audio_filepaths = []
 EXT = "*.wav"
 for PATH in audio_dirs:
      audio_filepaths.extend( [file for path, subdir, files in os.walk(PATH) for file in glob.glob(os.path.join(path, EXT))])
+
 # get rid of the focal follows (going around behind the meerkat with a microphone)
-audio_filepaths = list(compress(audio_filepaths, ["SOUNDFOC" not in filei for filei in audio_filepaths]))
-audio_filepaths = list(compress(audio_filepaths, ["PROCESSED" not in filei for filei in audio_filepaths]))
-audio_filepaths = list(compress(audio_filepaths, ["LABEL" not in filei for filei in audio_filepaths]))
-audio_filepaths = list(compress(audio_filepaths, ["label" not in filei for filei in audio_filepaths]))
-audio_filepaths = list(compress(audio_filepaths, ["_SS" not in filei for filei in audio_filepaths]))
+for name in to_rm:
+    audio_filepaths = list(compress(audio_filepaths, [name not in filei for filei in audio_filepaths]))
 
 
 # Find the names of the recordings
@@ -187,8 +279,6 @@ for filepathi in label_filepaths:
         if audio_nami in filepathi:
             label_filenames.append(audio_nami)
 
-# Must delete later
-# label_filenames = [label_filenames[i] for i in [5,10,15,55,60]]
 
 
 #----------------------------------------------------------------------------------------------------
@@ -199,6 +289,8 @@ for filepathi in label_filepaths:
 
 
 # If the training and testing files exists then load them, otherwise create them
+#----------
+
 if os.path.exists(os.path.join(save_model_path, "training_files_used.txt")):
     # load the saved file
     with open(os.path.join(save_model_path, "training_files_used.txt")) as f:
@@ -207,7 +299,9 @@ if os.path.exists(os.path.join(save_model_path, "training_files_used.txt")):
     with open(os.path.join(save_model_path, "testing_files_used.txt")) as f:
         content = f.readlines()    
     testing_filenames = [x.strip() for x in content] # remove whitespace characters like `\n` at the end of each line
+
 # otherwiss create the training and testing files
+#----------
 else: 
     # randomise the order of the files
     file_list = label_filenames
@@ -240,6 +334,8 @@ else:
 # 2.1. Generate and save the training files
 #----------------------------------------------------------------------------------------------------
 
+# if any files are skipped because they are problematic, they are put here 
+skipped_training_files =[]
 
 
 # Start the loop by going over every single labelled file id
@@ -258,22 +354,22 @@ for file_ID in training_filenames:
         # if there are 2 label files, use the longest one (assuming that the longer one might have been reviewed by 2 people and therefore have 2 set of initials and be longer)
         label_path = max([s for s in label_filepaths if file_ID in s], key=len) #[s for s in label_filepaths if file_ID in s][0]
         
+        print("*****************************************************************")   
+        print("*****************************************************************") 
         print ("File being processed : " + label_path)    
         
         # create a standardised table which contains all the labels of that file - also can be used for validation
         label_table = pre.create_table(label_path, call_types, sep, start_column, duration_column, label_column, convert_to_seconds, 
                                        label_for_other, label_for_noise, engine, True)
+        
         # replace duration of beeps with 0.04 seconds - meerkat particularity
         label_table.loc[label_table["beep"] == True, "Duration"] = 0.04
         label_table.loc[label_table["beep"] == True, "End"] += 0.04
     
-        # Don't run the code if that file has already been processed
-        # if os.path.isfile(os.path.join(save_label_table_path, save_label_table_filename)):
-        #     continue
-        # np.save(os.path.join(save_label_table_path, save_label_table_filename), label_table) 
+        # Save the file
         label_table.to_csv(os.path.join(save_label_table_train_path, save_label_table_filename), header=True, index=None, sep=';')
         
-        #save the label tables with other, but for the purpose of labelling, remove other
+        # save the label tables with other, but for the purpose of generating training labels, remove other
         if other_ignored_in_training:
             label_table = label_table[label_table[label_for_other] == False]
             label_table= label_table.reset_index(drop=True)
@@ -281,37 +377,39 @@ for file_ID in training_filenames:
         # load the audio data
         y, sr = librosa.load(audio_path, sr=None, mono=False)
         
-        # # Implement this for acc data
         # # Reshaping the Audio file (mono) to deal with all wav files similarly
         # if y.ndim == 1:
-        #     y = y.reshape(1, -1)   
-
+        #     y = y.reshape(1, -1)
+        
+        # # Implement this for acc data
         # for ch in range(y.shape[0]):
         # ch=0
         # y_sub = y[:,ch]
         y_sub = y
         
+        # Loop through every call in the table (i.e. each row)
         for rowi in range(len(label_table["Start"])):
-            #rowi=3
-            # loop through every labelled call event in the dataset and create a random start time to generate sprectrogram window
+            #rowi=0
+            # create a random start time to generate sprectrogram window
             random_start = label_table["Start"][rowi] - (random() * spec_window_size)
             
-            #don't generate a label for the start stop skipon skipoff
+            # don't generate a label for the start stop skipon skipoff
             if label_table["Label"].str.contains('|'.join(label_for_startstop), regex=True, case = False)[rowi]:
                 continue
             
             # generate 3 spectrograms for every labelled call 
-            #(idea is that it should include either 2 call + 1 noise or 1 call and 2 noise - balances the dataset a little)
+            # (idea is that it should include either 2 call + 1 noise 
+            # or 1 call and 2 noise - balances the dataset a little)
             for start in np.arange(random_start, (random_start + (3*slide) ), slide):
                 # start = random_start
-                stop = start + spec_window_size
-                
+                stop = start + spec_window_size                
                 
                 if stop > label_table["End"][len(label_table["End"])-1]:
                     continue
                 if start < label_table["Start"][0]:
                     continue
                 
+                # generate spectrogram
                 spectro = pre.generate_mel_spectrogram(y=y_sub, sr=sr, start=start, stop=stop, 
                                                n_mels = n_mels, window=window, 
                                                fft_win= fft_win, fft_hop = fft_hop, normalise=normalise)
@@ -319,9 +417,6 @@ for file_ID in training_filenames:
                 #generate the label matrix
                 label_matrix = pre.create_label_matrix(label_table, spectro, call_types, start, 
                                            stop, label_for_noise)
-                
-                call_matrix = pre.create_call_nocall_matrix(label_table, spectro, start, 
-                                                            stop, label_for_noise)
                 
                 
                 # find out what the label is for this given window so that later we can choose the label/test set in a balanced way
@@ -332,21 +427,19 @@ for file_ID in training_filenames:
                 
                 # Save these files
                 save_spec_filename = file_ID + "_SPEC_" + str(start) + "s-" + str(stop) + "s_" + category + ".npy"
-                save_mat_filename = file_ID + "_MAT_" + str(start) + "s-" + str(stop) + "s_" + category + ".npy"
-                # save_both_filename = file_ID + "_BOTH_" + str(start) + "s-" + str(stop) + "s_" + category + ".npy"
+                np.save(os.path.join(save_spec_train_path, save_spec_filename), spectro)    
                 
-                np.save(os.path.join(save_spec_train_path, save_spec_filename), spectro)     
+                save_mat_filename = file_ID + "_MAT_" + str(start) + "s-" + str(stop) + "s_" + category + ".npy"
                 np.save(os.path.join(save_mat_train_path, save_mat_filename), label_matrix) 
-                # np.save(os.path.join(save_spec_path, save_both_filename), np.array((spectro, label_matrix))) 
 
 
 # save the files that were skipped
-print(skipped_files)
+print(skipped_training_files)
 
 
 # save a copy of the training and testing diles
 with open(os.path.join(save_model_path, "skipped_training_files.txt"), "w") as f:
-    for s in skipped_files:
+    for s in skipped_training_files:
         f.write(str(s) +"\n")
 
 
@@ -401,7 +494,7 @@ for calltype in calls_to_augment:
     noise_filepaths = glob.glob(save_spec_train_path+'/*' + label_for_noise + '*')     
     for spec_filepath in spec_filepaths: 
         # spec_filepath = spec_filepaths[0]
-        # noise aug
+        # augment with noise
         spec_filepath= [spec_filepath]
         aug_data, aug_spectro, aug_mat, aug_spec_filename, aug_mat_filename = pre.augment_with_noise(spec_filepath, noise_filepaths, 
                                                                                                              audio_filepaths,calltype, scaling_factor, 
@@ -420,8 +513,7 @@ for calltype in calls_to_augment:
         #                                                                                 save_label_table_path, call_types, label_for_noise)
         
         
-        # # time shft
-        
+        # # time shft        
         # augmented_data, augmented_spectrogram, augmented_label, spec_name, label_name = pre.augment_with_time_stretch(spec_filepaths, audio_filepaths, calltype, stretch_factor,other_ignored_in_training,
         #                                                                                 random_range, spec_window_size, n_mels, window, fft_win, fft_hop, normalise,
         #                                                                                 save_label_table_path, call_types, label_for_noise)
@@ -586,45 +678,9 @@ num_calltypes = y_train.shape[2]
 gru_units = y_train.shape[1] 
 
 
-#--------------------------------------------
 # Construct the RNN
-#--------------------------------------------
-
-
-# Input
-inp = Input(shape=(x_train.shape[1], x_train.shape[2], x_train.shape[3]))
-
-# Convolutional layers (conv - maxpool x3 )
-c_1 = Conv2D(filters, (3,3), padding='same', activation='relu')(inp)
-mp_1 = MaxPooling2D(pool_size=(1,5))(c_1)
-c_2 = Conv2D(filters, (3,3), padding='same', activation='relu')(mp_1)
-mp_2 = MaxPooling2D(pool_size=(1,2))(c_2)
-c_3 = Conv2D(filters, (3,3), padding='same', activation='relu')(mp_2)
-mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)
-
-
-# reshape
-reshape_1 = Reshape((x_train.shape[-3], -1))(mp_3)
-
-# bidirectional gated recurrent unit x2
-rnn_1 = Bidirectional(GRU(units=gru_units, activation='tanh', dropout=dropout, 
-                          recurrent_dropout=dropout, return_sequences=True), merge_mode='mul')(reshape_1)
-rnn_2 = Bidirectional(GRU(units=gru_units, activation='tanh', dropout=dropout, 
-                          recurrent_dropout=dropout, return_sequences=True), merge_mode='mul')(rnn_1)
-
-# 3x relu
-dense_1  = TimeDistributed(Dense(dense_neurons, activation='relu'))(rnn_2)
-drop_1 = Dropout(rate=dropout)(dense_1)
-dense_2 = TimeDistributed(Dense(dense_neurons, activation='relu'))(drop_1)
-drop_2 = Dropout(rate=dropout)(dense_2)
-dense_3 = TimeDistributed(Dense(dense_neurons, activation='relu'))(drop_2)
-drop_3 = Dropout(rate=dropout)(dense_3)
-
-# softmax
-output = TimeDistributed(Dense(num_calltypes, activation='softmax'))(drop_3)
-
-# build model
-RNN_model = Model(inp, output)
+import model.network_class as NN
+RNN_model = NN.build_rnn_calltype(x_train, num_calltypes, filters, gru_units, dense_neurons, dropout)
 
 # Adam optimiser
 adam = optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
@@ -632,21 +688,18 @@ adam = optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=
 # Compile the model
 RNN_model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['binary_accuracy'])
 
-# Setup callbycks: learning rate / loss /tensorboard
+# Setup tensorboard callbacks: learning rate / loss / early stopping
+loss = LossHistory()
 early_stopping = EarlyStopping(monitor='val_loss', patience=100, restore_best_weights=True, verbose=1)
 reduce_lr_plat = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=25, verbose=1,
                                    mode='auto', min_delta=0.0001, cooldown=0, min_lr=0.000001)
-loss = LossHistory()
 
-#tensorboard
-tensorboard = TensorBoard(# Write to logs directory, e.g. logs/30Oct-05:00
-                          log_dir = save_tensorboard_path, #"/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/trained_model/tensorboard_logs", #"logs/{}".format(time.strftime('%d%b-%H%M')),        
+# Setup tensorboard tracking of parameters
+tensorboard = TensorBoard(log_dir = save_tensorboard_path, #"/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/trained_model/tensorboard_logs", #"logs/{}".format(time.strftime('%d%b-%H%M')),        
                           histogram_freq=0,
                           write_graph=True,  # Show the network
-                          write_grads=True   # Show gradients
-                          )    
-
-
+                          write_grads=True)  # Show gradients
+                            
 # fit model
 RNN_model.fit_generator(train_generator, 
                         steps_per_epoch = train_generator.steps_per_epoch(),
@@ -731,8 +784,10 @@ y_test_files = [os.path.join(save_mat_test_path, x) for x in y_test_files ]
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
-skipped_files = []
+# if any files are skipped because they are problematic, they are put here 
+skipped_testing_files = []
 # testing_filenames = testing_filenames[7:]
+
 #Start the loop by going over every single labelled file id
 for file_ID in testing_filenames:
     # file_ID = testing_filenames[2]
@@ -812,8 +867,7 @@ for file_ID in testing_filenames:
         
             pred_list = []
     
-            for spectro_slide in np.arange(fromi, toi, slide):
-                
+            for spectro_slide in np.arange(fromi, toi, slide):             
                 
                 
                 # spectro_slide = fromi
@@ -825,35 +879,22 @@ for file_ID in testing_filenames:
                 # ignore cases where the window is larger than what is labelled (e.g. at the end)
                 if stop <= toi:
                     
-                    # # Generate the relevant spectrogram name
-                    # save_spec_filename = file_ID + "_SPEC_" + str(start) + "s-" + str(stop) + "s_" #+ category + ".npy"
-                    # save_mat_filename = file_ID + "_MAT_" + str(start) + "s-" + str(stop) + "s_" #+ category + ".npy"
-                    # save_pred_filename = file_ID + "_PRED_" + str(start) + "s-" + str(stop) + "s_" #+ category + ".npy"
-                    
+                    # generate spectrogram
                     spectro = pre.generate_mel_spectrogram(y=y_sub, sr=sr, start=start, stop=stop, 
                                                            n_mels = n_mels, window='hann', 
                                                            fft_win= fft_win, fft_hop = fft_hop, normalise = True)
-                    
-                    label_matrix = pre.create_label_matrix(label_table, spectro, call_types, start, 
-                                                           stop, label_for_noise)
-                    
-                    # Load the spectrogram
+                    # change dimension
                     spec = spectro.T
                     spec = spec[np.newaxis, ..., np.newaxis]  
                     
+                    
+                    # generate label
+                    label_matrix = pre.create_label_matrix(label_table, spectro, call_types, start, 
+                                                           stop, label_for_noise)
+                    
                     # generate the prediction
-                    pred = RNN_model.predict(spec)
-                    
-                    # find out what the label is for this given window so that later we can choose the label/test set in a balanced way
-                    # file_label = list(label_matrix.index.values[label_matrix.where(label_matrix > 0).sum(1) > 1])
-                    # if len(file_label) > 1 and 'noise' in file_label:
-                    #     file_label.remove('noise')
-                    # category = '_'.join(file_label)
-                    
-                    # save_spec_filename = save_spec_filename + category + ".npy"
-                    # save_mat_filename = save_mat_filename + category + ".npy"
-                    # save_pred_filename = save_pred_filename + category + ".npy"
-                    
+                    pred = RNN_model.predict(spec)                    
+
                     # add this prediction to the stack that will be used to generate the predictions table
                     pred_list.append(np.squeeze(pred))
                     
@@ -863,77 +904,41 @@ for file_ID in testing_filenames:
                 for row in pred_list:
                     f.write(str(row) +"\n")
                 
-        for low_thr in [0.2]:#[0.1,0.3]:
-            for high_thr in [0.5,0.7,0.9]: #[0.5,0.7,0.8,0.9,0.95]: 
-
+        for low_thr in [0.2]:
+            for high_thr in [0.5,0.7,0.9]: 
                 
-                low_thr = round(low_thr,2)                               
-                high_thr = round(high_thr,2)
-
-                save_pred_table_filename = file_ID + "_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt"
+                if low_thr < high_thr :
                 
-                #----------------------------------------------------------------------------
-                # Compile the predictions for each on/off labelling chunk
-                detections = ppm.merge_p(probabilities = pred_list, 
-                                         labels=list(call_types.keys()),
-                                         starttime = 0, 
-                                         frameadv_s = fft_hop, 
-                                         specadv_s = slide,
-                                         low_thr=low_thr, 
-                                         high_thr=high_thr, 
-                                         debug=1)
-                
-                if len(detections) == 0:  
-                    detections = pd.DataFrame(columns = ['category', 'start', 'end', 'scores'])
-                
-                pred_table = pd.DataFrame() 
-                
-                #convert these detections to a predictions table                
-                table = pd.DataFrame(detections)
-                table["Label"] = table["category"]
-                table["Start"] = round(table["start"]*fft_hop + fromi, 3) #table["start"].apply(Decimal)*Decimal(fft_hop) + Decimal(fromi)
-                table["Duration"] = round( (table["end"]-table["start"])*fft_hop, 3) #(table["end"].apply(Decimal)-table["start"].apply(Decimal))*Decimal(fft_hop)
-                table["End"] = round(table["end"]*fft_hop + fromi, 3) #table["Start"].apply(Decimal) + table["Duration"].apply(Decimal)
-                
-                # keep only the useful columns    
-                table = table[["Label","Start","Duration", "End", "scores"]]  
-                
-                # Add a row which stores the start of the labelling period
-                row_start = pd.DataFrame()
-                row_start.loc[0,'Label'] = list(loop_table["Label"])[loopi]
-                row_start.loc[0,'Start'] = fromi
-                row_start.loc[0,'Duration'] = 0
-                row_start.loc[0,'End'] = fromi 
-                row_start.loc[0,'scores'] = None
-                
-                # Add a row which stores the end of the labelling period
-                row_stop = pd.DataFrame()
-                row_stop.loc[0,'Label'] = list(loop_table["Label"])[int(loopi + 1)]
-                row_stop.loc[0,'Start'] = toi
-                row_stop.loc[0,'Duration'] = 0
-                row_stop.loc[0,'End'] = toi 
-                row_start.loc[0,'scores'] = None
-                
-                # put these rows to the label table
-                table = pd.concat([row_start, table, row_stop]) 
-                
-                # add the true false columns based on the call types dictionary
-                for true_label in call_types:
-                    table[true_label] = False
-                    for old_label in call_types[true_label]:
-                        table.loc[table["Label"].str.contains(old_label, regex=True, case = False), true_label] = True
-                
-                # add this table to the overall predictions table for that collar
-                pred_table = pd.concat([pred_table, table ])
-                
-                # for each on/off labelling chunk, we can save the prediction and append it to the previous chunk
-                if loopi == 0:                    
-                    # for the first chunck keep the header, but not when appending later
-                    pred_table.to_csv(os.path.join(save_pred_table_test_path, save_pred_table_filename), 
-                                      header=True, index=None, sep=';', mode = 'a')
-                else:
-                    pred_table.to_csv(os.path.join(save_pred_table_test_path, save_pred_table_filename), 
-                                      header=None, index=None, sep=';', mode = 'a')
+                    low_thr = round(low_thr,2)                               
+                    high_thr = round(high_thr,2)
+    
+                    save_pred_table_filename = file_ID + "_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt"
+                    
+                    #----------------------------------------------------------------------------
+                    # Compile the predictions for each on/off labelling chunk
+                    detections = ppm.merge_p(probabilities = pred_list, 
+                                             labels=list(call_types.keys()),
+                                             starttime = 0, 
+                                             frameadv_s = fft_hop, 
+                                             specadv_s = slide,
+                                             low_thr=low_thr, 
+                                             high_thr=high_thr, 
+                                             debug=1)                    
+                   
+                    
+                    # add this table to the overall predictions table for that collar
+                    pred_table = cl.compile_pred_table(detections, fft_hop, fromi, toi, loop_table, loopi, call_types)
+                    
+                    # for each on/off labelling chunk, we can save the prediction and append it to the previous chunk
+                    
+                    if loopi == 0: # for the first chunck keep the header        
+                        # write a new file with a header
+                        pred_table.to_csv(os.path.join(save_pred_table_test_path, save_pred_table_filename), 
+                                          header=True, index=None, sep=';', mode = 'w')
+                    else:
+                        # for the next chunks, only append without a header
+                        pred_table.to_csv(os.path.join(save_pred_table_test_path, save_pred_table_filename), 
+                                          header=None, index=None, sep=';', mode = 'a')
                 
                 
                 
@@ -952,11 +957,11 @@ pred_list = np.load( os.path.join(save_pred_stack_test_path, file_ID + '_PRED_ST
 '''
         
 # save the files that were skipped
-print(skipped_files)
+print(skipped_testing_files)
 
 # save a copy of the training and testing diles
 with open(os.path.join(save_model_path, "skipped_testing_files.txt"), "w") as f:
-    for s in skipped_files:
+    for s in skipped_testing_files:
         f.write(str(s) +"\n")
        
 ##############################################################################################
