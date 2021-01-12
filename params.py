@@ -113,4 +113,6 @@ call_types = {
 # 'nf':["nf","nonfoc"]
 
 
+# get rid of the focal follows (going around behind the meerkat with a microphone)
+to_rm = ["SOUNDFOC", "PROCESSED", "LABEL" , "label", "_SS"]
 
