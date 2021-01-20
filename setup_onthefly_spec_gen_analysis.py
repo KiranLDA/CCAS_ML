@@ -284,8 +284,7 @@ if sample_size.loc[sample_size["label"] == calltype, "data_augment"] >= 1:
         start_lab = int(round(sr * decimal.Decimal(call_start),3))
         stop_lab =  int(round(sr * decimal.Decimal(call_stop),3))
         #suset the wav
-        data_subset = np.asfortranarray(y[start_lab:stop_lab])
-        
+        data_subset = np.asfortranarray(y[start_lab:stop_lab])        
 
         # randomly choose a noise file - same as above, only with noise
         noise_event =  mega_noise_table.sample()#random.choice([x for x in noise_filepaths if label_for_noise in x])#glob.glob(folder + "/*" + calltype +".npy")

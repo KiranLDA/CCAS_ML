@@ -21,10 +21,11 @@ class DataGenerator(keras.utils.Sequence):
                  spec_window_size,
                  sample_size, #(method could be in data generator) 
                  window_size,
-                 fft_params,n_mels, window, fft_win , fft_hop , normalise
-                 label_for_noise
-                 scaling_factor,
-                 n_per_call = 3):
+                 fft_params, n_mels, window, fft_win , fft_hop , normalise,
+                 label_for_noise,
+                 scaling_factor #,
+                 # n_per_call = 3
+                 ):
         
         self.call_table_dict = call_table_dict # (callype, start, stop, filelocations)
         self.mega_table # (rename so it is clear it is label)
@@ -34,7 +35,8 @@ class DataGenerator(keras.utils.Sequence):
         self.window_size = window_size
         self.fft_params = fft_params
         self.scaling_factor = scaling_factor
-        self.n_per_call = n_per_call
+        self.label_for_noise = label_for_noise
+        # self.n_per_call = n_per_call
         
         self.indexes = dict()
         for call_key in call_table_dict.keys():
@@ -56,24 +58,25 @@ class DataGenerator(keras.utils.Sequence):
         Generate label
         '''
         imports: calltype, index, call
-        call
-        y, sr = librosa.load(call["wav_path"], sr=None, mono=False,
-                             offset = start_lab)
-
+        # Get the call
         
         # randomise the start a little so the new spectrogram will be a little different from the old
+        # if the call is very long have a large range to draw the window
         if call["Duration"]>= self.spec_window_size:
             call_start = round(float(np.random.uniform(call["Start"]-self.spec_window_size/2, 
                                                        call["End"]-self.spec_window_size/2, 1)), 3)
+        # if the call is short call, draw it from somewhere
         else:
             call_start = round(float(np.random.uniform((call["Start"]+call["End"])/2-self.spec_window_size, 
                                                        (call["Start"]+call["End"])/2)), 3)
         
+        # load in a subsection of the spectrogram
         y, sr = librosa.load(call["wav_path"], sr=None, mono=False,
                              offset = call_start, duration =self.spec_window_size)
         
         call_stop = round(call_start + self.spec_window_size,3 )
         
+        #convert from a time to a frame
         start_lab = int(round(sr * decimal.Decimal(call_start),3))
         stop_lab =  int(round(sr * decimal.Decimal(call_stop),3))            
         
@@ -81,8 +84,8 @@ class DataGenerator(keras.utils.Sequence):
         data_subset = np.asfortranarray(y)
         
         
+        # Get the noise
         
-
         # randomly choose a noise file - same as above, only with noise
         noise_event =  self.mega_noise_table.sample()#random.choice([x for x in noise_filepaths if label_for_noise in x])#glob.glob(folder + "/*" + calltype +".npy")
 
@@ -106,43 +109,80 @@ class DataGenerator(keras.utils.Sequence):
         # generate label
         augmented_label = create_label_matrix(self.mega_label_table, augmented_spectrogram,
                                               call_types, call_start, call_stop, 
-                                              label_for_noise)
-
+                                              self.label_for_noise)
         
+        return augmented_spectrogram, augmented_label
+    
+    def __getitem__(self, batch_number):
+        # numb of each type
+        # tot num of calls gend
+        # need to init batch_data
         
+        # keep track of batch
+        start_idx = batch_number * self.n_per_call
+        stop_idx = (batch_number + 1) * self.n_per_call   
         
-        
-     def __getitem__(self, batch_number):
-         # numb of each type
-         # tot num of calls gend
-         
-         # need to init batch_data
-  
-         start_idx = batch_number * n_per_call
-         stop_idx = (batch_number + 1) * n_per_call         
-         
-         for calltype in call_dict:
-             for call_num in range(start_idx, stop_idx):
-                 # map call number to actual call number
-                 # indexes[calltype][call_num]                  
-                 call_num = call_num % indexes[calltype].size
-                 
-                 call = call_table_dict[calltype].iloc[(indexes[calltype][call_num] ) ]
-                 
-                 label, spec = generate_example(call, calltype,call_num)
-                 batch_label_data = batch_label_data.append(label)
-                 batch_spec_data = batch_spec_data.append(spec)
-                 
-         
-             
-         
-        
-        # compiling examples into batch (append)
+        # for every call compile a batch        
+        for calltype in call_dict:
+            for call_num in range(start_idx, stop_idx):
+                
+                
+                
+                
+                # map call number to actual call number                  
+                call_num = call_num % indexes[calltype].size
+                
+                # extract that call
+                call = call_table_dict[calltype].iloc[(indexes[calltype][call_num] ) ]
+                
+                # generate the label and spectrogram
+                label, spec = generate_example(call, calltype,call_num)
+                
+                # compile the batch
+                batch_label_data = batch_label_data.append(label)
+                batch_spec_data = batch_spec_data.append(spec)
+                # add weight? 
         
         # compute indecies /calls per batch calc (Batch size * call number)
+        mean_sample_size, sample_size = sampling_strategy()
+        sampling_strategy = sample_size["prop_to_augment"]
+        next_sample = call_num  # indexes[calltype][call_num]
         
+        
+        # start, end = computed batch index
+        
+        # for idx in range(start, end):
+            # pick a call type based sampling strategy  
+            # call_idx = next_sample[call type]
+            # get label spectrogram for call type & idx
+            # # option 1, only reshuffle at batch end, we use moduluo operator % to wrap around
+            # next_sample[call type] = next_sample[call type] % #of call type
+            # # option 2, reshuffle at end of samples
+            # if next_sample[call type] + 1 > # samples
+            # reshuffle
+            # else add 1
+
+    def sampling_strategy(self):        
+        # the purpose of this dictionary is to see how        
+        sample_size = pd.DataFrame()
+        
+        for label in self.call_table_dict:
+            sample_size = sample_size.append(pd.DataFrame([[label,
+                                                            len(self.call_table_dict[label]),
+                                                            sum(self.call_table_dict[label]["Duration"])]],
+                                                          columns= ["label", "sample_size", "duration"]))
+        mean_sample_size = round(sum(sample_size["sample_size"][sample_size["label"]!= self.label_for_noise])/len(sample_size["sample_size"][sample_size["label"]!= self.label_for_noise]))
+        sample_size["calls_needed"] =  mean_sample_size - sample_size["sample_size"]
+        sample_size["times_to_augment"] = sample_size["calls_needed"] /sample_size["sample_size"]
+        sample_size["prop_to_augment"] = abs(sample_size["times_to_augment"]) / (abs(sample_size["times_to_augment"])+1)
+        sample_size["samp_div_mean"]= sample_size["sample_size"] / mean_sample_size
+        sample_size["size_with_augment"]= sample_size["sample_size"].copy()
+        sample_size.loc[sample_size["size_with_augment"] <= mean_sample_size, "size_with_augment"] = mean_sample_size
+        sample_size["prop_each_call"] = sample_size["size_with_augment"] / sum(sample_size["size_with_augment"])
+        sample_size["equal_weights"] = 1/ len(sample_size["prop_each_call"]) 
+        return mean_sample_size, sample_size
    
-     def on_epoch_end(self):
+     def on_epoch_end(self):  
         """
         on_epoch_end - Bookkeeping at the end of the epoch
         :return:
@@ -153,8 +193,11 @@ class DataGenerator(keras.utils.Sequence):
                 np.random.shuffle(self.indexes[calltype])  # reshuffle the data
             
             
-            
-            
+#---------------------------------------------------------
+#   OUTLINE
+#---------------------------------------------------------
+
+          
 # # inputs:
 #     call_table_dict (callype, start, stop, filelocations)
 #     mega_table /mega_noise_table  (rename so it is clear it is label)
@@ -186,7 +229,7 @@ class DataGenerator(keras.utils.Sequence):
 #     on_epoch_end
 #         shuffling / keeping track of indexes
 
-
+'''
 
 
 import numpy as np
@@ -350,3 +393,4 @@ class DataGenerator(keras.utils.Sequence):
         if self.shuffle:
             np.random.shuffle(self.order)  # reshuffle the data
 
+'''
