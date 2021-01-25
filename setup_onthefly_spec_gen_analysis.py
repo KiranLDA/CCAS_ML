@@ -43,11 +43,80 @@ save_data_path = os.path.join('/media/kiran/D0-P1/animal_data/meerkat', run_name
 if not os.path.isdir(save_data_path):
         os.makedirs(save_data_path)
 
+
 #####
 # Note that the lines below don't need to be modified 
 # unless you have a different file structure
 # They will create a specific file sub directory pattern in save_data_path
 #####
+
+
+# because we are still in a development phase, I want to use the same training and testing sets for each model
+
+# Training folders
+train_path = os.path.join(save_data_path,'train_data')
+if not os.path.isdir(train_path):
+        os.makedirs(train_path)
+
+# train_path = "/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/train_data"
+        
+save_spec_train_path = os.path.join(train_path , "spectrograms")
+if not os.path.isdir(save_spec_train_path):
+        os.makedirs(save_spec_train_path)
+        
+save_mat_train_path = os.path.join(train_path , "label_matrix")
+if not os.path.isdir(save_mat_train_path):
+        os.makedirs(save_mat_train_path)
+        
+save_label_table_train_path = os.path.join(train_path, 'label_table')
+if not os.path.isdir(save_label_table_train_path):
+        os.makedirs(save_label_table_train_path)
+
+
+# Test folders
+test_path = os.path.join(save_data_path, 'test_data')
+if not os.path.isdir(test_path):
+        os.makedirs(test_path)
+        
+save_spec_test_path = os.path.join(test_path , "spectrograms")
+if not os.path.isdir(save_spec_test_path):
+        os.makedirs(save_spec_test_path)
+        
+save_mat_test_path = os.path.join(test_path , "label_matrix")
+if not os.path.isdir(save_mat_test_path):
+        os.makedirs(save_mat_test_path)
+
+save_pred_test_path = os.path.join(test_path , "predictions")
+if not os.path.isdir(save_pred_test_path):
+        os.makedirs(save_pred_test_path)
+        
+        
+save_metrics_path = os.path.join(test_path , "metrics")
+if not os.path.isdir(save_metrics_path):
+        os.makedirs(save_metrics_path)
+        
+save_pred_stack_test_path = os.path.join(save_pred_test_path,"stacks")
+if not os.path.isdir(save_pred_stack_test_path):
+        os.makedirs(save_pred_stack_test_path)
+
+save_pred_table_test_path = os.path.join(save_pred_test_path,"pred_table")
+if not os.path.isdir(save_pred_table_test_path):
+        os.makedirs(save_pred_table_test_path)
+        
+save_label_table_test_path = os.path.join(test_path, 'label_table')
+if not os.path.isdir(save_label_table_test_path):
+        os.makedirs(save_label_table_test_path)
+
+
+# Model folder
+save_model_path = os.path.join(save_data_path, 'trained_model')
+if not os.path.isdir(save_model_path):
+        os.makedirs(save_model_path)
+        
+save_tensorboard_path = os.path.join(save_model_path, 'tensorboard_logs')
+if not os.path.isdir(save_tensorboard_path):
+    os.makedirs(save_tensorboard_path)      
+
 
 #------------------
 # rolling window parameters
@@ -199,20 +268,24 @@ for file_ID in training_filenames:
     
     noise_table = pre.create_noise_table(label_table, label_for_noise, label_for_startstop=['start', 'stop', 'skip', 'end', '\$'])
     
-    label_table["File"] = file_ID
-    noise_table["File"] = file_ID
+    label_table["wav_path"] = audio_path
+    label_table["label_path"] = label_path
+    
+    noise_table["wav_path"] = audio_path
+    noise_table["label_path"] = label_path    
+    
+    label_table["file_ID"] = file_ID
+    noise_table["file_ID"] = file_ID
+    
     mega_table = pd.concat([mega_table, label_table])
     mega_noise_table = pd.concat([mega_noise_table, noise_table])
 
 call_table_dict = {}
 # create individual tables for all calls
 for label in call_types: 
-    call_table_dict[label] = mega_table.loc[mega_table[label] == True, ["Label", "Start", "Duration","End","File"]]
+    call_table_dict[label] = mega_table.loc[mega_table[label] == True, ["Label", "Start", "Duration","End","wav_path","label_path"]]
 
-    
-call_table_dict[label_for_noise]=mega_noise_table[["Label", "Start", "Duration","End","File"]]
-
-
+call_table_dict[label_for_noise]=mega_noise_table[["Label", "Start", "Duration","End","wav_path","label_path"]]
 
 call_table_dict
 
