@@ -7,6 +7,7 @@ Created on Mon Oct 12 14:02:05 2020
 """
 
 import numpy as np
+import pandas as pd
 import tensorflow.keras as keras
 import lib.audioframes
 import lib.dftstream
@@ -17,20 +18,83 @@ import model.audiopool as audiopool
 class DataGenerator(keras.utils.Sequence):
     def __init__(self, 
                  call_table_dict, #(callype, start, stop, filelocations)
-                 mega_table, #(rename so it is clear it is label)
-                 mega_noise_table,  #(rename so it is clear it is label)
+                 mega_label_table, 
                  spec_window_size,
                  window_size,
-                 n_mels, window, fft_win , fft_hop , normalise,
+                 n_mels, 
+                 window, 
+                 fft_win , 
+                 fft_hop , 
+                 normalise,
                  label_for_noise,
                  label_for_other,
-                 scaling_factor ,
+                 min_scaling_factor ,
+                 max_scaling_factor,
                  n_per_call ,
                  other_ignored_in_training):
         
+        '''
+        call_table_dict:
+            dictionary where each key represents a calltype and stores a pandas dataframe where a row might look like this:
+                
+            Label                                                         s
+            Start                                                   3863.88
+            Duration                                                   0.06
+            End                                                     3863.94
+            wav_path      /home/kiran/Dropbox/CCAS_big_data/meerkat_data...
+            label_path    /home/kiran/Dropbox/CCAS_big_data/meerkat_data...
+            
+            
+        mega_label_table:
+            pandas df of all the labels, This ensures that if a particular call is being selected for the batch from the call_table_dict,
+            then any neighbouring calls are also labelled
+            
+            Label                                                        cc
+            Start                                                   4349.39
+            Duration                                                  0.135
+            End                                                     4349.53
+            cc                                                         True
+            sn                                                        False
+            mo                                                        False
+            agg                                                       False
+            ld                                                        False
+            soc                                                       False
+            al                                                        False
+            beep                                                      False
+            synch                                                     False
+            oth                                                       False
+            noise                                                     False
+            wav_path      /home/kiran/Dropbox/CCAS_big_data/meerkat_data...
+            label_path    /home/kiran/Dropbox/CCAS_big_data/meerkat_data...
+            file_ID       HM_VHMM023_MBLS_R02_20190707-20190719_file_6_(...
+                                                                        
+        spec_window_size:
+            size of the sliding window in seconds
+        window_size,
+        
+        n_mels: 
+            number of mel bands - suggested 64 or 128
+        window: 
+            spectrogram window generation type - suggested "hann"
+        fft_win: 
+            window length (in seconds)
+        fft_hop: 
+            hop between window starts (in seconds)
+        normalise:
+            true or false depending on whether we want to normalise accross the 
+            mel bands to remove noise and get stronger signal
+        min_scaling_factor:
+            numeric. When noise is added to calls in the augmentation, it needs to be rescaled. This value is the
+            minimum of the range of the scaling.
+        max_scaling_factor:
+            numeric. When noise is added to calls in the augmentation, it needs to be rescaled. This value is the
+            maximum of the range of the scaling.
+        n_per_call:
+            the number of times a call is used in a batch, by default would recommend 3.
+        '''
+        
         self.call_table_dict = call_table_dict # (callype, start, stop, filelocations)
-        self.mega_table # (rename so it is clear it is label)
-        self.mega_noise_table = mega_noise_table # (rename so it is clear it is label)
+        self.mega_label_table = mega_label_table # (rename so it is clear it is label)
         self.spec_window_size = spec_window_size
         self.label_for_noise = label_for_noise
         self.window_size = window_size
@@ -39,7 +103,8 @@ class DataGenerator(keras.utils.Sequence):
         self.fft_win = fft_win
         self.fft_hop = fft_hop
         self.normalise = normalise
-        self.scaling_factor = scaling_factor
+        self.min_scaling_factor = min_scaling_factor
+        self.max_scaling_factor = max_scaling_factor
         self.n_per_call = n_per_call
         
         # Q do I need self here even if it is only used in init?
@@ -118,10 +183,8 @@ class DataGenerator(keras.utils.Sequence):
             
             #randomise the start and stop so the same section is never being used for the augmentation
             noise_start = round(float(np.random.uniform(noise_event.loc["Start"], 
-                                                        (noise_event.loc["End"]-self.spec_window_size),
-                                                        1)),
-                                3)
-            noise_stop = round(noise_start + spec_window_size,3 )    
+                                                        (noise_event.loc["End"]-self.spec_window_size),1)),3)
+            noise_stop = round(noise_start + self.spec_window_size,3 )    
         
             y_noise = self.pool.get_seconds(noise_event["wav_path"], noise_start, self.spec_window_size)
             sr = self.pool.get_Fs(noise_event["wav_path"])
@@ -141,7 +204,7 @@ class DataGenerator(keras.utils.Sequence):
                                                              self.fft_win , self.fft_hop , self.normalise)
             # generate label
             augmented_label = pre.create_label_matrix(self.mega_label_table, augmented_spectrogram,
-                                                  call_types, call_start, call_stop, 
+                                                  self.call_table_dict, call_start, call_stop, 
                                                   self.label_for_noise)
         else:
             # generate spectrogram
@@ -151,7 +214,7 @@ class DataGenerator(keras.utils.Sequence):
                                                              self.fft_win , self.fft_hop , self.normalise)
             # generate label
             augmented_label = pre.create_label_matrix(self.mega_label_table, augmented_spectrogram,
-                                                  call_types, call_start, call_stop, 
+                                                  self.call_table_dict, call_start, call_stop, 
                                                   self.label_for_noise)
         
         return augmented_spectrogram, augmented_label
@@ -196,7 +259,7 @@ class DataGenerator(keras.utils.Sequence):
                 
                 # do a weighted coin flip
                 augment = np.random.binomial(1, 
-                                             float(sample_size.loc[sample_size["label"] == calltype, "prop_to_augment"]), 
+                                             float(self.sample_size.loc[self.sample_size["label"] == calltype, "prop_to_augment"]), 
                                              1)[0]
                 
                 # determine whether or not the call is to be augmented based on the coin flip
@@ -255,9 +318,7 @@ class DataGenerator(keras.utils.Sequence):
         sample_size["equal_weights"] = 1/ len(sample_size["prop_each_call"]) 
         
         return mean_sample_size, sample_size
-    
-    
-    # def plot_batch(self, batch_idx):
+
         
    
     def on_epoch_end(self):  
