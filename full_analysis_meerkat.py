@@ -1132,8 +1132,8 @@ import math
 # normalise = True
 # for low_thr in [0.1,0.3]:
 #     for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
-for low_thr in [0.2]:#[0.1,0.3]:
-    for high_thr in [0.5,0.7,0.9]: #[0.5,0.7,0.8,0.9,0.95]: 
+for low_thr in [0.2]: # [0.1,0.3]:
+    for high_thr in [0.5,0.7,0.9]: # [0.5,0.7,0.8,0.9,0.95]: 
         
         low_thr = round(low_thr,2)                               
         high_thr = round(high_thr,2) 
@@ -1160,8 +1160,7 @@ for low_thr in [0.2]:#[0.1,0.3]:
         # remove FP and FN
         df_cm = df_cm.drop("FN", axis=1)
         df_cm = df_cm.drop("FP", axis=0)
-        ####
-        
+        ####        
         
         df_cm = df_cm.apply(pd.to_numeric)
         # #move last negatives to end
@@ -1189,10 +1188,6 @@ for low_thr in [0.2]:#[0.1,0.3]:
         ax.set_title(str(low_thr) + "-" + str(high_thr) )
         plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
         plt.show()
-
-
-
-
 
 
 

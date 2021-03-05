@@ -9,18 +9,17 @@ Created on Mon Oct 12 14:02:05 2020
 import numpy as np
 import pandas as pd
 import tensorflow.keras as keras
-import lib.audioframes
-import lib.dftstream
-import lib.endpointer
+# import lib.audioframes
+# import lib.dftstream
+# import lib.endpointer
 import preprocess.preprocess_functions as pre
 import model.audiopool as audiopool
 
 class DataGenerator(keras.utils.Sequence):
     def __init__(self, 
                  call_table_dict, #(callype, start, stop, filelocations)
-                 mega_label_table, 
+                 label_table, 
                  spec_window_size,
-                 window_size,
                  n_mels, 
                  window, 
                  fft_win , 
@@ -45,7 +44,7 @@ class DataGenerator(keras.utils.Sequence):
             label_path    /home/kiran/Dropbox/CCAS_big_data/meerkat_data...
             
             
-        mega_label_table:
+        label_table:
             pandas df of all the labels, This ensures that if a particular call is being selected for the batch from the call_table_dict,
             then any neighbouring calls are also labelled
             
@@ -70,8 +69,8 @@ class DataGenerator(keras.utils.Sequence):
                                                                         
         spec_window_size:
             size of the sliding window in seconds
-        window_size,
-        
+        window_size:
+                    
         n_mels: 
             number of mel bands - suggested 64 or 128
         window: 
@@ -94,10 +93,9 @@ class DataGenerator(keras.utils.Sequence):
         '''
         
         self.call_table_dict = call_table_dict # (callype, start, stop, filelocations)
-        self.mega_label_table = mega_label_table # (rename so it is clear it is label)
+        self.label_table = label_table # (rename so it is clear it is label)
         self.spec_window_size = spec_window_size
         self.label_for_noise = label_for_noise
-        self.window_size = window_size
         self.n_mels = n_mels 
         self.window = window 
         self.fft_win = fft_win
@@ -141,9 +139,12 @@ class DataGenerator(keras.utils.Sequence):
         
     def generate_example(self, calltype, call_num, to_augment):
         '''
-        calltype, 
-        call_num, 
-        to_augment
+        calltype:
+            string used t o describe the call type. For instance, a short note from the meerkat analysis would be "sn"
+        call_num: 
+            numeric - index for which call 
+        to_augment:
+            boolean True False to indicate whether the call is being augmented or not
         '''
 
         # extract the indexed call
@@ -184,7 +185,7 @@ class DataGenerator(keras.utils.Sequence):
             #randomise the start and stop so the same section is never being used for the augmentation
             noise_start = round(float(np.random.uniform(noise_event.loc["Start"], 
                                                         (noise_event.loc["End"]-self.spec_window_size),1)),3)
-            noise_stop = round(noise_start + self.spec_window_size,3 )    
+            # noise_stop = round(noise_start + self.spec_window_size,3 )    
         
             y_noise = self.pool.get_seconds(noise_event["wav_path"], noise_start, self.spec_window_size)
             sr = self.pool.get_Fs(noise_event["wav_path"])
@@ -196,14 +197,18 @@ class DataGenerator(keras.utils.Sequence):
     
             # combine the two
             # Q randomise scaling factor (normal absolute dist 0.1-0.5)
-            augmented_data = data_subset + noise_subset * self.scaling_factor
+            augmented_data = data_subset + noise_subset * np.random.uniform(self.min_scaling_factor, self.max_scaling_factor)
             # generate spectrogram
             augmented_spectrogram = pre.generate_mel_spectrogram(augmented_data, sr, 0, 
                                                              self.spec_window_size, 
                                                              self.n_mels, self.window, 
                                                              self.fft_win , self.fft_hop , self.normalise)
+            # subset the label table
+            label_subset = self.label_table[self.label_table['wav_path'].isin([call["wav_path"]])]
+
+            #***
             # generate label
-            augmented_label = pre.create_label_matrix(self.mega_label_table, augmented_spectrogram,
+            augmented_label = pre.create_label_matrix(label_subset, augmented_spectrogram,
                                                   self.call_table_dict, call_start, call_stop, 
                                                   self.label_for_noise)
         else:
@@ -212,8 +217,11 @@ class DataGenerator(keras.utils.Sequence):
                                                              self.spec_window_size, 
                                                              self.n_mels, self.window, 
                                                              self.fft_win , self.fft_hop , self.normalise)
+            # subset the label table
+            label_subset = self.label_table[self.label_table['wav_path'].isin([call["wav_path"]])]
+
             # generate label
-            augmented_label = pre.create_label_matrix(self.mega_label_table, augmented_spectrogram,
+            augmented_label = pre.create_label_matrix(label_subset , augmented_spectrogram,
                                                   self.call_table_dict, call_start, call_stop, 
                                                   self.label_for_noise)
         
@@ -295,23 +303,33 @@ class DataGenerator(keras.utils.Sequence):
         # sampling_strategy = sample_size["prop_to_augment"]
         # next_sample = call_num  # indexes[calltype][call_num]
         
-        # Q is this correct that this needs to be returned
         return batch_label_data, batch_spec_data 
 
-    def sampling_strategy(self):        
-        # the purpose of this dictionary is to see how        
+    def sampling_strategy(self):      
+        '''
+        This function calculates the various different numbers of calls 
+        and estimates how much data augmentation
+        '''
+        # Create an empty dataset to fill     
         sample_size = pd.DataFrame()
         
+        # estimate the sample size for each call type
         for calltype in self.call_table_dict:
             sample_size = sample_size.append(pd.DataFrame([[calltype,
                                                             len(self.call_table_dict[calltype]),
                                                             sum(self.call_table_dict[calltype]["Duration"])]],
                                                           columns= ["label", "sample_size", "duration"]))
+        # calculate the mean sample (without including noise in the calculation)
         mean_sample_size = round(sum(sample_size["sample_size"][sample_size["label"]!= self.label_for_noise])/len(sample_size["sample_size"][sample_size["label"]!= self.label_for_noise]))
+        # Estimate how many calls are needed to reach the mean sample size
         sample_size["calls_needed"] =  mean_sample_size - sample_size["sample_size"]
+        # estimate how many times a sample needs to be augmented to read the mean
         sample_size["times_to_augment"] = sample_size["calls_needed"] /sample_size["sample_size"]
+        # convert this to a proportion
         sample_size["prop_to_augment"] = abs(sample_size["times_to_augment"]) / (abs(sample_size["times_to_augment"])+1)
+        
         sample_size["samp_div_mean"]= sample_size["sample_size"] / mean_sample_size
+        # number of calls which will
         sample_size["size_with_augment"]= sample_size["sample_size"].copy()
         sample_size.loc[sample_size["size_with_augment"] <= mean_sample_size, "size_with_augment"] = mean_sample_size
         sample_size["prop_each_call"] = sample_size["size_with_augment"] / sum(sample_size["size_with_augment"])
@@ -323,8 +341,8 @@ class DataGenerator(keras.utils.Sequence):
    
     def on_epoch_end(self):  
         """
-        on_epoch_end - Bookkeeping at the end of the epoch
-        :return:
+        on_epoch_end - Book keeping at the end of the epoch
+        It basically reshuffles the indecies
         """
         self.epoch += 1  # Note next epoch
         if self.shuffle:

@@ -174,11 +174,6 @@ def plot_detection_signals(prob, scanners, frameadv_s=None):
 
 
 
-
-
-
-
-
 class FindDetections:
     """
     FindDetections

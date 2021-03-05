@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun  9 12:37:12 2020
+Created on Wed Feb 17 10:31:12 2021
 
 @author: kiran
 """
@@ -39,6 +39,8 @@ from math import floor
 import statistics
 import glob
 
+# plotting
+import matplotlib.pyplot as plt
 
 # ML section packages
 import datetime
@@ -65,7 +67,7 @@ import pickle
 #          PARAMETERS - will likely put them in another directory
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
-import os
+
 
 other_ignored_in_training = True
 run_name = "NoiseAugmented_ProportionallyWeighted_NoOther_Forked"
@@ -73,10 +75,17 @@ run_name = "NoiseAugmented_ProportionallyWeighted_NoOther_Forked"
 #------------------
 # File paths
 #------------------
-label_dirs = ["/home/kiran/Documents/ML/meerkats_2017/labels_CSV", #2017 meerkats
-            "/home/kiran/Documents/ML/meerkats_2019/labels_csv"]
-audio_dirs= ["/media/kiran/Kiran Meerkat/Kalahari2017",
-             "/media/kiran/Kiran Meerkat/Meerkat data 2019"]
+# label_dirs = ["/home/kiran/Documents/ML/meerkats_2017/labels_CSV", #2017 meerkats
+#             "/home/kiran/Documents/ML/meerkats_2019/labels_csv"]
+label_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic"]
+
+
+# audio_dirs= ["/media/kiran/Kiran Meerkat/Kalahari2017",
+#              "/media/kiran/Kiran Meerkat/Meerkat data 2019"]
+audio_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/archive/rawdata/MEERKAT_RAW_DATA"]
+
+acoustic_data_path = "/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic"
+
 
 # basically the root directory for train, test and model
 save_data_path = os.path.join('/media/kiran/D0-P1/animal_data/meerkat', run_name)
@@ -202,13 +211,15 @@ low_thr = 0.2
 # label munging parameters i.e. reading in audition or raven files
 sep='\t'
 engine = None
-start_column = "Start"
-duration_column = "Duration"
-label_column = "Name"
+start_column = "t0File"
+duration_column = "duration"
+label_column = "entryName"
 convert_to_seconds = True
 label_for_other = "oth"
 label_for_noise = "noise"
 label_for_startstop = ['start', 'stop', 'skip', 'end']
+multiclass_forbidden = True
+
 
 #------------------
 # call dictionary - 
@@ -218,20 +229,18 @@ label_for_startstop = ['start', 'stop', 'skip', 'end']
 # Note that these are regural expressions and are not case sensitive
 call_types = {
     'cc' :["cc","Marker", "Marque"],
-    'sn' :["sn","subm", "short","^s$", "s "],
+    'sn' :["sn","subm", "short","^s$", "s ", "s\*"],
     'mo' :["mo","MOV","MOVE"],
     'agg':["AG","AGG","AGGRESS","CHAT","GROWL"],
     'ld' :["ld","LD","lead","LEAD"],
     'soc':["soc","SOCIAL", "so ", "so"],
-    'al' :["al","ALARM"],
-    'beep':["beep"],
+    'al' :["al "," al ", " al","ALARM", "^al$"],
+    'beep':["beep", "beeb"],
     'synch':["sync"],
-    'oth':["oth","other","lc", "lost",
-           "hyb","HYBRID","fu","sq","\+",
-           "ukn","unknown",          
-           "x",
-           "\%","\*","\#","\?","\$"
-           ],
+    'oth':["oth","other","lc", "lost","hyb","HYBRID","fu","sq", "seq","\+","ukn","unk","unknown",  "\#","\?"],
+            #unsure calls
+            # "x", "\%","\*", #noisy calls
+            #"\$",
     'noise':['start','stop','end','skip']
     }
 
@@ -245,10 +254,17 @@ call_types = {
 # 'nf':["nf","nonfoc"]
 
 
+# new  parameters for meerkat code
+group_IDs = ["HM2017", "HM2019", "L2019"]
+encoding = "ISO-8859-1" # used to be "utf-8"
+columns_to_keep  = ['wavFileName', 'csvFileName', 'date', 'ind', 'group',
+                    'callType', 'isCall', 'nonFocal', 'hybrid', 'noisy', 'unsureType', 'unsureFocal']
 
+# parameters for 
 
-
-
+min_scaling_factor = 0.1
+max_scaling_factor = 0.5
+n_per_call = 3
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
@@ -256,45 +272,89 @@ call_types = {
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
+# Compile all the synched label files together
+labels_all = pd.DataFrame()
+for directory in label_dirs:
+    for group in group_IDs:
+        temp = pd.read_csv(os.path.join(directory, group +"_ALL_CALLS_SYNCHED.csv"), sep=sep,
+                       header=0, engine = engine, encoding = encoding) 
+        temp["group"] = group
+        labels_all = pd.concat([labels_all, temp]) 
+        del temp
+labels_all = labels_all.reset_index(drop = True)
+labels_all = labels_all[~labels_all.wavFileName.str.contains('SOUNDFOC')]
 
-# if any files are skipped because they are problematic, they are put here 
-skipped_files =[]
+#Summary data
+# labels_all.groupby(['ind','group']).size().reset_index().rename(columns={0:'count'})
+# labels_all.groupby(['ind','group', 'date']).size().reset_index().rename(columns={0:'count'})
+# labels_all.groupby(['ind', 'date']).size().reset_index().rename(columns={0:'count'})
 
 
+# subset all the audio files that we should use in the analysis (i.e. not focal follow data)
+audio_files = list(set(labels_all["wavFileName"]))
+audio_filenames = list(compress(audio_files, ["SOUNDFOC" not in filei for filei in audio_files]))
 
-# Find the input data
-#-----------------------------------------------------------------
+# subset all the audio files that we should use in the analysis (i.e. not focal follow data)
+label_files = list(set(labels_all["csvFileName"]))
+label_filenames = list(compress(label_files, ["SOUNDFOC" not in filei for filei in label_files]))
 
-# find all label paths
+# get the file IDS without all the extentions (used later for naming)
+all_filenames = [audio_filenames[i].split(".")[0] for i in range(0,len(audio_filenames))]
+
+
+#----------------------------------------------------------------------------------
+# find all the paths to the files
+#----------------------------------------------------------------------------------
+
+# find all the labels
 EXT = "*.csv"
 label_filepaths = []
 for PATH in label_dirs:
-     label_filepaths.extend( [file for path, subdir, files in os.walk(PATH) for file in glob.glob(os.path.join(path, EXT))])
-
+      label_filepaths.extend( [file for path, subdir, files in os.walk(PATH) for file in glob.glob(os.path.join(path, EXT))])
+EXT = "*.CSV"
+for PATH in label_dirs:
+      label_filepaths.extend( [file for path, subdir, files in os.walk(PATH) for file in glob.glob(os.path.join(path, EXT))])
 
 # find all audio paths (will be longer than label path as not everything is labelled)
 audio_filepaths = []
 EXT = "*.wav"
 for PATH in audio_dirs:
-     audio_filepaths.extend( [file for path, subdir, files in os.walk(PATH) for file in glob.glob(os.path.join(path, EXT))])
-# get rid of the focal follows (going around behind the meerkat with a microphone)
-audio_filepaths = list(compress(audio_filepaths, ["SOUNDFOC" not in filei for filei in audio_filepaths]))
-audio_filepaths = list(compress(audio_filepaths, ["PROCESSED" not in filei for filei in audio_filepaths]))
-audio_filepaths = list(compress(audio_filepaths, ["LABEL" not in filei for filei in audio_filepaths]))
-audio_filepaths = list(compress(audio_filepaths, ["label" not in filei for filei in audio_filepaths]))
-audio_filepaths = list(compress(audio_filepaths, ["_SS" not in filei for filei in audio_filepaths]))
+      audio_filepaths.extend( [file for path, subdir, files in os.walk(PATH) for file in glob.glob(os.path.join(path, EXT))])
+
+#----------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
+#       2 - Create a massive label table
+#----------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
+
+# Create the label table
+label_table = pre.create_meerkat_table(labels_all, call_types, sep,
+                                       start_column, duration_column, columns_to_keep,
+                                       label_column, convert_to_seconds, 
+                                       label_for_other, label_for_noise, engine,
+                                       multiclass_forbidden)
+
+# estimate the average beep length because many of them are not annotated in the data
+avg_beep = round(statistics.mean(label_table.loc[label_table["beep"],"Duration"].loc[label_table.loc[label_table["beep"],"Duration"]>0]),3)
+label_table.loc[(label_table["beep"].bool and label_table["Duration"] == 0.) ==True, "Duration"] = avg_beep
+label_table.loc[(label_table["beep"].bool and label_table["Duration"] == avg_beep) ==True, "End"] += avg_beep
+
+# add wav and audio paths
+label_table["wav_path"] = label_table['wavFileName'].apply(lambda x: [pathi for pathi in audio_filepaths if x in pathi][0])
+label_table["label_path"] = label_table['csvFileName'].apply(lambda x: [pathi for pathi in label_filepaths if x in pathi][0])
+
+# make sure these paths are added to the noise table too
+columns_to_keep.append("wav_path")
+columns_to_keep.append("label_path")
+
+# create the matching noise table
+noise_table = pre.create_noise_table(label_table, call_types, label_for_noise, label_for_startstop, columns_to_keep)#, '\$'])
+# remove rows where the annotated noise is smaller than the window size
+noise_table = noise_table.drop(noise_table[noise_table["Duration"] < spec_window_size].index)
 
 
-# Find the names of the recordings
-audio_filenames = [os.path.splitext(ntpath.basename(wavi))[0] for wavi in audio_filepaths]
-label_filenames = []
-for filepathi in label_filepaths:
-    for audio_nami in audio_filenames:
-        if audio_nami in filepathi:
-            label_filenames.append(audio_nami)
 
-# Must delete later
-# label_filenames = [label_filenames[i] for i in [5,10,15,55,60]]
+
 
 
 #----------------------------------------------------------------------------------------------------
@@ -316,7 +376,7 @@ if os.path.exists(os.path.join(save_model_path, "training_files_used.txt")):
 # otherwiss create the training and testing files
 else: 
     # randomise the order of the files
-    file_list = label_filenames
+    file_list = audio_filenames #all_filenames
     shuffle(file_list)
     
     # randomly divide the files into those in the training and test datasets
@@ -332,295 +392,25 @@ else:
         for s in testing_filenames:
             f.write(str(s) +"\n")
 
-
-
-
-#----------------------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------------------
-#       2 - TRAINING
-#----------------------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------------------
-
-
+#-------------------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
 # 2.1. Generate and save the training files
 #----------------------------------------------------------------------------------------------------
-
-
-
-# Start the loop by going over every single labelled file id
-for file_ID in training_filenames:
-    # file_ID = label_filenames[2]
-    
-    # save the label_table
-    save_label_table_filename = file_ID + "_LABEL_TABLE.txt"
-    
-    # only generate training files if they don't already exist    
-    if not os.path.exists(os.path.join(save_label_table_train_path, save_label_table_filename)):
-            
-        # find the matching audio for the label data
-        audio_path = [s for s in audio_filepaths if file_ID in s][0]
-        
-        # if there are 2 label files, use the longest one (assuming that the longer one might have been reviewed by 2 people and therefore have 2 set of initials and be longer)
-        label_path = max([s for s in label_filepaths if file_ID in s], key=len) #[s for s in label_filepaths if file_ID in s][0]
-        
-        print ("File being processed : " + label_path)    
-        
-        # create a standardised table which contains all the labels of that file - also can be used for validation
-        label_table = pre.create_table(label_path, call_types, sep, start_column, duration_column, label_column, convert_to_seconds, 
-                                       label_for_other, label_for_noise, engine, True)
-        # replace duration of beeps with 0.04 seconds - meerkat particularity
-        label_table.loc[label_table["beep"] == True, "Duration"] = 0.04
-        label_table.loc[label_table["beep"] == True, "End"] += 0.04
-    
-        # Don't run the code if that file has already been processed
-        # if os.path.isfile(os.path.join(save_label_table_path, save_label_table_filename)):
-        #     continue
-        # np.save(os.path.join(save_label_table_path, save_label_table_filename), label_table) 
-        label_table.to_csv(os.path.join(save_label_table_train_path, save_label_table_filename), header=True, index=None, sep=';')
-        
-        #save the label tables with other, but for the purpose of labelling, remove other
-        if other_ignored_in_training:
-            label_table = label_table[label_table[label_for_other] == False]
-            label_table= label_table.reset_index(drop=True)
-        
-        # load the audio data
-        y, sr = librosa.load(audio_path, sr=None, mono=False)
-        
-        # # Implement this for acc data
-        # # Reshaping the Audio file (mono) to deal with all wav files similarly
-        # if y.ndim == 1:
-        #     y = y.reshape(1, -1)   
-
-        # for ch in range(y.shape[0]):
-        # ch=0
-        # y_sub = y[:,ch]
-        y_sub = y
-        
-        for rowi in range(len(label_table["Start"])):
-            #rowi=3
-            # loop through every labelled call event in the dataset and create a random start time to generate sprectrogram window
-            random_start = label_table["Start"][rowi] - (random() * spec_window_size)
-            
-            #don't generate a label for the start stop skipon skipoff
-            if label_table["Label"].str.contains('|'.join(label_for_startstop), regex=True, case = False)[rowi]:
-                continue
-            
-            # generate 3 spectrograms for every labelled call 
-            #(idea is that it should include either 2 call + 1 noise or 1 call and 2 noise - balances the dataset a little)
-            for start in np.arange(random_start, (random_start + (3*slide) ), slide):
-                # start = random_start
-                stop = start + spec_window_size
-                
-                
-                if stop > label_table["End"][len(label_table["End"])-1]:
-                    continue
-                if start < label_table["Start"][0]:
-                    continue
-                
-                spectro = pre.generate_mel_spectrogram(y=y_sub, sr=sr, start=start, stop=stop, 
-                                               n_mels = n_mels, window=window, 
-                                               fft_win= fft_win, fft_hop = fft_hop, normalise=normalise)
-                   
-                #generate the label matrix
-                label_matrix = pre.create_label_matrix(label_table, spectro, call_types, start, 
-                                           stop, label_for_noise)
-                
-                call_matrix = pre.create_call_nocall_matrix(label_table, spectro, start, 
-                                                            stop, label_for_noise)
-                
-                
-                # find out what the label is for this given window so that later we can choose the label/test set in a balanced way
-                file_label = list(label_matrix.index.values[label_matrix.where(label_matrix > 0).sum(1) > 1])
-                if len(file_label) > 1 and label_for_noise in file_label:
-                    file_label.remove(label_for_noise)
-                category = '_'.join(file_label)
-                
-                # Save these files
-                save_spec_filename = file_ID + "_SPEC_" + str(start) + "s-" + str(stop) + "s_" + category + ".npy"
-                save_mat_filename = file_ID + "_MAT_" + str(start) + "s-" + str(stop) + "s_" + category + ".npy"
-                # save_both_filename = file_ID + "_BOTH_" + str(start) + "s-" + str(stop) + "s_" + category + ".npy"
-                
-                np.save(os.path.join(save_spec_train_path, save_spec_filename), spectro)     
-                np.save(os.path.join(save_mat_train_path, save_mat_filename), label_matrix) 
-                # np.save(os.path.join(save_spec_path, save_both_filename), np.array((spectro, label_matrix))) 
-
-
-# save the files that were skipped
-print(skipped_files)
-
-
-# save a copy of the training and testing diles
-with open(os.path.join(save_model_path, "skipped_training_files.txt"), "w") as f:
-    for s in skipped_files:
-        f.write(str(s) +"\n")
-
-
-#----------------------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------------------
-#  2.2. Data augmentation
-#----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
 
+#separate out the training and test sets for analysis
+training_label_table = label_table[label_table['wavFileName'].isin(training_filenames)]
+testing_label_table = label_table[label_table['wavFileName'].isin(testing_filenames)]
+training_noise_table = noise_table[noise_table['wavFileName'].isin(training_filenames)]
+testing_noise_table = noise_table[noise_table['wavFileName'].isin(testing_filenames)]
 
-# save_label_table_path = "/media/kiran/D0-P1/animal_data/meerkat/new_run_sep_2020/label_table"
+# Compile data into a format that the data generator can use
+for label in call_types: 
+    call_table_dict[label] = training_label_table.loc[training_label_table[label] == True, ["Label", "Start", "Duration","End","wav_path","label_path"]]
+call_table_dict[label_for_noise] = training_noise_table[["Label", "Start", "Duration","End","wav_path","label_path"]]
 
-calls = list(call_types.keys())
-files = os.listdir(save_mat_train_path)
+training_label_dict = call_table_dict
 
-# count the calls in the training dataset
-calls_number = dict()
-for calli in calls:
-    calls_number[calli] = len([i for i in files if calli in i] )
-
-# find how many more or less calls there are than the mean (to see how much imbalance there is)
-calls_needed = calls_number.copy()
-mean_call = statistics.mean(calls_number[k] for k in calls_number)
-for i in calls_needed:
-    calls_needed[i] = int(mean_call - calls_number[i]) #save_pred_table_test_path = os.path.join(save_pred_test_path,"pred_table")
-if not os.path.isdir(save_pred_table_test_path):
-        os.makedirs(save_pred_table_test_path)
-
-# how many times would the dataset need to be augmented to reach the average number of calls
-calls_augmented = calls_needed.copy()
-for i in calls_augmented:
-    calls_augmented[i] = calls_needed[i]/(calls_number[i]+0.001)
-
-
-# find the ones which might need to be augmentedsave_pred_table_test_path = os.path.join(save_pred_test_path,"pred_table")
-if not os.path.isdir(save_pred_table_test_path):
-        os.makedirs(save_pred_table_test_path)
-calls_to_augment = ["_"+ k for k, v in calls_augmented.items() if v > 0]
-
-# don't augment other or noise
-if "_"+ label_for_other in calls_to_augment:
-    calls_to_augment.remove("_"+ label_for_other)
-if "_"+ label_for_noise in calls_to_augment:
-    calls_to_augment.remove("_"+ label_for_noise)
-
-
-# find all the files
-all_training = [os.path.join(save_spec_train_path, x) for x in os.listdir(save_spec_train_path)] #[x for x in os.listdir(spectro_folder)]
-for calltype in calls_to_augment:   
-    # calltype = calls_to_augment[0]
-    spec_filepaths =  glob.glob(save_spec_train_path+'/*'+calltype+'*') # find all files of that calltype
-    noise_filepaths = glob.glob(save_spec_train_path+'/*' + label_for_noise + '*')     
-    for spec_filepath in spec_filepaths: 
-        # spec_filepath = spec_filepaths[0]
-        # noise aug
-        spec_filepath= [spec_filepath]
-        aug_data, aug_spectro, aug_mat, aug_spec_filename, aug_mat_filename = pre.augment_with_noise(spec_filepath, noise_filepaths, 
-                                                                                                             audio_filepaths,calltype, scaling_factor, 
-                                                                                                             other_ignored_in_training,
-                                                                                                             random_range, spec_window_size,
-                                                                                                             n_mels, window, fft_win, fft_hop,
-                                                                                                             normalise, save_label_table_train_path,
-                                                                                                             call_types,label_for_other,label_for_noise)
-        # save these spectrograms
-        np.save(os.path.join(save_spec_train_path, aug_spec_filename), aug_spectro)     
-        np.save(os.path.join(save_mat_train_path, aug_mat_filename), aug_mat) 
-
-        # # pitch shift
-        # augmented_data, augmented_spectrogram, augmented_label, spec_name, label_name = pre.augment_with_pitch_shift(spec_filepaths, audio_filepaths, calltype, n_steps,other_ignored_in_training,
-        #                                                                                 random_range, spec_window_size, n_mels, window, fft_win, fft_hop, normalise,
-        #                                                                                 save_label_table_path, call_types, label_for_noise)
-        
-        
-        # # time shft
-        
-        # augmented_data, augmented_spectrogram, augmented_label, spec_name, label_name = pre.augment_with_time_stretch(spec_filepaths, audio_filepaths, calltype, stretch_factor,other_ignored_in_training,
-        #                                                                                 random_range, spec_window_size, n_mels, window, fft_win, fft_hop, normalise,
-        #                                                                                 save_label_table_path, call_types, label_for_noise)
-
-
-
-#----------------------------------------------------------------------------------------------------
-#   2.3. CREATE THE TRAINING AND VALIDATION DATASETS FOR TRAINING RNN
-#----------------------------------------------------------------------------------------------------
-
-
-# save_spec_path = os.path.join(train_path + "spectrograms")
-# save_mat_path = os.path.join(train_path + "label_matrix")
-
-spectro_list = os.listdir(save_spec_train_path)
-label_list = os.listdir(save_mat_train_path)
-
-#randomise the list of labels
-c = list(range(len(spectro_list)))
-shuffle(c)
-spectro_list = [spectro_list[i] for i in c]
-label_list = ['_MAT_'.join(x.split("_SPEC_")) for x in spectro_list]
-
-# randomly divide the files into those in the training, validation based on split
-split_index = floor(len(spectro_list) * train_val_split)
-x_train_files = spectro_list[:split_index]
-y_train_files = label_list[:split_index]
-x_val_files = spectro_list[split_index:]
-y_val_files = label_list[split_index:]
-
-#join full path
-x_train_filelist = [os.path.join(save_spec_train_path, x) for x in x_train_files]
-y_train_filelist = [os.path.join(save_mat_train_path, x) for x in y_train_files]
-x_val_filelist = [os.path.join(save_spec_train_path, x) for x in x_val_files]
-y_val_filelist = [os.path.join(save_mat_train_path, x) for x in y_val_files]
-
-
-# save a copy of the training and val files
-with open(os.path.join(save_model_path,  "training_specs.txt"), "w") as f:
-    for s in x_train_filelist:
-        f.write(str(s) +"\n")
-
-with open(os.path.join(save_model_path,  "training_mats.txt"), "w") as f:
-    for s in y_train_filelist:
-        f.write(str(s) +"\n")
-
-# save a copy of the training and testing diles
-with open(os.path.join(save_model_path, "validation_specs.txt"), "w") as f:
-    for s in x_val_filelist:
-        f.write(str(s) +"\n")
-        
-with open(os.path.join(save_model_path, "validation_mats.txt"), "w") as f:
-    for s in y_val_filelist:
-        f.write(str(s) +"\n")
-
-
-#----------------------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------------------
-#        2.4.  Weigh the calls according to the numbers available
-#----------------------------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------------------------
-
-calls = list(call_types.keys())
-files = os.listdir(save_mat_train_path)
-
-call_count = dict()
-for calli in calls:
-    call_count[calli] = len([i for i in files if calli in i] )
-    
-
-# find max and fivide max by all of these values
-#give greatest weight to classes that are rarely seen
-max_call = max([(value, key) for key, value in call_count.items()])[0]
-weight_dict = call_count
-weight_dict[label_for_other] = 1
-for i in weight_dict:
-    # weight_dict[i] = float(1-(weight_dict[i]/max_call))
-    weight_dict[i] = float(max_call/weight_dict[i])
-
-if other_ignored_in_training:
-    weight_dict[label_for_other] = 0
-
-train_weights_list = []
-for i in x_train_filelist: 
-    for k, v in weight_dict.items():
-        if "_" + k + ".npy" in i:
-            train_weights_list.append(v)
-
-val_weights_list = []
-for i in x_val_filelist: 
-    for k, v in weight_dict.items():
-        if "_" + k + ".npy" in i:
-            val_weights_list.append(v)
 
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
@@ -628,7 +418,54 @@ for i in x_val_filelist:
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
 
+import model.specgen_batch_generator as bg
+
 # sys.path.append("/home/kiran/Documents/github/meerkat-calltype-classifyer/")
+min_scaling_factor= 0.5
+max_scaling_factor= 1.1
+genie = bg.DataGenerator(call_table_dict,
+                 training_label_table, 
+                 spec_window_size,
+                 n_mels, 
+                 window, 
+                 fft_win , 
+                 fft_hop , 
+                 normalise,
+                 label_for_noise,
+                 label_for_other,
+                 min_scaling_factor ,
+                 max_scaling_factor,
+                 n_per_call ,
+                 other_ignored_in_training)
+spec, label = genie.generate_example("agg", 0 , True)
+
+
+label_list = list(call_types.keys())
+if other_ignored_in_training:
+    label_list.remove(label_for_other)
+    
+#plot spectrogram
+plt.figure(figsize=(10, 10))
+plt.subplot(211)
+yaxis = range(0, np.flipud(spec).shape[0]+1)
+xaxis = range(0, np.flipud(spec).shape[1]+1)
+librosa.display.specshow(spec,  y_axis='mel', x_coords = label.columns)#, x_axis= "time",sr=sr, x_coords = label.columns)
+plt.ylabel('Frequency (Hz)')
+plt.colorbar(format='%+2.0f dB')
+
+# plot LABEL
+plt.subplot(212)
+xaxis = range(0, np.flipud(label).shape[1]+1)
+yaxis = range(0, np.flipud(label).shape[0]+1)
+plt.yticks(np.arange(0.5, len(label_list)+0.5 ,1 ),reversed(label_list))
+plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
+           list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
+plt.pcolormesh(xaxis, yaxis, np.flipud(label))
+plt.xlabel('Time (s)')
+plt.ylabel('Calltype')
+plt.colorbar(label="Label")
+plt.show()
+
 
 
 train_generator = bg.Weighted_Batch_Generator(x_train_filelist, y_train_filelist, train_weights_list, batch, True)
@@ -1252,3 +1089,76 @@ for low_thr in [0.2]:#[0.1,0.3]:
 #                 pickle.dump(offset, fp)    
 
 
+
+
+###################################################################################################
+
+# #---------------------------------------------------------------------------------
+
+
+# mega_table = pd.DataFrame()
+# mega_noise_table = pd.DataFrame()
+
+# # training_filenames = label_filenames
+# # Start the loop by going over every single labelled file id
+# for file_ID in training_filenames:
+#     # file_ID = training_filenames[2]
+
+#     # save the label_table
+#     save_label_table_filename = file_ID + "_LABEL_TABLE.txt"
+    
+#     # only generate training files if they don't already exist    
+#     # if not os.path.exists(os.path.join(save_label_table_train_path, save_label_table_filename)):
+        
+#     # find the matching audio for the file_ID
+#     audio_path = [filepathi for filepathi in audio_filepaths if file_ID in filepathi][0]
+
+            
+#     # find the matching audio for the label data
+#     label_file = [ label for label in label_filenames if file_ID in label][0]
+#     label_path =  [filepathi for filepathi in label_filepaths if label_file in filepathi][0]
+    
+    
+#     # # if there are 2 label files, use the longest one (assuming that the longer one might have been reviewed by 2 people and therefore have 2 set of initials and be longer)
+#     # label_path = max([s for s in label_filepaths if file_ID in s], key=len) #[s for s in label_filepaths if file_ID in s][0]
+    
+#     print ("File being processed : " + label_path)    
+    
+#     # create a standardised table which contains all the labels of that file - also can be used for validation
+#     label_table = pre.create_table(label_path, call_types, sep, start_column, duration_column, label_column, convert_to_seconds, 
+#                                    label_for_other, label_for_noise, engine, multiclass_forbidden)
+    
+#     # replace duration of beeps with 0.04 seconds - meerkat particularity
+#     label_table.loc[label_table["beep"] == True, "Duration"] = avg_beep
+#     label_table.loc[label_table["beep"] == True, "End"] += avg_beep
+    
+#     # don't save while testing    
+#     # label_table.to_csv(os.path.join(save_label_table_train_path, save_label_table_filename), header=True, index=None, sep=';')
+    
+#     # #save the label tables with other, but for the purpose of labelling, remove other
+#     # if other_ignored_in_training:
+#     #     label_table = label_table[label_table[label_for_other] == False]
+#     #     label_table= label_table.reset_index(drop=True)
+    
+#     noise_table = pre.create_noise_table(label_table, label_for_noise, label_for_startstop=['start', 'stop', 'skip', 'end', '\$'])
+    
+#     label_table["wav_path"] = audio_path
+#     label_table["label_path"] = label_path
+    
+#     noise_table["wav_path"] = audio_path
+#     noise_table["label_path"] = label_path    
+    
+#     label_table["file_ID"] = file_ID
+#     noise_table["file_ID"] = file_ID
+    
+#     mega_table = pd.concat([mega_table, label_table])
+#     mega_noise_table = pd.concat([mega_noise_table, noise_table])
+
+# call_table_dict = {}
+# # create individual tables for all calls
+# for label in call_types: 
+#     call_table_dict[label] = mega_table.loc[mega_table[label] == True, ["Label", "Start", "Duration","End","wav_path","label_path"]]
+
+# call_table_dict[label_for_noise]=mega_noise_table[["Label", "Start", "Duration","End","wav_path","label_path"]]
+
+# call_table_dict
