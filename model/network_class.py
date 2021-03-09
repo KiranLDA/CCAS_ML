@@ -24,7 +24,7 @@ from keras.models import load_model
 from keras.layers import GRU, Bidirectional, GlobalAveragePooling2D
 
 
-class network():
+class BuildNetwork():
     
     def __init__(self, x_train, num_calltypes, filters, gru_units, dense_neurons, dropout):
         self.x_train = x_train
@@ -102,7 +102,7 @@ class network():
         dense_3A = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
         drop_3A = Dropout(rate=self.dropout)(dense_3A)
         dense_3B = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
-        drop_3B)
+        drop_3B = Dropout(rate=self.dropout)(dense_3B)
         
         # Fork into two outputs
         output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='sigmoid'), name="output_calltype")(drop_3A)

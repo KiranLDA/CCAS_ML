@@ -320,7 +320,8 @@ def create_noise_table(label_table, call_types, label_for_noise, label_for_start
         
     return noise_table
 
-def create_label_matrix(label_table, spectro, call_types, start, stop, label_for_noise):
+def create_label_matrix(label_table, spectro, call_types, start, stop, 
+                        label_for_noise, label_for_other, other_ignored_in_training):
     '''
     This function creates a matrix where each row represents a calltype over time where each bin corresponds 
     to a spectrogram. Typially the calltypes label
@@ -341,11 +342,17 @@ def create_label_matrix(label_table, spectro, call_types, start, stop, label_for
         end time in seconds of the spectrogram (rolling window)
     label_for_noise:
         string used to label bakcground noise
+    label_for_other:
+        string used to label other calls (the odd ones out)
+    other_ignored_in_training:
+        True /False for whether or not oth should be removed/ignored
     '''
     
     timesteps = spectro.shape[1] # find number of columns for matrix
     colnames = np.linspace(start, stop, num=timesteps)#np.arange(start=start, stop=stop, step=(stop-start)/timesteps)
-    rownames = call_types.keys()
+    rownames = list(call_types.copy().keys())   
+    if other_ignored_in_training and label_for_other in rownames:
+        rownames = rownames.remove(label_for_other)
     # timesteps_per_second = timesteps / spec_window_size 
     
     # create an empty matrix where each row represents a call type 
@@ -357,8 +364,8 @@ def create_label_matrix(label_table, spectro, call_types, start, stop, label_for
     
     # find the labels for the given spectrogram
     mask = (((label_table['Start']> start) & (label_table['End'] < stop))|
-    ((label_table['End']> start) & (label_table['End'] < stop))|
-    ((label_table['Start']> start) & (label_table['Start'] < stop)))
+            ((label_table['End']> start) & (label_table['End'] < stop))|
+            ((label_table['Start']> start) & (label_table['Start'] < stop)))
     mask = mask.index[mask==True]
     # probably not the most elegant, but should allow multiple calls per spectrogram
     for calli in mask: #loop over the calls that occur in that spectrogram and find their type
@@ -371,18 +378,11 @@ def create_label_matrix(label_table, spectro, call_types, start, stop, label_for
             label_matrix.loc[label_matrix.index == calltypei,
                                  ((colnames >= float(label_table['Start'][calli])) & 
                                  (colnames <= float(label_table['End'][calli])))] = 1
-
-    '''
-    # find rows where the sum is greater than 1 i.e. categorise fusion calls as "other"
-    fusions = label_matrix.sum(0)>1
-    label_matrix.loc[:,fusions == True] = 0
-    label_matrix.loc[label_for_other,fusions == True] = 1
-    '''
     
     return label_matrix
 
 
-def create_call_nocall_matrix(label_table, spectro, start, stop, label_for_noise):
+def create_call_matrix(label_table, spectro, start, stop, label_for_noise, label_for_other, other_ignored_in_training):
     '''
     This function creates a matrix where each row represents "call/not call" "over time where each bin corresponds 
     to a spectrogram. Typially the call label
@@ -401,13 +401,25 @@ def create_call_nocall_matrix(label_table, spectro, start, stop, label_for_noise
         end time in seconds of the spectrogram (rolling window)
     label_for_noise:
         string used to label bakcground noise
+    label_for_other:
+        string used to label other calls (the odd ones out)
+    other_ignored_in_training:
+        True /False for whether or not oth should be removed/ignored
     '''
     # categories = {
+    # start = 3858
+    # stop=3859
     timesteps = spectro.shape[1] # find number of columns for matrix
     colnames = np.arange(start=start, stop=stop, step=(stop-start)/timesteps)#np.linspace(start, stop, num=timesteps)#
     rownames = ['call', label_for_noise]#categories.keys()
     # timesteps_per_second = timesteps / spec_window_size 
+    # label_subset = label_table[label_table['wav_path'].isin([call["wav_path"]])]
     
+    #remove other if we want to remove other
+    if other_ignored_in_training:
+        label_table = label_table[label_table[label_for_other] == False]
+        label_table = label_table.reset_index(drop=True)
+        
     # create an empty matrix where each row represents a call type 
     # and each column represents a timestep which matches the spectrogram timesteps
     label_matrix = pd.DataFrame(np.zeros((len(rownames), timesteps)),
@@ -415,30 +427,42 @@ def create_call_nocall_matrix(label_table, spectro, start, stop, label_for_noise
     # make sure there is a noise row 
     label_matrix.loc[label_for_noise] = 1 
     
+          
     # find the rows in the label_table which are relevant for the given spectrogram
-    label = (((label_table['Start']> start) & (label_table['End'] < stop))|
-    ((label_table['End']> start) & (label_table['End'] < stop))|
-    ((label_table['Start']> start) & (label_table['Start'] < stop)))      
-    label = label.index[label==True]
+    # label = (((label_table['Start']> start) & (label_table['End'] < stop))|
+    #          ((label_table['End']> start) & (label_table['End'] < stop))|
+    #          ((label_table['Start']> start) & (label_table['Start'] < stop)))      
+    # label = label.index[label==True]
     # for every row in the label table
-    for row in label: #loop over the calls that occur in that spectrogram and find their type
-        call_occ = (label_table.loc[row,:] == True)
-        call_occ = call_occ[call_occ==True].index
-        #for calltypei in call_occ: #loop through the different types and mark them as 1 and noise as 0 - this allows hybrids
-        if call_occ!=label_for_noise:
+    # for row in label: #loop over the calls that occur in that spectrogram and find their type
+    #     call_occ = (label_table.loc[row,:] == True)
+    #     call_occ = call_occ[call_occ==True].index
+    #     #for calltypei in call_occ: #loop through the different types and mark them as 1 and noise as 0 - this allows hybrids
+    #     if call_occ != label_for_noise:
+    #         label_matrix.loc[label_for_noise,
+    #                          ((colnames >= float(label_table['Start'][row])) & 
+    #                          (colnames <= float(label_table['End'][row])))] = 0    
+    #         label_matrix.loc[rownames[0],
+    #                              ((colnames >= float(label_table['Start'][row])) & 
+    #                              (colnames <= float(label_table['End'][row])))] = 1
+    
+    # find the labels for the given spectrogram
+    mask = (((label_table['Start']> start) & (label_table['End'] < stop))|
+            ((label_table['End']> start) & (label_table['End'] < stop))|
+            ((label_table['Start']> start) & (label_table['Start'] < stop)))
+    mask = mask.index[mask==True]
+    # probably not the most elegant, but should allow multiple calls per spectrogram
+    for calli in mask: #loop over the calls that occur in that spectrogram and find their type
+        call_name = (label_table.loc[calli,:] == True)
+        call_name = call_name[call_name==True].index
+        for calltypei in call_name: #loop through the different types and mark them as 1 and noise as 0 - this allows hybrids
             label_matrix.loc[label_for_noise,
-                             ((colnames >= float(label_table['Start'][row])) & 
-                             (colnames <= float(label_table['End'][row])))] = 0    
-            label_matrix.loc[rownames[0],
-                                 ((colnames >= float(label_table['Start'][row])) & 
-                                 (colnames <= float(label_table['End'][row])))] = 1
-
-    '''
-    # find rows where the sum is greater than 1 i.e. categorise fusion calls as "other"
-    fusions = label_matrix.sum(0)>1
-    label_matrix.loc[:,fusions == True] = 0
-    label_matrix.loc[label_for_other,fusions == True] = 1
-    '''    
+                             ((colnames >= float(label_table['Start'][calli])) & 
+                             (colnames <= float(label_table['End'][calli])))] = 0    
+            label_matrix.loc[label_matrix.index == 'call',
+                                 ((colnames >= float(label_table['Start'][calli])) & 
+                                 (colnames <= float(label_table['End'][calli])))] = 1
+ 
     return label_matrix
 
 
