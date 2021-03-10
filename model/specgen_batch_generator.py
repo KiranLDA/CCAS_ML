@@ -235,11 +235,14 @@ class ForkedDataGenerator(keras.utils.Sequence):
                                                            call_start, call_stop,  
                                                            self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
         
+        # augmented_outputs = [augmented_label, augmented_call_matrix]
+        
         return augmented_spectrogram, augmented_label, augmented_call_matrix
     
-    def __getitem__(self, batch_number):
+    # def __getitem__(self, batch_number):
+    def __next__(self):
         
-        # Batch number is not yet defined anywhere but is part of user interfact
+        # Batch number is not yet defined anywhere but is part of user interface
         
         # keep track of batch
         '''
@@ -319,7 +322,10 @@ class ForkedDataGenerator(keras.utils.Sequence):
         labels = np.asarray(batch_label_data) 
         callmats =  np.asarray(batch_call_data) 
         
-        return spectros, labels, callmats
+        x_data = spectros
+        y_data = [labels, callmats]
+        
+        return x_data, y_data #spectros, labels, callmats
 
     def sampling_strategy(self):      
         '''
@@ -365,6 +371,10 @@ class ForkedDataGenerator(keras.utils.Sequence):
             for calltype in self.indexes.keys():
                 np.random.shuffle(self.indexes[calltype])  # reshuffle the data
                 self.next_sample[calltype] = 0
+
+
+
+
             
 class DataGenerator(keras.utils.Sequence):
     def __init__(self, 

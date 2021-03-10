@@ -375,6 +375,10 @@ if os.path.exists(os.path.join(save_model_path, "training_files_used.txt")):
     with open(os.path.join(save_model_path, "testing_files_used.txt")) as f:
         content = f.readlines()    
     testing_filenames = [x.strip() for x in content] # remove whitespace characters like `\n` at the end of each line
+    with open(os.path.join(save_model_path, "validation_files_used.txt")) as f:
+        content = f.readlines()    
+    validation_filenames = [x.strip() for x in content] # remove whitespace characters like `\n` at the end of each line
+
 # otherwiss create the training and testing files
 else: 
     # randomise the order of the files
@@ -383,8 +387,12 @@ else:
     
     # randomly divide the files into those in the training and test datasets
     split_index = floor(len(file_list) * train_test_split)
-    training_filenames = file_list[:split_index]
+    training_files = file_list[:split_index]
     testing_filenames = file_list[split_index:]
+    
+    split_index = floor(len(training_files) * train_val_split )
+    training_filenames = training_files[:split_index]
+    validation_filenames = training_files[split_index:]
 
     # save a copy of the training and testing diles
     with open(os.path.join(save_model_path, "training_files_used.txt"), "w") as f:
@@ -392,6 +400,9 @@ else:
             f.write(str(s) +"\n")
     with open(os.path.join(save_model_path, "testing_files_used.txt"), "w") as f:
         for s in testing_filenames:
+            f.write(str(s) +"\n")
+    with open(os.path.join(save_model_path, "validation_files_used.txt"), "w") as f:
+        for s in validation_filenames:
             f.write(str(s) +"\n")
 
 #-------------------------------------------------------------------------------------------------------------
@@ -403,14 +414,23 @@ else:
 #separate out the training and test sets for analysis
 training_label_table = label_table[label_table['wavFileName'].isin(training_filenames)]
 testing_label_table = label_table[label_table['wavFileName'].isin(testing_filenames)]
+validation_label_table = label_table[label_table['wavFileName'].isin(validation_filenames)]
+
 training_noise_table = noise_table[noise_table['wavFileName'].isin(training_filenames)]
 testing_noise_table = noise_table[noise_table['wavFileName'].isin(testing_filenames)]
+validation_noise_table = noise_table[noise_table['wavFileName'].isin(validation_filenames)]
 
 # Compile data into a format that the data generator can use
 training_label_dict = dict()
 for label in call_types: 
     training_label_dict[label] = training_label_table.loc[training_label_table[label] == True, ["Label", "Start", "Duration","End","wav_path","label_path"]]
 training_label_dict[label_for_noise] = training_noise_table[["Label", "Start", "Duration","End","wav_path","label_path"]]
+
+# Compile data into a format that the data generator can use
+validation_label_dict = dict()
+for label in call_types: 
+    validation_label_dict[label] = validation_label_table.loc[validation_label_table[label] == True, ["Label", "Start", "Duration","End","wav_path","label_path"]]
+validation_label_dict[label_for_noise] = validation_label_table[["Label", "Start", "Duration","End","wav_path","label_path"]]
 
 
 
@@ -419,30 +439,30 @@ training_label_dict[label_for_noise] = training_noise_table[["Label", "Start", "
 #       2.5. BATCH GENERATOR FOR TRAINING RNN
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
-import model.specgen_batch_generator as bg
-import preprocess.preprocess_functions as pre
+# import model.specgen_batch_generator as bg
+# import preprocess.preprocess_functions as pre
 # initiate the data generator
-genie = bg.ForkedDataGenerator(training_label_dict,
-                               training_label_table, 
-                               spec_window_size,
-                               n_mels, 
-                               window, 
-                               fft_win , 
-                               fft_hop , 
-                               normalise,
-                               label_for_noise,
-                               label_for_other,
-                               min_scaling_factor,
-                               max_scaling_factor,
-                               n_per_call,
-                               other_ignored_in_training)
+train_generator = bg.ForkedDataGenerator(training_label_dict,
+                                         training_label_table, 
+                                         spec_window_size,
+                                         n_mels, 
+                                         window, 
+                                         fft_win , 
+                                         fft_hop , 
+                                         normalise,
+                                         label_for_noise,
+                                         label_for_other,
+                                         min_scaling_factor,
+                                         max_scaling_factor,
+                                         n_per_call,
+                                         other_ignored_in_training)
                                 
 
 
 
     
 # generate an example spectrogram and label  
-spec, label, callmat = genie.generate_example("sn", 0, True)
+spec, label, callmat = train_generator.generate_example("sn", 0, True)
 
 #----------------------------------------------------------------------------------------------------
 # Do some plotting to ensure it makes sense
@@ -493,12 +513,45 @@ plt.show()
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
 
-# get a batch
-x_train, y_train_labels, y_train_calls = genie.__getitem__(0)
-
+# get a batch to estimate rnn parameters
+x_train, y_train = train_generator.__next__()#__getitem__(0)
 # initial parameters
-num_calltypes = y_train_labels.shape[2]
-gru_units = y_train_labels.shape[1] 
+num_calltypes = y_train[0].shape[2]
+gru_units = y_train[0].shape[1] 
+
+# initialise the training data generator and validation data generator
+train_generator = bg.ForkedDataGenerator(training_label_dict,
+                                         training_label_table, 
+                                         spec_window_size,
+                                         n_mels, 
+                                         window, 
+                                         fft_win , 
+                                         fft_hop , 
+                                         normalise,
+                                         label_for_noise,
+                                         label_for_other,
+                                         min_scaling_factor,
+                                         max_scaling_factor,
+                                         n_per_call,
+                                         other_ignored_in_training)
+
+val_generator = bg.ForkedDataGenerator(validation_label_dict,
+                                       validation_label_table, 
+                                       spec_window_size,
+                                       n_mels, 
+                                       window, 
+                                       fft_win , 
+                                       fft_hop , 
+                                       normalise,
+                                       label_for_noise,
+                                       label_for_other,
+                                       min_scaling_factor,
+                                       max_scaling_factor,
+                                       n_per_call,
+                                       other_ignored_in_training)
+
+
+
 
 
 #--------------------------------------------
@@ -509,41 +562,6 @@ import model.network_class as rnn
 model = rnn.BuildNetwork(x_train, num_calltypes, filters, gru_units, dense_neurons, dropout)
 
 RNN_model = model.build_rnn_calltype_presence()
-
-# # Input
-# inp = Input(shape=(x_train.shape[1], x_train.shape[2], x_train.shape[3]))
-
-# # Convolutional layers (conv - maxpool x3 )
-# c_1 = Conv2D(filters, (3,3), padding='same', activation='relu')(inp)
-# mp_1 = MaxPooling2D(pool_size=(1,5))(c_1)
-# c_2 = Conv2D(filters, (3,3), padding='same', activation='relu')(mp_1)
-# mp_2 = MaxPooling2D(pool_size=(1,2))(c_2)
-# c_3 = Conv2D(filters, (3,3), padding='same', activation='relu')(mp_2)
-# mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)
-
-
-# # reshape
-# reshape_1 = Reshape((x_train.shape[-3], -1))(mp_3)
-
-# # bidirectional gated recurrent unit x2
-# rnn_1 = Bidirectional(GRU(units=gru_units, activation='tanh', dropout=dropout, 
-#                           recurrent_dropout=dropout, return_sequences=True), merge_mode='mul')(reshape_1)
-# rnn_2 = Bidirectional(GRU(units=gru_units, activation='tanh', dropout=dropout, 
-#                           recurrent_dropout=dropout, return_sequences=True), merge_mode='mul')(rnn_1)
-
-# # 3x relu
-# dense_1  = TimeDistributed(Dense(dense_neurons, activation='relu'))(rnn_2)
-# drop_1 = Dropout(rate=dropout)(dense_1)
-# dense_2 = TimeDistributed(Dense(dense_neurons, activation='relu'))(drop_1)
-# drop_2 = Dropout(rate=dropout)(dense_2)
-# dense_3 = TimeDistributed(Dense(dense_neurons, activation='relu'))(drop_2)
-# drop_3 = Dropout(rate=dropout)(dense_3)
-
-# # softmax
-# output = TimeDistributed(Dense(num_calltypes, activation='softmax'))(drop_3)
-
-# # build model
-# RNN_model = Model(inp, output)
 
 # Adam optimiser
 adam = optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
@@ -565,14 +583,18 @@ tensorboard = TensorBoard(# Write to logs directory, e.g. logs/30Oct-05:00
                           write_grads=True   # Show gradients
                           )    
 
-
+epochs = 6
 # fit model
 RNN_model.fit_generator(train_generator, 
-                        steps_per_epoch = train_generator.steps_per_epoch(),
+                        steps_per_epoch = train_generator.__len__(),
                         epochs = epochs,
                         callbacks = [early_stopping, reduce_lr_plat, loss, tensorboard],
                         validation_data = val_generator,
-                        validation_steps = val_generator.steps_per_epoch())
+                        validation_steps = val_generator.__len__())
+
+
+
+
 
 
 # save the model
@@ -584,7 +606,7 @@ sf = os.path.join(save_model_path, run_name+ "_" + date_now + "_" + time_now)
 if not os.path.isdir(sf):
         os.makedirs(sf)
 
-RNN_model.save(sf + '/savedmodel' + '.h5')
+RNN_model.save(sf + '/test_savedmodel' + '.h5')
 
 
 
