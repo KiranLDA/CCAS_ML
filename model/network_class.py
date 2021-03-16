@@ -22,17 +22,19 @@ from keras.layers import Reshape, Permute
 from keras.layers import BatchNormalization, TimeDistributed, Dense, Dropout
 from keras.models import load_model
 from keras.layers import GRU, Bidirectional, GlobalAveragePooling2D
+from keras.layers import Masking
 
 
 class BuildNetwork():
     
-    def __init__(self, x_train, num_calltypes, filters, gru_units, dense_neurons, dropout):
+    def __init__(self, x_train, num_calltypes, filters, gru_units, dense_neurons, dropout, mask_value):
         self.x_train = x_train
         self.num_calltypes = num_calltypes
         self.filters = filters
         self.gru_units = gru_units
         self.dense_neurons = dense_neurons
         self.dropout = dropout
+        self.mask_value = mask_value
         
     def build_rnn_calltype(self):
         
@@ -71,12 +73,73 @@ class BuildNetwork():
         
         return model
     
-    def build_rnn_calltype_presence(self):
+    def build_forked_masked_rnn(self):
         
         inp = Input(shape=(self.x_train.shape[1], self.x_train.shape[2], self.x_train.shape[3]))
+        
+        # add masking layer here
+        # mask = mask_function(input)
+        # mask_tensor = Masking(mask_value = self.mask_value, input_shape = [self.x_train.shape[1], self.x_train.shape[2]]).compute_mask(inp)
+        
+        # inputs = Input(...)
+        # mask = Masking().compute_mask(inputs) # <= Compute the mask
+        # embed = Embedding(...)(inputs)
+        # lstm = LSTM(...)(embed, mask=mask) # <= Apply the mask
+        # conv = Conv1D(...)(lstm)
 
         # Convolutional layers (conv - maxpool x3 )
-        c_1 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(inp)
+        c_1 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(inp) # would be (mask)
+        mp_1 = MaxPooling2D(pool_size=(1,5))(c_1)
+        c_2 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(mp_1)
+        mp_2 = MaxPooling2D(pool_size=(1,2))(c_2)
+        c_3 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(mp_2)
+        mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)
+        
+        # reshape
+        reshape_1 = Reshape((self.x_train.shape[-3], -1))(mp_3)
+        mask_tensor = Masking(mask_value = self.mask_value, input_shape = [self.x_train.shape[1], self.x_train.shape[2]]).compute_mask(reshape_1)
+        
+        
+        # bidirectional gated recurrent unit x2
+        # rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
+        #                           recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(reshape_1)
+        rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
+                                  recurrent_dropout=self.dropout,
+                                  return_sequences=True),
+                              merge_mode='mul')(reshape_1, mask=mask_tensor)
+        rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
+                                  recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(rnn_1)
+        
+        # 3x relu
+        dense_1  = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(rnn_2)
+        drop_1 = Dropout(rate=self.dropout)(dense_1)
+        dense_2 = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_1)
+        drop_2 = Dropout(rate=self.dropout)(dense_2)
+        
+        # split into two to get two outputs
+        dense_3A = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
+        drop_3A = Dropout(rate=self.dropout)(dense_3A)
+        dense_3B = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
+        drop_3B = Dropout(rate=self.dropout)(dense_3B)
+        
+        # Fork into two outputs
+        output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='sigmoid'), name="output_calltype")(drop_3A)
+        output_callpresence = TimeDistributed(Dense(2, activation='softmax'), name="output_callpresence")(drop_3B)
+
+        
+        # build model
+        model = Model(inp, [output_calltype, output_callpresence])
+        # model.add(Masking(mask_value = self.mask_value, 
+        #                   input_shape = (None,self.x_train.shape[1], self.x_train.shape[2], self.x_train.shape[3])))
+        
+        return model
+    
+    def build_forked_rnn(self):
+        
+        inp = Input(shape=(self.x_train.shape[1], self.x_train.shape[2], self.x_train.shape[3]))
+        
+        # Convolutional layers (conv - maxpool x3 )
+        c_1 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(inp)# would be (mask)
         mp_1 = MaxPooling2D(pool_size=(1,5))(c_1)
         c_2 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(mp_1)
         mp_2 = MaxPooling2D(pool_size=(1,2))(c_2)

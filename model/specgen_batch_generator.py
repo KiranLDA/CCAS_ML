@@ -9,9 +9,6 @@ Created on Mon Oct 12 14:02:05 2020
 import numpy as np
 import pandas as pd
 import tensorflow.keras as keras
-# import lib.audioframes
-# import lib.dftstream
-# import lib.endpointer
 import preprocess.preprocess_functions as pre
 import model.audiopool as audiopool
 
@@ -30,7 +27,8 @@ class ForkedDataGenerator(keras.utils.Sequence):
                  min_scaling_factor ,
                  max_scaling_factor,
                  n_per_call ,
-                 other_ignored_in_training):
+                 other_ignored_in_training,
+                 mask_value):
         
         '''
         call_table_dict:
@@ -90,9 +88,12 @@ class ForkedDataGenerator(keras.utils.Sequence):
             maximum of the range of the scaling.
         n_per_call:
             the number of times a call is used in a batch, by default would recommend 3.
+        mask_values:
+            what values to give the spectrogram mask when other ignored in training.
         '''
         
         # self.call_table_dict = call_table_dict # (callype, start, stop, filelocations)
+        self.call_table_dict = call_dict.copy()
         self.label_table = label_table # (rename so it is clear it is label)
         self.spec_window_size = spec_window_size
         self.label_for_noise = label_for_noise
@@ -104,14 +105,13 @@ class ForkedDataGenerator(keras.utils.Sequence):
         self.normalise = normalise
         self.min_scaling_factor = min_scaling_factor
         self.max_scaling_factor = max_scaling_factor
-        self.n_per_call = n_per_call
-        self.call_table_dict = call_dict.copy()
+        self.n_per_call = n_per_call        
         self.other_ignored_in_training = other_ignored_in_training
+        self.mask_value = mask_value
         
-        # Q do I need self here even if it is only used in init?
         # remove other from batch generations if necessary
         if self.other_ignored_in_training:
-            del self.call_table_dict[self.label_for_other ]
+            del self.call_table_dict[self.label_for_other]
         
         # setup indexing given different calls have different sample sizes        
         self.indexes = dict()
@@ -128,7 +128,7 @@ class ForkedDataGenerator(keras.utils.Sequence):
         
         
         # calculate sample size and batch size
-        self.mean_sample_size, self.sample_size = self.sampling_strategy() # Q is it correct to add self?
+        self.mean_sample_size, self.sample_size = self.sampling_strategy() 
         self.batch_size = self.n_per_call * len(self.call_table_dict.keys())
         self.tot_batch_number = int(np.floor(self.mean_sample_size / self.batch_size))
         
@@ -199,42 +199,34 @@ class ForkedDataGenerator(keras.utils.Sequence):
             noise_subset = np.asfortranarray(y_noise)
     
             # combine the two
-            # Q randomise scaling factor (normal absolute dist 0.1-0.5)
             augmented_data = data_subset + noise_subset * np.random.uniform(self.min_scaling_factor, self.max_scaling_factor)
             # generate spectrogram
             augmented_spectrogram = pre.generate_mel_spectrogram(augmented_data, sr, 0, 
                                                              self.spec_window_size, 
                                                              self.n_mels, self.window, 
                                                              self.fft_win , self.fft_hop , self.normalise)
-            # subset the label table
-            label_subset = self.label_table[self.label_table['wav_path'].isin([call["wav_path"]])]
-
-            #***
-            # generate label
-            augmented_label = pre.create_label_matrix(label_subset, augmented_spectrogram,
-                                                      self.call_table_dict, call_start, call_stop, 
-                                                      self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
-            augmented_call_matrix = pre.create_call_matrix(label_subset, augmented_spectrogram, 
-                                                           call_start, call_stop,  
-                                                           self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
-
         else:
             # generate spectrogram
             augmented_spectrogram = pre.generate_mel_spectrogram(data_subset, sr, 0, 
                                                              self.spec_window_size, 
                                                              self.n_mels, self.window, 
                                                              self.fft_win , self.fft_hop , self.normalise)
-            # subset the label table
-            label_subset = self.label_table[self.label_table['wav_path'].isin([call["wav_path"]])]
-
-            # generate label
-            augmented_label = pre.create_label_matrix(label_subset , augmented_spectrogram,
-                                                      self.call_table_dict, call_start, call_stop, 
-                                                      self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
-            augmented_call_matrix = pre.create_call_matrix(label_subset, augmented_spectrogram, 
-                                                           call_start, call_stop,  
-                                                           self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
+        # subset the label table
+        label_subset = self.label_table[self.label_table['wav_path'].isin([call["wav_path"]])]
         
+        # add mask to spectrogram for other values        
+        if self.other_ignored_in_training:
+            augmented_spectrogram = pre.create_mask(augmented_spectrogram,label_subset, call_start, call_stop,
+                                                    self.mask_value, self.label_for_other)
+
+        # generate label
+        augmented_label = pre.create_label_matrix(label_subset , augmented_spectrogram,
+                                                  self.call_table_dict, call_start, call_stop, 
+                                                  self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
+        augmented_call_matrix = pre.create_call_matrix(label_subset, augmented_spectrogram, 
+                                                       call_start, call_stop,  
+                                                       self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
+    
         # augmented_outputs = [augmented_label, augmented_call_matrix]
         
         return augmented_spectrogram, augmented_label, augmented_call_matrix
@@ -260,8 +252,6 @@ class ForkedDataGenerator(keras.utils.Sequence):
         
         # loop over every call   
         for calltype in self.call_table_dict:
-            
-            # Q is this right - I feel like it might impact parallelisation        
             
             # except if we have reached the end of the indexes, 
             # in which case they will need to be reshuffled
@@ -294,11 +284,11 @@ class ForkedDataGenerator(keras.utils.Sequence):
                 # call = self.call_table_dict[calltype].iloc[(indexes[calltype][call_num] ) 
                 
                 # generate the label and spectrogram
-                spec, label, call_matrix = self.generate_example(calltype, call_num, to_augment) # Q is it correct to add self?
+                spec, label, call_matrix = self.generate_example(calltype, call_num, to_augment) 
                 
                 # need to deal with noise index
                 if calltype != self.label_for_noise and to_augment:
-                    self.next_sample[self.label_for_noise] += 1 # Q is this ok?
+                    self.next_sample[self.label_for_noise] += 1 
                     if self.next_sample[self.label_for_noise]  > len(self.indexes[self.label_for_noise]) :
                         np.random.shuffle(self.indexes[self.label_for_noise])  # reshuffle the data
                         self.next_sample[self.label_for_noise] = 0 #reset the index
@@ -308,8 +298,7 @@ class ForkedDataGenerator(keras.utils.Sequence):
                 batch_spec_data.append(spec.T)
                 batch_call_data.append(np.asarray(call_matrix).T)
                 # add weight? decided no so that there are the same numbers of samples used in the training
-        
-                # Q need to deal with noise
+                
                 # move to the next sample for the next batch
                 self.next_sample[calltype] += 1
        
@@ -469,7 +458,6 @@ class DataGenerator(keras.utils.Sequence):
         self.call_table_dict = call_dict.copy()
         self.other_ignored_in_training = other_ignored_in_training
         
-        # Q do I need self here even if it is only used in init?
         # remove other from batch generations if necessary
         if self.other_ignored_in_training:
             del self.call_table_dict[self.label_for_other ]
@@ -489,7 +477,7 @@ class DataGenerator(keras.utils.Sequence):
         
         
         # calculate sample size and batch size
-        self.mean_sample_size, self.sample_size = self.sampling_strategy() # Q is it correct to add self?
+        self.mean_sample_size, self.sample_size = self.sampling_strategy() 
         self.batch_size = self.n_per_call * len(self.call_table_dict.keys())
         self.tot_batch_number = int(np.floor(self.mean_sample_size / self.batch_size))
         
@@ -560,7 +548,6 @@ class DataGenerator(keras.utils.Sequence):
             noise_subset = np.asfortranarray(y_noise)
     
             # combine the two
-            # Q randomise scaling factor (normal absolute dist 0.1-0.5)
             augmented_data = data_subset + noise_subset * np.random.uniform(self.min_scaling_factor, self.max_scaling_factor)
             # generate spectrogram
             augmented_spectrogram = pre.generate_mel_spectrogram(augmented_data, sr, 0, 
@@ -618,8 +605,6 @@ class DataGenerator(keras.utils.Sequence):
         # loop over every call   
         for calltype in self.call_table_dict:
             
-            # Q is this right - I feel like it might impact parallelisation        
-            
             # except if we have reached the end of the indexes, 
             # in which case they will need to be reshuffled
             if (self.next_sample[calltype] + self.n_per_call) > len(self.indexes[calltype]) :
@@ -651,11 +636,11 @@ class DataGenerator(keras.utils.Sequence):
                 # call = self.call_table_dict[calltype].iloc[(indexes[calltype][call_num] ) 
                 
                 # generate the label and spectrogram
-                spec, label = self.generate_example(calltype, call_num, to_augment) # Q is it correct to add self?
+                spec, label = self.generate_example(calltype, call_num, to_augment) 
                 
                 # need to deal with noise index
                 if calltype != self.label_for_noise and to_augment:
-                    self.next_sample[self.label_for_noise] += 1 # Q is this ok?
+                    self.next_sample[self.label_for_noise] += 1 
                     if self.next_sample[self.label_for_noise]  > len(self.indexes[self.label_for_noise]) :
                         np.random.shuffle(self.indexes[self.label_for_noise])  # reshuffle the data
                         self.next_sample[self.label_for_noise] = 0 #reset the index
@@ -663,10 +648,9 @@ class DataGenerator(keras.utils.Sequence):
                 # compile the batch
                 batch_label_data.append(np.asarray(label).T)
                 batch_spec_data.append(spec.T)
-                batch_call_data.append(call_matrix.T)
+                # batch_call_data.append(call_matrix.T)
                 # add weight? decided no so that there are the same numbers of samples used in the training
-        
-                # Q need to deal with noise
+                
                 # move to the next sample for the next batch
                 self.next_sample[calltype] += 1
        
