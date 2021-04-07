@@ -26,9 +26,10 @@ class ForkedDataGenerator(keras.utils.Sequence):
                  label_for_other,
                  min_scaling_factor ,
                  max_scaling_factor,
-                 n_per_call ,
+                 n_per_call,
                  other_ignored_in_training,
-                 mask_value):
+                 mask_value,
+                 mask_vector):
         
         '''
         call_table_dict:
@@ -90,6 +91,8 @@ class ForkedDataGenerator(keras.utils.Sequence):
             the number of times a call is used in a batch, by default would recommend 3.
         mask_values:
             what values to give the spectrogram mask when other ignored in training.
+        mask_vector:
+            true fasle for whether or not it should be a vector
         '''
         
         # self.call_table_dict = call_table_dict # (callype, start, stop, filelocations)
@@ -108,6 +111,7 @@ class ForkedDataGenerator(keras.utils.Sequence):
         self.n_per_call = n_per_call        
         self.other_ignored_in_training = other_ignored_in_training
         self.mask_value = mask_value
+        self.mask_vector = mask_vector
         
         # remove other from batch generations if necessary
         if self.other_ignored_in_training:
@@ -214,22 +218,34 @@ class ForkedDataGenerator(keras.utils.Sequence):
         # subset the label table
         label_subset = self.label_table[self.label_table['wav_path'].isin([call["wav_path"]])]
         
+        
         # add mask to spectrogram for other values        
         if self.other_ignored_in_training:
-            augmented_spectrogram = pre.create_mask(augmented_spectrogram,label_subset, call_start, call_stop,
-                                                    self.mask_value, self.label_for_other)
+            #we were originally adding a mask to the spectrogram, however, we are no parsing a boolean
+            # augmented_spectrogram = pre.create_spectrogram_mask(augmented_spectrogram,label_subset, call_start, call_stop,
+            #                                         self.mask_value, self.label_for_other)
+            augmented_mask = pre.create_boolean_mask(augmented_spectrogram, label_subset, 
+                                                     call_start, call_stop, self.label_for_other, False)
+        else:
+            if self.mask_vector == True:
+                augmented_mask = [False for i in range(augmented_spectrogram.shape[1])]
+            else:
+                augmented_mask = np.full(augmented_spectrogram.shape, False)
+               
 
         # generate label
         augmented_label = pre.create_label_matrix(label_subset , augmented_spectrogram,
                                                   self.call_table_dict, call_start, call_stop, 
-                                                  self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
+                                                  self.label_for_noise, self.label_for_other, 
+                                                  self.other_ignored_in_training)
         augmented_call_matrix = pre.create_call_matrix(label_subset, augmented_spectrogram, 
                                                        call_start, call_stop,  
-                                                       self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
+                                                       self.label_for_noise, self.label_for_other,
+                                                       self.other_ignored_in_training)
     
         # augmented_outputs = [augmented_label, augmented_call_matrix]
         
-        return augmented_spectrogram, augmented_label, augmented_call_matrix
+        return augmented_spectrogram, augmented_label, augmented_call_matrix, augmented_mask
     
     # def __getitem__(self, batch_number):
     def __next__(self):
@@ -249,6 +265,7 @@ class ForkedDataGenerator(keras.utils.Sequence):
         batch_label_data = []
         batch_spec_data = []
         batch_call_data = []
+        batch_mask_data = []
         
         # loop over every call   
         for calltype in self.call_table_dict:
@@ -284,7 +301,7 @@ class ForkedDataGenerator(keras.utils.Sequence):
                 # call = self.call_table_dict[calltype].iloc[(indexes[calltype][call_num] ) 
                 
                 # generate the label and spectrogram
-                spec, label, call_matrix = self.generate_example(calltype, call_num, to_augment) 
+                spec, label, call_matrix, mask = self.generate_example(calltype, call_num, to_augment) 
                 
                 # need to deal with noise index
                 if calltype != self.label_for_noise and to_augment:
@@ -297,6 +314,10 @@ class ForkedDataGenerator(keras.utils.Sequence):
                 batch_label_data.append(np.asarray(label).T)
                 batch_spec_data.append(spec.T)
                 batch_call_data.append(np.asarray(call_matrix).T)
+                if self.mask_vector == True:
+                    batch_mask_data.append(mask)
+                else:
+                    batch_mask_data.append(mask.T)
                 # add weight? decided no so that there are the same numbers of samples used in the training
                 
                 # move to the next sample for the next batch
@@ -310,8 +331,12 @@ class ForkedDataGenerator(keras.utils.Sequence):
         spectros = spectros[..., np.newaxis]      
         labels = np.asarray(batch_label_data) 
         callmats =  np.asarray(batch_call_data) 
+        # if self.mask_vector == True:
+        masks =  np.asarray(batch_mask_data)
+        # else:
+            
         
-        x_data = spectros
+        x_data = [spectros, masks]
         y_data = [labels, callmats]
         
         return x_data, y_data #spectros, labels, callmats

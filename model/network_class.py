@@ -23,6 +23,7 @@ from keras.layers import BatchNormalization, TimeDistributed, Dense, Dropout
 from keras.models import load_model
 from keras.layers import GRU, Bidirectional, GlobalAveragePooling2D
 from keras.layers import Masking
+# from keras.layers import boolean_mask
 
 
 class BuildNetwork():
@@ -75,17 +76,12 @@ class BuildNetwork():
     
     def build_forked_masked_rnn(self):
         
-        inp = Input(shape=(self.x_train.shape[1], self.x_train.shape[2], self.x_train.shape[3]))
-        
+        inp = Input(shape=(self.x_train[0].shape[1], self.x_train[0].shape[2], self.x_train[0].shape[3]))
+        inp_mask = Input(shape=(self.x_train[1].shape[1],self.x_train[1].shape[2]))
         # add masking layer here
         # mask = mask_function(input)
         # mask_tensor = Masking(mask_value = self.mask_value, input_shape = [self.x_train.shape[1], self.x_train.shape[2]]).compute_mask(inp)
         
-        # inputs = Input(...)
-        # mask = Masking().compute_mask(inputs) # <= Compute the mask
-        # embed = Embedding(...)(inputs)
-        # lstm = LSTM(...)(embed, mask=mask) # <= Apply the mask
-        # conv = Conv1D(...)(lstm)
 
         # Convolutional layers (conv - maxpool x3 )
         c_1 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(inp) # would be (mask)
@@ -96,17 +92,20 @@ class BuildNetwork():
         mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)
         
         # reshape
-        reshape_1 = Reshape((self.x_train.shape[-3], -1))(mp_3)
-        mask_tensor = Masking(mask_value = self.mask_value, input_shape = [self.x_train.shape[1], self.x_train.shape[2]]).compute_mask(reshape_1)
-        
+        reshape_1 = Reshape((self.x_train[0].shape[-3], -1))(mp_3)  #
+        # mask_tensor = merge([reshape_1, inp_mask],mode='mul')
+        mask_tensor = Masking(mask_value = self.mask_value, input_shape = (self.x_train[1].shape[1], self.x_train[1].shape[2])))(inp_mask)#boolean_mask(reshape_1, self.x_train[1])
+        # kinda works
+        # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (self.x_train[1].shape[1], self.x_train[1].shape[2])).compute_mask(reshape_1)
+        # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (None, self.x_train[1].shape[1], self.x_train[1].shape[2])).compute_mask(reshape_1)
+        # mask_tensor = Masking(mask_value = self.mask_value, 
+        #                       input_shape = [self.x_train[1].shape[1], self.x_train[1].shape[2]]).compute_mask(reshape_1)
         
         # bidirectional gated recurrent unit x2
         # rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
         #                           recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(reshape_1)
         rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
-                                  recurrent_dropout=self.dropout,
-                                  return_sequences=True),
-                              merge_mode='mul')(reshape_1, mask=mask_tensor)
+                                  recurrent_dropout=self.dropout,return_sequences=True), merge_mode='mul')(reshape_1, mask=mask_tensor)
         rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
                                   recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(rnn_1)
         
