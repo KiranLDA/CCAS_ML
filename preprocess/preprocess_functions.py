@@ -503,19 +503,19 @@ def create_boolean_mask(spectro, label_table, start, stop, label_for_other, vect
     
     if vector == True:    
         # initialise the timeseries mask (for each time step is the call other or not?)
-        boolean_mask = [False for i in range(timesteps)]
+        boolean_mask = [True for i in range(timesteps)]
         
         #for every other call, replace the column in the spectrogram with the mask values we want
         for othi in label_table_mask:
             to_replace = ((colnames >= float(label_table['Start'][othi])) & (colnames <= float(label_table['End'][othi]))) 
-            boolean_mask = [True if to_replace[x] == True  else boolean_mask[x] for x in range(len(boolean_mask))]
+            boolean_mask = [False if to_replace[x] == True  else boolean_mask[x] for x in range(len(boolean_mask))]
     else:
-        boolean_mask = np.full(spectro.shape, False)
+        boolean_mask = np.full(spectro.shape, True)
         
         #for every other call, replace the column in the spectrogram with the mask values we want
         for othi in label_table_mask:
             boolean_mask[:,((colnames >= float(label_table['Start'][othi])) & 
-                            (colnames <= float(label_table['End'][othi])))] = True 
+                            (colnames <= float(label_table['End'][othi])))] = False 
         
         
     return boolean_mask

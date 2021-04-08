@@ -552,7 +552,7 @@ else:
 #       3. CONSTRUCT THE RNN
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
-
+mask_vector = True
 # get a batch to estimate rnn parameters
 x_train, y_train = train_generator.__next__()#__getitem__(0)
 # x_train, y_train = val_generator.__next__()#__getitem__(0)
@@ -609,7 +609,9 @@ val_generator = bg.ForkedDataGenerator(validation_label_dict,
 # Construct the RNN
 #--------------------------------------------
 import model.network_class as rnn
-mask_vector = False
+# import importlib
+importlib.reload(rnn)
+# mask_vector = False
 
 model = rnn.BuildNetwork(x_train, num_calltypes, filters, gru_units, dense_neurons, dropout, mask_value)
 
@@ -627,7 +629,7 @@ reduce_lr_plat = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=25, 
                                    mode='auto', min_delta=0.0001, cooldown=0, min_lr=0.000001)
 loss = LossHistory()
 
-#tensorboard
+#tensorboardTrue
 tensorboard = TensorBoard(# Write to logs directory, e.g. logs/30Oct-05:00
                           log_dir = save_tensorboard_path, #"/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/trained_model/tensorboard_logs", #"logs/{}".format(time.strftime('%d%b-%H%M')),        
                           histogram_freq=0,

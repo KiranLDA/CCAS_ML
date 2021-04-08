@@ -76,25 +76,28 @@ class BuildNetwork():
     
     def build_forked_masked_rnn(self):
         
-        inp = Input(shape=(self.x_train[0].shape[1], self.x_train[0].shape[2], self.x_train[0].shape[3]))
-        inp_mask = Input(shape=(self.x_train[1].shape[1],self.x_train[1].shape[2]))
-        # add masking layer here
-        # mask = mask_function(input)
-        # mask_tensor = Masking(mask_value = self.mask_value, input_shape = [self.x_train.shape[1], self.x_train.shape[2]]).compute_mask(inp)
-        
+        inp_aud = Input(shape=(self.x_train[0].shape[1], self.x_train[0].shape[2], self.x_train[0].shape[3]))
+        inp_mask = Input(shape=(self.x_train[1].shape[1],))
+                
 
         # Convolutional layers (conv - maxpool x3 )
-        c_1 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(inp) # would be (mask)
+        c_1 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(inp_aud) # would be (mask)
         mp_1 = MaxPooling2D(pool_size=(1,5))(c_1)
         c_2 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(mp_1)
         mp_2 = MaxPooling2D(pool_size=(1,2))(c_2)
         c_3 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(mp_2)
         mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)
         
+        # aud = Model(inputs=inp, outputs=aud)
+        # combined = concatenate([aud.output, inp_mas])#, acc_1.output, acc_2.output])
+        # combined = Reshape((x_train_aud.shape[-3], -1))(combined)
+        
         # reshape
         reshape_1 = Reshape((self.x_train[0].shape[-3], -1))(mp_3)  #
         # mask_tensor = merge([reshape_1, inp_mask],mode='mul')
-        mask_tensor = Masking(mask_value = self.mask_value, input_shape = (self.x_train[1].shape[1], self.x_train[1].shape[2])))(inp_mask)#boolean_mask(reshape_1, self.x_train[1])
+        # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (self.x_train[1].shape[1],))(inp_mask)
+        
+        # mask_tensor = boolean_mask(reshape_1, self.x_train[1])
         # kinda works
         # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (self.x_train[1].shape[1], self.x_train[1].shape[2])).compute_mask(reshape_1)
         # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (None, self.x_train[1].shape[1], self.x_train[1].shape[2])).compute_mask(reshape_1)
@@ -105,7 +108,7 @@ class BuildNetwork():
         # rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
         #                           recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(reshape_1)
         rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
-                                  recurrent_dropout=self.dropout,return_sequences=True), merge_mode='mul')(reshape_1, mask=mask_tensor)
+                                  recurrent_dropout=self.dropout,return_sequences=True), merge_mode='mul')(reshape_1, mask = inp_mask)#mask_tensor)
         rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
                                   recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(rnn_1)
         
@@ -127,7 +130,7 @@ class BuildNetwork():
 
         
         # build model
-        model = Model(inp, [output_calltype, output_callpresence])
+        model = Model([inp_aud, inp_mask], [output_calltype, output_callpresence])
         # model.add(Masking(mask_value = self.mask_value, 
         #                   input_shape = (None,self.x_train.shape[1], self.x_train.shape[2], self.x_train.shape[3])))
         
@@ -280,7 +283,7 @@ class BuildNetwork():
         dense_3 = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
         drop_3 = Dropout(rate=self.dropout)(dense_3)
 
-        output_aud = TimeDistributed(Dense(num_calltypes, activation='sigmoid'), name="output_aud")(drop_3)
+        output_aud = TimeDistributed(Dense(self.num_calltypes, activation='sigmoid'), name="output_aud")(drop_3)
         # output_foctype = Dense(3, activation='softmax', name="output_foctype")(drop_3)
         model = Model(inputs=[aud.input, acc_0.input, acc_1.input, acc_2.input], outputs=[output_aud])
         

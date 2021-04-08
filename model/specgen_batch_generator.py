@@ -225,7 +225,7 @@ class ForkedDataGenerator(keras.utils.Sequence):
             # augmented_spectrogram = pre.create_spectrogram_mask(augmented_spectrogram,label_subset, call_start, call_stop,
             #                                         self.mask_value, self.label_for_other)
             augmented_mask = pre.create_boolean_mask(augmented_spectrogram, label_subset, 
-                                                     call_start, call_stop, self.label_for_other, False)
+                                                     call_start, call_stop, self.label_for_other, True)
         else:
             if self.mask_vector == True:
                 augmented_mask = [False for i in range(augmented_spectrogram.shape[1])]
