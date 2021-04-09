@@ -271,8 +271,8 @@ columns_to_keep  = ['wavFileName', 'csvFileName', 'date', 'ind', 'group',
 min_scaling_factor = 0.1
 max_scaling_factor = 0.5
 n_per_call = 3
-mask_value = True#1000
-
+mask_value = False#1000
+mask_vector = True
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 #             1 - PREPROCESSING - SETTING UP DIRECTORIES
@@ -552,7 +552,8 @@ else:
 #       3. CONSTRUCT THE RNN
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
-mask_vector = True
+
+
 # get a batch to estimate rnn parameters
 x_train, y_train = train_generator.__next__()#__getitem__(0)
 # x_train, y_train = val_generator.__next__()#__getitem__(0)
@@ -560,6 +561,7 @@ x_train, y_train = train_generator.__next__()#__getitem__(0)
 # print(x_train[1].shape)
 # print(y_train[0].shape)
 # print(y_train[1].shape)
+
 
 
 # initial parameters
@@ -608,9 +610,9 @@ val_generator = bg.ForkedDataGenerator(validation_label_dict,
 #--------------------------------------------
 # Construct the RNN
 #--------------------------------------------
-import model.network_class as rnn
+# import model.network_class as rnn
 # import importlib
-importlib.reload(rnn)
+# importlib.reload(rnn)
 # mask_vector = False
 
 model = rnn.BuildNetwork(x_train, num_calltypes, filters, gru_units, dense_neurons, dropout, mask_value)
@@ -646,7 +648,7 @@ RNN_model.fit_generator(train_generator,
                         validation_data = val_generator,
                         validation_steps = val_generator.__len__())
 
-
+ 
 
 # save the model
 date_time = datetime.datetime.now()

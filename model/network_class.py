@@ -88,21 +88,14 @@ class BuildNetwork():
         c_3 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(mp_2)
         mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)
         
-        # aud = Model(inputs=inp, outputs=aud)
-        # combined = concatenate([aud.output, inp_mas])#, acc_1.output, acc_2.output])
-        # combined = Reshape((x_train_aud.shape[-3], -1))(combined)
         
         # reshape
-        reshape_1 = Reshape((self.x_train[0].shape[-3], -1))(mp_3)  #
-        # mask_tensor = merge([reshape_1, inp_mask],mode='mul')
+        reshape_1 = Reshape((self.x_train[0].shape[-3], -1))(mp_3)
         # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (self.x_train[1].shape[1],))(inp_mask)
-        
         # mask_tensor = boolean_mask(reshape_1, self.x_train[1])
         # kinda works
         # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (self.x_train[1].shape[1], self.x_train[1].shape[2])).compute_mask(reshape_1)
-        # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (None, self.x_train[1].shape[1], self.x_train[1].shape[2])).compute_mask(reshape_1)
-        # mask_tensor = Masking(mask_value = self.mask_value, 
-        #                       input_shape = [self.x_train[1].shape[1], self.x_train[1].shape[2]]).compute_mask(reshape_1)
+        
         
         # bidirectional gated recurrent unit x2
         # rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 

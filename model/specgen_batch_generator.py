@@ -187,12 +187,11 @@ class ForkedDataGenerator(keras.utils.Sequence):
             
             # extract noise call
             noise_event = self.call_table_dict[self.label_for_noise].iloc[self.indexes[self.label_for_noise][self.next_sample[self.label_for_noise]]]            
-            # noise_event =  self.mega_noise_table.sample()
+            # noise_event = call_table_dict[label_for_noise].iloc[indexes[label_for_noise][next_sample[label_for_noise]]]            
             
-            #randomise the start and stop so the same section is never being used for the augmentation
+            # randomise the start and stop so the same section is never being used for the augmentation
             noise_start = round(float(np.random.uniform(noise_event.loc["Start"], 
                                                         (noise_event.loc["End"]-self.spec_window_size),1)),3)
-            # noise_stop = round(noise_start + self.spec_window_size,3 )    
         
             y_noise = self.pool.get_seconds(noise_event["wav_path"], noise_start, self.spec_window_size)
             sr = self.pool.get_Fs(noise_event["wav_path"])
@@ -249,19 +248,8 @@ class ForkedDataGenerator(keras.utils.Sequence):
     
     # def __getitem__(self, batch_number):
     def __next__(self):
-        
-        # Batch number is not yet defined anywhere but is part of user interface
-        
-        # keep track of batch
-        '''
-        start_idx = batch_number * self.n_per_call
-        stop_idx = (batch_number + 1) * self.n_per_call 
-        '''
               
-        
-        #########
-        
-        # empty the batch at the beginning
+        # initialise empty batches
         batch_label_data = []
         batch_spec_data = []
         batch_call_data = []
@@ -272,18 +260,16 @@ class ForkedDataGenerator(keras.utils.Sequence):
             
             # except if we have reached the end of the indexes, 
             # in which case they will need to be reshuffled
-            if (self.next_sample[calltype] + self.n_per_call) > len(self.indexes[calltype]) :
+            if (self.next_sample[calltype] + self.n_per_call) > (len(self.indexes[calltype])-1) :
                 np.random.shuffle(self.indexes[calltype])  # reshuffle the data
                 self.next_sample[calltype] = 0 #reset the index
             start_idx = self.next_sample[calltype] #readjust the start
             stop_idx = self.next_sample[calltype] + self.n_per_call 
             
-            # move to the next sample for the next batch
-            # self.next_sample[calltype] = stop_idx
             
             # for each call to be put in the batch generate an example            
             for call_num in range(start_idx, stop_idx):
-                                # call_num = start_idx
+                # call_num = start_idx
                 # calltype= "sn"
                 
                 # do a weighted coin flip
@@ -294,19 +280,14 @@ class ForkedDataGenerator(keras.utils.Sequence):
                 # determine whether or not the call is to be augmented based on the coin flip
                 to_augment = True if augment == 1 else False
                 
-                # map call number to actual call number                  
-                # call_num = call_num % indexes[calltype].size
-                
-                # extract that call
-                # call = self.call_table_dict[calltype].iloc[(indexes[calltype][call_num] ) 
-                
+              
                 # generate the label and spectrogram
                 spec, label, call_matrix, mask = self.generate_example(calltype, call_num, to_augment) 
                 
                 # need to deal with noise index
                 if calltype != self.label_for_noise and to_augment:
                     self.next_sample[self.label_for_noise] += 1 
-                    if self.next_sample[self.label_for_noise]  > len(self.indexes[self.label_for_noise]) :
+                    if self.next_sample[self.label_for_noise]  > (len(self.indexes[self.label_for_noise]) -1) :
                         np.random.shuffle(self.indexes[self.label_for_noise])  # reshuffle the data
                         self.next_sample[self.label_for_noise] = 0 #reset the index
                 
@@ -318,24 +299,18 @@ class ForkedDataGenerator(keras.utils.Sequence):
                     batch_mask_data.append(mask)
                 else:
                     batch_mask_data.append(mask.T)
-                # add weight? decided no so that there are the same numbers of samples used in the training
                 
                 # move to the next sample for the next batch
                 self.next_sample[calltype] += 1
        
-        # # compute indecies /calls per batch calc (Batch size * call number)
-        # mean_sample_size, sample_size = sampling_strategy()
-        # sampling_strategy = sample_size["prop_to_augment"]
-        # next_sample = call_num  # indexes[calltype][call_num]
+        # Put everything into arrays
         spectros = np.asarray(batch_spec_data)
         spectros = spectros[..., np.newaxis]      
         labels = np.asarray(batch_label_data) 
         callmats =  np.asarray(batch_call_data) 
-        # if self.mask_vector == True:
         masks =  np.asarray(batch_mask_data)
-        # else:
-            
-        
+          
+        # setup the x and the y data
         x_data = [spectros, masks]
         y_data = [labels, callmats]
         
