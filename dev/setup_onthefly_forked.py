@@ -103,51 +103,19 @@ if not os.path.isdir(save_data_path):
 
 # because we are still in a development phase, I want to use the same training and testing sets for each model
 
-# Training folders
-train_path = os.path.join(save_data_path,'train_data')
-if not os.path.isdir(train_path):
-        os.makedirs(train_path)
-
-# train_path = "/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/train_data"
-        
-save_spec_train_path = os.path.join(train_path , "spectrograms")
-if not os.path.isdir(save_spec_train_path):
-        os.makedirs(save_spec_train_path)
-        
-save_mat_train_path = os.path.join(train_path , "label_matrix")
-if not os.path.isdir(save_mat_train_path):
-        os.makedirs(save_mat_train_path)
-        
-save_label_table_train_path = os.path.join(train_path, 'label_table')
-if not os.path.isdir(save_label_table_train_path):
-        os.makedirs(save_label_table_train_path)
-
-
 # Test folders
 test_path = os.path.join(save_data_path, 'test_data')
 if not os.path.isdir(test_path):
         os.makedirs(test_path)
         
-save_spec_test_path = os.path.join(test_path , "spectrograms")
-if not os.path.isdir(save_spec_test_path):
-        os.makedirs(save_spec_test_path)
-        
-save_mat_test_path = os.path.join(test_path , "label_matrix")
-if not os.path.isdir(save_mat_test_path):
-        os.makedirs(save_mat_test_path)
 
 save_pred_test_path = os.path.join(test_path , "predictions")
 if not os.path.isdir(save_pred_test_path):
         os.makedirs(save_pred_test_path)
-        
-        
-save_metrics_path = os.path.join(test_path , "metrics")
-if not os.path.isdir(save_metrics_path):
-        os.makedirs(save_metrics_path)
-        
+
 save_pred_stack_test_path = os.path.join(save_pred_test_path,"stacks")
 if not os.path.isdir(save_pred_stack_test_path):
-        os.makedirs(save_pred_stack_test_path)
+        os.makedirs(save_pred_stack_test_path)        
 
 save_pred_table_test_path = os.path.join(save_pred_test_path,"pred_table")
 if not os.path.isdir(save_pred_table_test_path):
@@ -157,6 +125,10 @@ save_label_table_test_path = os.path.join(test_path, 'label_table')
 if not os.path.isdir(save_label_table_test_path):
         os.makedirs(save_label_table_test_path)
 
+save_metrics_path = os.path.join(test_path , "metrics")
+if not os.path.isdir(save_metrics_path):
+        os.makedirs(save_metrics_path)
+        
 
 # Model folder
 save_model_path = os.path.join(save_data_path, 'trained_model')
@@ -273,6 +245,8 @@ max_scaling_factor = 0.5
 n_per_call = 3
 mask_value = False#1000
 mask_vector = True
+
+
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 #             1 - PREPROCESSING - SETTING UP DIRECTORIES
@@ -675,8 +649,8 @@ RNN_model.save(sf + '/savedmodel' + '.h5')
 
 skipped_files = []
 
-for file_ID in testing_filenames[1:len(testing_filenames)]:
-    # file_ID = testing_filenames[1]
+for file_ID in testing_filenames:
+    # file_ID = testing_filenames[0]
 
     label_table = testing_label_table[testing_label_table['wavFileName'].isin([file_ID])].reset_index()
     file_ID = file_ID.split(".")[0] 
@@ -785,14 +759,26 @@ for file_ID in testing_filenames[1:len(testing_filenames)]:
                 for row in callpresence_pred_list:
                     f.write(str(row) +"\n")
                 
-        for low_thr in [0.2]:#[0.1,0.3]:
-            for high_thr in [0.7,0.8,0.9,0.97]: #[0.5,0.7,0.8,0.9,0.95]: 
-
+        # for low_thr in [0.2]:#[0.1,0.3]:
+        #     for high_thr in [0.7,0.8,0.9,0.97]: #[0.5,0.7,0.8,0.9,0.95]: 
+        for low_thr in [0.1,0.2, 0.3]:#[0.1,0.3]:
+            for high_thr in [0.3,0.4,0.5,0.6,0.5,0.7,0.8,0.9,0.95]: 
                 
                 low_thr = round(low_thr,2)                               
                 high_thr = round(high_thr,2)
+                
+                if low_thr >= high_thr:
+                    continue
 
                 save_pred_table_filename = file_ID + "_CALLTYPE_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt"
+                
+                #if the file exists, pass to the next iteration of the loop
+                if os.path.exists(os.path.join(save_pred_table_test_path, save_pred_table_filename)):
+                    continue
+                
+                print("*****************************************************************") 
+                print ("Low Threshold: " + str(low_thr))    
+                print ("High Threshold: " + str(high_thr))  
                 
                 #----------------------------------------------------------------------------
                 # Compile the predictions for each on/off labelling chunk
@@ -857,16 +843,6 @@ for file_ID in testing_filenames[1:len(testing_filenames)]:
                     pred_table.to_csv(os.path.join(save_pred_table_test_path, save_pred_table_filename), 
                                       header=None, index=None, sep=';', mode = 'a')
                 
-                
-                
-    
-
-
-
-
-               
-                
-        
 # '''
 # # load the saved file
 # with open(os.path.join(save_pred_stack_test_path, file_ID + '_PRED_STACK.txt')) as f:
@@ -910,15 +886,32 @@ for file in pred_tables:
 #########################################################################
 
 # skipped = [os.path.split(path)[1] for path in skipped_files]
-file_ID_list = [file_ID for file_ID in testing_filenames if file_ID not in skipped_files]
-label_list =  [os.path.join(save_label_table_test_path,file_ID + "_LABEL_TABLE.txt" ) for file_ID in file_ID_list]
-for low_thr in [0.2]:#[0.1,0.3]:
-    for high_thr in [0.7,0.8,0.9,0.97]: #[0.5,0.7,0.8,0.9,0.95]: 
+
+file_ID_list = [file_ID.split(".")[0] for file_ID in testing_filenames if file_ID not in skipped_files]
+label_list =  [os.path.join(save_label_table_test_path,file_ID.split(".")[0]  + "_LABEL_TABLE.txt" ) for file_ID in file_ID_list]
+
+
+# because of new file format, need to only keep certain columns
+column_names = ["Label","Start","Duration","End"]
+column_names.extend(list(testing_label_dict.keys()))
+for file in label_list :
+    df = pd.read_csv(file, delimiter=';') 
+    # df = df.drop_duplicates(keep=False)
+    df = df[column_names]
+    df.to_csv(file, header=True, index=None, sep=';', mode = 'w')
+
+
+
+for low_thr in [0.1,0.2,0.3]:#[0.1,0.3]:
+    for high_thr in [0.3,0.4,0.5,0.6,0.5,0.7,0.8,0.9,0.95]: 
         
         low_thr = round(low_thr,2)                               
         high_thr = round(high_thr,2) 
         
-        pred_list = [os.path.join(save_pred_table_test_path,file_ID + "_CALLTYPE_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt" ) for file_ID in file_ID_list ]
+        if low_thr >= high_thr:
+            continue
+        
+        pred_list = [os.path.join(save_pred_table_test_path,file_ID.split(".")[0]  + "_CALLTYPE_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt" ) for file_ID in file_ID_list ]
         evaluation = metrics.Evaluate(label_list, pred_list, 0.5, 5) # 0.99 is 0.5
         Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset = evaluation.main()
         
@@ -954,17 +947,21 @@ for low_thr in [0.2]:#[0.1,0.3]:
 import seaborn as sn
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 import csv
-import math
+# import math
 
-# normalise = True
-# for low_thr in [0.1,0.3]:
-#     for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
-for low_thr in [0.2]:#[0.1,0.3]:
-    for high_thr in [0.5,0.7,0.9]: #[0.5,0.7,0.8,0.9,0.95]: 
+
+# normalise = False
+for low_thr in [0.1,0.2,0.3]:#[0.1,0.3]:
+    for high_thr in [0.3,0.4,0.5,0.6,0.5,0.7,0.8,0.9,0.95]: 
         
         low_thr = round(low_thr,2)                               
         high_thr = round(high_thr,2) 
+        
+        if low_thr >= high_thr:
+            continue
+
         confusion_filename = os.path.join(save_metrics_path, "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Confusion_matrix.csv')
         with open(confusion_filename, newline='') as csvfile:
             array = list(csv.reader(csvfile))
@@ -988,8 +985,6 @@ for low_thr in [0.2]:#[0.1,0.3]:
         # remove FP and FN
         df_cm = df_cm.drop("FN", axis=1)
         df_cm = df_cm.drop("FP", axis=0)
-        ####
-        
         
         df_cm = df_cm.apply(pd.to_numeric)
         # #move last negatives to end
@@ -999,23 +994,43 @@ for low_thr in [0.2]:#[0.1,0.3]:
         
         # # remove noi        for low_thr in [0.1,0.3]:
             # for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
-        
-        #normalise the confusion matrix
-        if normalise == True:
-            # divide_by = df_cm.sum(axis=1)
-            # divide_by.index = new_header
-            # new_row = df_cm.index 
-            # new_col = df_cm.columns
-            df_cm = df_cm.div(df_cm.sum(axis=1), axis=0).round(2)#pd.DataFrame(df_cm.values / df_cm.sum(axis=1).values).round(2)
-            # df_cm.index = new_row
-            # df_cm.columns = new_col
+                
+                
+        df_cm = df_cm[list(testing_label_dict.keys())]
+        df_cm = df_cm.reindex(list(testing_label_dict.keys()))
         
         # plt.figure(figsize=(10,7))
         ax = plt.axes()
         sn.set(font_scale=1.1) # for label size
-        sn.heatmap((df_cm), annot=True, annot_kws={"size": 10}, ax= ax) # font size
+        sn.heatmap((df_cm+1), annot=df_cm, fmt='g',norm = LogNorm(), annot_kws={"size": 10}, ax= ax) # font size
         ax.set_title(str(low_thr) + "-" + str(high_thr) )
         plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
         plt.show()
+        #normalise the confusion matrix
+        # if normalise == True:
+        
+        df_recall = df_cm.div(df_cm.sum(axis=1), axis=0).round(2)#pd.DataFrame(df_cm.values / df_cm.sum(axis=1).values).round(2)
+        # plt.figure(figsize=(10,7))
+        ax = plt.axes()
+        sn.set(font_scale=1.1) # for label size
+        sn.heatmap((df_recall), annot=True, fmt='g', annot_kws={"size": 10}, ax= ax) # font size
+        ax.set_title(str(low_thr) + "-" + str(high_thr) )
+        plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_recall_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
+        plt.show()
+        
+        
+        call_len = list()
+        for i in testing_label_dict.keys():
+            call_len.append(testing_label_dict[i].shape[0])
+        #add noise at the end
+        call_len[-1] = df_cm.sum(axis=1)[-1]
 
+        df_prop = df_cm.div(call_len, axis=0).round(2)#pd.DataFrame(df_cm.values / df_cm.sum(axis=1).values).round(2)
+        # plt.figure(figsize=(10,7))
+        ax = plt.axes()
+        sn.set(font_scale=1.1) # for label size
+        sn.heatmap((df_prop), annot=True, fmt='g', annot_kws={"size": 10}, ax= ax) # font size
+        ax.set_title(str(low_thr) + "-" + str(high_thr) )
+        plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_prop_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
+        plt.show()
 
