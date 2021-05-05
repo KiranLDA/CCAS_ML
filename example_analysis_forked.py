@@ -12,22 +12,21 @@ Created on Thu Apr 15 10:15:59 2021
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
+# import all the params for this model
+import example_params
+
 # add path to local functions
-# import sys
 import os
-os.chdir("/home/kiran/Documents/github/CCAS_ML")
-# sys.path.append("/home/kiran/Documents/github/CCAS_ML")
+os.chdir(github_dir)
 
 # import own functions
 import preprocess.preprocess_functions as pre
-import postprocess.evaluation_metrics_functions as metrics
+import postprocess.evaluation_metrics_functions_2 as metrics
 import postprocess.merge_predictions_functions as ppm
 import model.specgen_batch_generator as bg
 import model.network_class as rnn
 # import postprocess.visualise_prediction_functions as pp
 from model.callback_functions import LossHistory
-
-
 
 # import normal packages used in pre-processing
 import numpy as np
@@ -62,186 +61,12 @@ from decimal import Decimal
 import pandas as pd
 import pickle
 
-
-
-#----------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------
-#          PARAMETERS - will likely put them in another directory
-#----------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------
-
-
-other_ignored_in_training = True
-min_scaling_factor = 0.3
-max_scaling_factor = 0.8
-run_name = "NoiseAugmented_"+ str(min_scaling_factor)+"_" +str(max_scaling_factor)+"_NotWeighted_MaskedOther_Forked"
-
-#------------------
-# File paths
-#------------------
-# label_dirs = ["/home/kiran/Documents/ML/meerkats_2017/labels_CSV", #2017 meerkats
-#             "/home/kiran/Documents/ML/meerkats_2019/labels_csv"]
-label_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic/total_synched_call_tables"]
-
-
-# audio_dirs= ["/media/kiran/Kiran Meerkat/Kalahari2017",
-#              "/media/kiran/Kiran Meerkat/Meerkat data 2019"]
-audio_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/archive/rawdata/MEERKAT_RAW_DATA"]
-
-acoustic_data_path = ["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic"]
-
-
-# basically the root directory for train, test and model
-save_data_path = os.path.join('/media/kiran/D0-P1/animal_data/meerkat', run_name)
-if not os.path.isdir(save_data_path):
-        os.makedirs(save_data_path)
-
-#####
-# Note that the lines below don't need to be modified 
-# unless you have a different file structure
-# They will create a specific file sub directory pattern in save_data_path
-#####
-
-
-# because we are still in a development phase, I want to use the same training and testing sets for each model
-
-# Test folders
-test_path = os.path.join(save_data_path, 'test_data')
-if not os.path.isdir(test_path):
-        os.makedirs(test_path)
-        
-
-save_pred_test_path = os.path.join(test_path , "predictions")
-if not os.path.isdir(save_pred_test_path):
-        os.makedirs(save_pred_test_path)
-
-save_pred_stack_test_path = os.path.join(save_pred_test_path,"stacks")
-if not os.path.isdir(save_pred_stack_test_path):
-        os.makedirs(save_pred_stack_test_path)        
-
-save_pred_table_test_path = os.path.join(save_pred_test_path,"pred_table")
-if not os.path.isdir(save_pred_table_test_path):
-        os.makedirs(save_pred_table_test_path)
-        
-save_label_table_test_path = os.path.join(test_path, 'label_table')
-if not os.path.isdir(save_label_table_test_path):
-        os.makedirs(save_label_table_test_path)
-
-save_metrics_path = os.path.join(test_path , "metrics")
-if not os.path.isdir(save_metrics_path):
-        os.makedirs(save_metrics_path)
-        
-
-# Model folder
-save_model_path = os.path.join(save_data_path, 'trained_model')
-if not os.path.isdir(save_model_path):
-        os.makedirs(save_model_path)
-        
-save_tensorboard_path = os.path.join(save_model_path, 'tensorboard_logs')
-if not os.path.isdir(save_tensorboard_path):
-    os.makedirs(save_tensorboard_path)      
-
-#----------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------
-#          PARAMETERS
-#----------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------
-
-#------------------
-# rolling window parameters
-spec_window_size = 1
-slide = 0.5
-
-#------------------
-# fast fourier parameters for mel spectrogram generation
-fft_win = 0.01 #0.03
-fft_hop = fft_win/2
-n_mels = 30 #128
-window = "hann"
-normalise = True
-
-#------------------
-#### ML parameters
-batch = 32
-epochs = 100 #16 #16
-dense_neurons = 1024
-dropout = 0.5
-filters = 128 #y_train.shape[1] #
-
-#------------------
-# split between the training and the test set
-train_test_split = 0.95
-train_val_split = 0.80
-
-#------------------
-# data augmentation parameters
-# n_steps = -2 # for pitch shift
-# stretch_factor = 0.99 #If rate > 1, then the signal is sped up. If rate < 1, then the signal is slowed down.
-# scaling_factor = 0.1
-# random_range = 0.1
-
-#-----------------------------
-# thresholding parameters
-# low_thr = 0.2
-
-#------------------
-# label munging parameters i.e. reading in audition or raven files
-sep='\t'
-engine = None
-start_column = "t0File"
-duration_column = "duration"
-label_column = "entryName"
-convert_to_seconds = True
-label_for_other = "oth"
-label_for_noise = "noise"
-label_for_startstop = ['start', 'stop', 'skip', 'end']
-multiclass_forbidden = True
-
-
-#------------------
-# call dictionary - 
-# this is a dictionary containing as keys the category you want your ML algo to output
-# and for each call category, how it is likely to be noted in the label column of the audition or raven file
-# For example, Marker is usually for a close call.
-# Note that these are regural expressions and are not case sensitive
-call_types = {
-    'cc' :["cc","Marker", "Marque"],
-    'sn' :["sn","subm", "short","^s$", "s ", "s\*"],
-    'mo' :["mo","MOV","MOVE"],
-    'agg':["AG","AGG","AGGRESS","CHAT","GROWL"],
-    'ld' :["ld","LD","lead","LEAD"],
-    'soc':["soc","SOCIAL", "so ", "so"],
-    'al' :["al "," al ", " al","ALARM", "^al$"],
-    'beep':["beep", "beeb"],
-    'synch':["sync"],
-    'oth':["oth","other","lc", "lost","hyb","HYBRID","fu","sq", "seq","\+","ukn","unk","unknown",  "\#","\?"],
-            #unsure calls
-            # "x", "\%","\*", #noisy calls
-            #"\$",
-    'noise':['start','stop','end','skip']
-    }
-
-# parameters that might be useful later that currently aren't dealt with
-# we might want to make a separate category e.g. for focal and non-focal
-# 'hyb':["hyb","HYB","hybrid","HYBRID","fu","sq","+"],
-# 'ukn':["ukn","unknown","UKN","UNKNOWN"]
-# 'nf' :["nf","nonfoc","NONFOC"],
-# 'noise':["x","X"]
-# 'overlap':["%"]
-# 'nf':["nf","nonfoc"]
-
-
-# new  parameters for meerkat code
-group_IDs = ["HM2017", "HM2019", "L2019"]
-encoding = "ISO-8859-1" # used to be "utf-8"
-columns_to_keep  = ['wavFileName', 'csvFileName', 'date', 'ind', 'group',
-                    'callType', 'isCall', 'focalType', 'hybrid', 'noisy', 'unsureType']
-
-# parameters for  noise augmentation and data generator
-n_per_call = 3
-mask_value = False#1000
-mask_vector = True
-
+# evaluate and plot 
+import seaborn as sn
+# import pandas as pd
+# import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+import csv
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
@@ -326,7 +151,8 @@ columns_to_keep.append("label_path")
 
 # create the matching noise table
 noise_table = pre.create_noise_table(label_table, call_types, label_for_noise, label_for_startstop, columns_to_keep)#, '\$'])
-# remove rows where the annotated noise is smaller than the window size
+
+# remove rows where the annotated noise is smaller than the window size otherwise the spectrogram we generate will inclue a call
 noise_table = noise_table.drop(noise_table[noise_table["Duration"] < spec_window_size].index)
 
 
@@ -526,13 +352,6 @@ else:
 
 # get a batch to estimate rnn parameters
 x_train, y_train = train_generator.__next__()#__getitem__(0)
-# x_train, y_train = val_generator.__next__()#__getitem__(0)
-# print(x_train[0].shape)
-# print(x_train[1].shape)
-# print(y_train[0].shape)
-# print(y_train[1].shape)
-
-
 
 # initial parameters
 num_calltypes = y_train[0].shape[2]
@@ -580,13 +399,11 @@ val_generator = bg.ForkedDataGenerator(validation_label_dict,
 #--------------------------------------------
 # Construct the RNN
 #--------------------------------------------
-# import model.network_class as rnn
-# import importlib
-# importlib.reload(rnn)
-# mask_vector = False
 
+# initialise the model class
 model = rnn.BuildNetwork(x_train, num_calltypes, filters, gru_units, dense_neurons, dropout, mask_value)
 
+# build the model
 RNN_model = model.build_forked_masked_rnn()
 
 # Adam optimiser
@@ -601,15 +418,14 @@ reduce_lr_plat = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=25, 
                                    mode='auto', min_delta=0.0001, cooldown=0, min_lr=0.000001)
 loss = LossHistory()
 
-#tensorboardTrue
-tensorboard = TensorBoard(# Write to logs directory, e.g. logs/30Oct-05:00
-                          log_dir = save_tensorboard_path, #"/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NoOther/trained_model/tensorboard_logs", #"logs/{}".format(time.strftime('%d%b-%H%M')),        
+# tensorboard
+tensorboard = TensorBoard(log_dir = save_tensorboard_path,
                           histogram_freq=0,
                           write_graph=True,  # Show the network
                           write_grads=True   # Show gradients
                           )    
 
-# epochs = 3
+
 # fit model
 RNN_model.fit_generator(train_generator, 
                         steps_per_epoch = train_generator.__len__(),
@@ -624,17 +440,11 @@ RNN_model.fit_generator(train_generator,
 date_time = datetime.datetime.now()
 date_now = str(date_time.date())
 time_now = str(date_time.time())
-
 sf = os.path.join(save_model_path, run_name+ "_" + date_now + "_" + time_now)
 if not os.path.isdir(sf):
         os.makedirs(sf)
 
 RNN_model.save(sf + '/savedmodel' + '.h5')
-
-# sf = "/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NotWeighted_MaskedOther_Forked/trained_model/NoiseAugmented_NotWeighted_MaskedOther_Forked_2021-04-09_19:06:51.536406"
-# RNN_model =load_model("/media/kiran/D0-P1/animal_data/meerkat/NoiseAugmented_NotWeighted_MaskedOther_Forked/trained_model/NoiseAugmented_NotWeighted_MaskedOther_Forked_2021-04-09_19:06:51.536406/test_savedmodel.h5")
-
-
 
 # #----------------------------------------------------------------------------------
 # #----------------------------------------------------------------------------------
@@ -647,8 +457,10 @@ skipped_files = []
 
 for file_ID in testing_filenames:
     # file_ID = testing_filenames[0]
-
+    
+    # subset the label table to only use that one file
     label_table = testing_label_table[testing_label_table['wavFileName'].isin([file_ID])].reset_index()
+    # Find the file ID name i.e. remove the extention
     file_ID = file_ID.split(".")[0] 
     # find the matching audio for the label data
     audio_path = label_table["wav_path"][0]   
@@ -692,8 +504,6 @@ for file_ID in testing_filenames:
     # y_sub = y[:,ch]
     y_sub = y
     
-    # probabilities = []
-    # for low_thr in [0.2]:
     # loop through every labelling start based on skipon/off within this loop_table
     for loopi in range(0, int(len(loop_times)), 2):
         # loopi = 0
@@ -718,22 +528,20 @@ for file_ID in testing_filenames:
                 start = round(spectro_slide,3)
                 stop = round(spectro_slide + spec_window_size, 3)
                 
-
                 # ignore cases where the window is larger than what is labelled (e.g. at the end)
                 if stop <= toi:
                     
+                    #generate the spectrogram
                     spectro = pre.generate_mel_spectrogram(y=y_sub, sr=sr, start=start, stop=stop, 
                                                             n_mels = n_mels, window='hann', 
                                                             fft_win= fft_win, fft_hop = fft_hop, 
                                                             normalise = True)
                     
-                    # label_matrix = pre.create_label_matrix(label_table, spectro, call_types, start, 
-                    #                                         stop, label_for_noise)
-                    
-                    # Load the spectrogram
+                    # transpose it and put it in a format that works with the NN
                     spec = spectro.T
                     spec = spec[np.newaxis, ..., np.newaxis]  
                     
+                    # generate a mask (as a placeholder) but don't mask anything as we are predicting and want to include other
                     mask = np.asarray([True for i in range(spectro.shape[1])])
                     mask = mask[np.newaxis,...]
                     
@@ -744,7 +552,7 @@ for file_ID in testing_filenames:
                     calltype_pred_list.append(np.squeeze(pred[0]))
                     callpresence_pred_list.append(np.squeeze(pred[1]))
                     
-            # save the prediction list  
+            # save the prediction stacks
             np.save( os.path.join(save_pred_stack_test_path, file_ID + '_CALLTYPE_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.npy'), calltype_pred_list)
             with open(os.path.join(save_pred_stack_test_path, file_ID + '_CALLTYPE_PRED_STACK_' + str(fromi) + '-' + str(toi) + '.txt'), "w") as f:
                 for row in calltype_pred_list:
@@ -755,20 +563,21 @@ for file_ID in testing_filenames:
                 for row in callpresence_pred_list:
                     f.write(str(row) +"\n")
                 
-        # for low_thr in [0.2]:#[0.1,0.3]:
-        #     for high_thr in [0.7,0.8,0.9,0.97]: #[0.5,0.7,0.8,0.9,0.95]: 
-        for low_thr in [0.1,0.2, 0.3]:#[0.1,0.3]:
+        # Loop through different sets of thresholds
+        for low_thr in [0.1,0.2, 0.3]:
             for high_thr in [0.3,0.4,0.5,0.6,0.5,0.7,0.8,0.9,0.95]: 
                 
+                # make sure it doesnt generate a 0.00098982374957839486 type number
                 low_thr = round(low_thr,2)                               
                 high_thr = round(high_thr,2)
                 
+                # stop the loop if the low threshold is bigger than the high threshold
                 if low_thr >= high_thr:
                     continue
 
                 save_pred_table_filename = file_ID + "_CALLTYPE_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt"
                 
-                #if the file exists, pass to the next iteration of the loop
+                # if the file exists, pass to the next iteration of the loop
                 if os.path.exists(os.path.join(save_pred_table_test_path, save_pred_table_filename)):
                     continue
                 
@@ -787,9 +596,11 @@ for file_ID in testing_filenames:
                                           high_thr=high_thr, 
                                           debug=1)
                 
+                #in case the dataset was just noise, still create an empty placeholder to merge
                 if len(detections) == 0:  
                     detections = pd.DataFrame(columns = ['category', 'start', 'end', 'scores'])
                 
+                # create an empty dataset
                 pred_table = pd.DataFrame() 
                 
                 #convert these detections to a predictions table                
@@ -862,7 +673,7 @@ with open(os.path.join(save_model_path, "skipped_testing_files.txt"), "w") as f:
 ##############################################################################################
 # Loop through tables and remove duplicates of rows (bevause files are created through appending)
 
-pred_tables = glob.glob(save_pred_table_test_path+ "/*CALLTYPE_PRED_TABLE*.txt")
+pred_tables = glob.glob(save_pred_table_test_path + "/*CALLTYPE_PRED_TABLE*.txt")
 for file in pred_tables:
     df = pd.read_csv(file, delimiter=';') 
     # df = df.drop_duplicates(keep=False)
@@ -872,7 +683,7 @@ for file in pred_tables:
 
 ##############################################################################################
 #
-#    EVALUATE
+#            EVALUATE
 #
 ##############################################################################################
 
@@ -880,11 +691,8 @@ for file in pred_tables:
 ##  Create overall thresholds
 #########################################################################
 
-# skipped = [os.path.split(path)[1] for path in skipped_files]
-
 file_ID_list = [file_ID.split(".")[0] for file_ID in testing_filenames if file_ID not in skipped_files]
 label_list =  [os.path.join(save_label_table_test_path,file_ID.split(".")[0]  + "_LABEL_TABLE.txt" ) for file_ID in file_ID_list]
-
 
 # because of new file format, need to only keep certain columns
 column_names = ["Label","Start","Duration","End"]
@@ -896,8 +704,7 @@ for file in label_list :
     df.to_csv(file, header=True, index=None, sep=';', mode = 'w')
 
 
-
-for low_thr in [0.1,0.2,0.3]:#[0.1,0.3]:
+for low_thr in [0.1,0.2,0.3]:
     for high_thr in [0.3,0.4,0.5,0.6,0.5,0.7,0.8,0.9,0.95]: 
         
         low_thr = round(low_thr,2)                               
@@ -908,7 +715,8 @@ for low_thr in [0.1,0.2,0.3]:#[0.1,0.3]:
         
         pred_list = [os.path.join(save_pred_table_test_path,file_ID.split(".")[0]  + "_CALLTYPE_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt" ) for file_ID in file_ID_list ]
         evaluation = metrics.Evaluate(label_list, pred_list, 0.5, 5) # 0.99 is 0.5
-        Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset = evaluation.main()
+        # Prec, Rec, cat_frag, time_frag, cf, gt_indices, pred_indices, match, offset = evaluation.main()
+        Prec, lenient_Prec, Rec, lenient_Rec, cat_frag, time_frag, cm, gt_indices, pred_indices, match, offset, call_match, pred_match, match2 = evaluation.main()
         
         # specify file names
         precision_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Precision.csv'
@@ -921,16 +729,34 @@ for low_thr in [0.1,0.2,0.3]:#[0.1,0.3]:
         match_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + "_Matching_table.txt"
         timediff_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + "_Time_difference.txt"    
         
+        # NEW METRICS
+        lenient_Prec_filename  = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Lenient_Precision.csv'
+        lenient_Rec_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + '_Lenient_Recall.csv'
+        call_match_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + "_Call_Match.txt"
+        pred_match_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + "_Prediction_Match.txt"
+        match2_filename = "Overall_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + "_Matching_table.txt"
+        
+        lenient_Prec.to_csv(os.path.join(save_metrics_path, lenient_Prec_filename))        
+        lenient_Rec.to_csv(os.path.join(save_metrics_path, lenient_Rec_filename))
+        with open(os.path.join(save_metrics_path, call_match_filename), 'wb') as fp:
+            pickle.dump(call_match, fp)  
+        with open(os.path.join(save_metrics_path, pred_match_filename), 'wb') as fp:
+            pickle.dump(pred_match, fp)  
+        with open(os.path.join(save_metrics_path, match2_filename), 'wb') as fp:
+            pickle.dump(match2, fp)  
+        
+        
+        
         # save files
         Prec.to_csv( os.path.join(save_metrics_path, precision_filename))
         Rec.to_csv( os.path.join(save_metrics_path, recall_filename))
         cat_frag.to_csv( os.path.join(save_metrics_path, cat_frag_filename))
         time_frag.to_csv(os.path.join(save_metrics_path, time_frag_filename))
-        cf.to_csv(os.path.join(save_metrics_path, confusion_filename))
+        cm.to_csv(os.path.join(save_metrics_path, confusion_filename))
         gt_indices.to_csv(os.path.join(save_metrics_path, gt_filename ))
         pred_indices.to_csv(os.path.join(save_metrics_path, pred_filename ))                  
         with open(os.path.join(save_metrics_path, match_filename), "wb") as fp:   #Picklin
-                  pickle.dump(match, fp)
+            pickle.dump(match, fp)
         with open(os.path.join(save_metrics_path, timediff_filename), "wb") as fp:   #Pickling
             pickle.dump(offset, fp)    
 
@@ -939,16 +765,9 @@ for low_thr in [0.1,0.2,0.3]:#[0.1,0.3]:
 # plot overall confusion matrix
 #########################################################################
 
-import seaborn as sn
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
-import csv
-# import math
 
-
-# normalise = False
-for low_thr in [0.1,0.2,0.3]:#[0.1,0.3]:
+# loop over the threaholds
+for low_thr in [0.1,0.2,0.3]:
     for high_thr in [0.3,0.4,0.5,0.6,0.5,0.7,0.8,0.9,0.95]: 
         
         low_thr = round(low_thr,2)                               
@@ -963,10 +782,10 @@ for low_thr in [0.1,0.2,0.3]:#[0.1,0.3]:
     
         df_cm = pd.DataFrame(array)#, range(6), range(6))    
         
-        #get rid of the weird indentations and make rows and columns as names
-        new_col = df_cm.iloc[0] #grab the first row for the header
-        df_cm = df_cm[1:] #take the data less the header row
-        df_cm.columns = new_col #set the header row as the df header    
+        # get rid of the weird indentations and make rows and columns as names
+        new_col = df_cm.iloc[0] # grab the first row for the header
+        df_cm = df_cm[1:] # take the data less the header row
+        df_cm.columns = new_col # set the header row as the df header    
         new_row = df_cm['']
         df_cm = df_cm.drop('', 1)
         df_cm.index = new_row
@@ -982,46 +801,39 @@ for low_thr in [0.1,0.2,0.3]:#[0.1,0.3]:
         df_cm = df_cm.drop("FP", axis=0)
         
         df_cm = df_cm.apply(pd.to_numeric)
-        # #move last negatives to end
-        # col_name = "FN"
-        # last_col = df_cm.pop(col_name)
-        # df_cm.insert(df_cm.shape[1], col_name, last_col)
-        
-        # # remove noi        for low_thr in [0.1,0.3]:
-            # for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
                 
-                
+        # Raw confusion matrix
         df_cm = df_cm[list(testing_label_dict.keys())]
         df_cm = df_cm.reindex(list(testing_label_dict.keys()))
         
-        # plt.figure(figsize=(10,7))
+        # plot raw
         ax = plt.axes()
         sn.set(font_scale=1.1) # for label size
         sn.heatmap((df_cm+1), annot=df_cm, fmt='g',norm = LogNorm(), annot_kws={"size": 10}, ax= ax) # font size
         ax.set_title(str(low_thr) + "-" + str(high_thr) )
         plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
         plt.show()
-        #normalise the confusion matrix
-        # if normalise == True:
-        
+
+        # Recall confusion matrix
         df_recall = df_cm.div(df_cm.sum(axis=1), axis=0).round(2)#pd.DataFrame(df_cm.values / df_cm.sum(axis=1).values).round(2)
-        # plt.figure(figsize=(10,7))
+        
+        # plot recall
         ax = plt.axes()
         sn.set(font_scale=1.1) # for label size
         sn.heatmap((df_recall), annot=True, fmt='g', annot_kws={"size": 10}, ax= ax) # font size
         ax.set_title(str(low_thr) + "-" + str(high_thr) )
         plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_recall_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
-        plt.show()
+        plt.show()        
         
-        
+        # Proportion of calls for confusion matrix
         call_len = list()
         for i in testing_label_dict.keys():
             call_len.append(testing_label_dict[i].shape[0])
-        #add noise at the end
+        # add noise at the end
         call_len[-1] = df_cm.sum(axis=1)[-1]
-
+        
+        # plot proportion of calls
         df_prop = df_cm.div(call_len, axis=0).round(2)#pd.DataFrame(df_cm.values / df_cm.sum(axis=1).values).round(2)
-        # plt.figure(figsize=(10,7))
         ax = plt.axes()
         sn.set(font_scale=1.1) # for label size
         sn.heatmap((df_prop), annot=True, fmt='g', annot_kws={"size": 10}, ax= ax) # font size

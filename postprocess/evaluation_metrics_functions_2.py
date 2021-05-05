@@ -15,7 +15,8 @@ tf.Session(config=config)
 
 class Evaluate:
     def __init__(self, label_list, prediction_list, model, run, noise_label = "noise", IoU_threshold = 0.5, low_thresh = "", high_thresh = "", call_analysis = "normal", GT_proportion_cut = 0):
-        '''label_list: list of the paths to the label files
+        '''
+        label_list: list of the paths to the label files
         prediction_list: list of the paths to the prediction files
         model: name of the model used for the training
         run: name of the training
@@ -76,13 +77,15 @@ class Evaluate:
         
         
     def get_call_ranges(self, tablenames, data_type):
-        '''This function takes the list of prediction or label 'files tablenames' 
+        '''
+        This function takes the list of prediction or label 'files tablenames' 
         and format its data as a dataframe, with rows representing the data
         file, the columns representing the call types and each cell containing
         an ordered list of the beginning and end time of the different calls or
         predictions for the corresponding file and call type.
         The output is that table of calls, as well as a table of which is focal
-        or non-focal.'''
+        or non-focal.
+        '''
         
         nonfoc_tags = ["NONFOC", "nf", "*"]  # presence of any of these strings in the Label column indicates a non-focal call (in the third case, a call that is ambiguous). This is only possible in the ground truth.   
         skipped = 0
@@ -707,40 +710,43 @@ class Evaluate:
             pred_indices.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
         
         # Creating the metrics folder
-        main_dir =  os.path.join("/media/mathieu/Elements/code/KiranLDA/results/", self.model, self.run, "metrics")
-        metrics_folder = os.path.join(main_dir, self.call_analysis, str(self.GT_proportion_cut), str(self.low_thresh), str(self.high_thresh))
-        directories = [main_dir,
-                        os.path.join(main_dir, self.call_analysis),
-                        os.path.join(main_dir, self.call_analysis, str(self.GT_proportion_cut)),
-                        os.path.join(main_dir, self.call_analysis, str(self.GT_proportion_cut), str(self.low_thresh)),
-                        metrics_folder]
-        for diri in directories:
-            if not os.path.exists(diri):
-                os.mkdir(diri)                
+        # main_dir =  os.path.join("/media/mathieu/Elements/code/KiranLDA/results/", self.model, self.run, "metrics")
+        # metrics_folder = os.path.join(main_dir, self.call_analysis, str(self.GT_proportion_cut), str(self.low_thresh), str(self.high_thresh))
+        # directories = [main_dir,
+        #                 os.path.join(main_dir, self.call_analysis),
+        #                 os.path.join(main_dir, self.call_analysis, str(self.GT_proportion_cut)),
+        #                 os.path.join(main_dir, self.call_analysis, str(self.GT_proportion_cut), str(self.low_thresh)),
+        #                 metrics_folder]
+        # for diri in directories:
+        #     if not os.path.exists(diri):
+        #         os.mkdir(diri)                
         
         # Saving the metrics
-        Prec.to_csv(os.path.join(metrics_folder, focus +'_Precision.csv'))
-        lenient_Prec.to_csv(os.path.join(metrics_folder, focus +'_LenientPrecision.csv'))
-        Rec.to_csv(os.path.join(metrics_folder, focus +'_Recall.csv'))
-        lenient_Rec.to_csv(os.path.join(metrics_folder, focus +'_LenientRecall.csv'))
-        cat_frag.to_csv(os.path.join(metrics_folder, focus +'_Category fragmentation.csv'))
-        time_frag.to_csv(os.path.join(metrics_folder, focus +'_Time fragmentation.csv'))
-        cm.to_csv(os.path.join(metrics_folder, focus +'_Confusion matrix.csv'))
-        with open(os.path.join(metrics_folder, focus +'_Ground truth.p'), 'wb') as fp:
-            pickle.dump(gt_indices, fp)
-        with open(os.path.join(metrics_folder, focus +'_Predictions.p'), 'wb') as fp:
-            pickle.dump(pred_indices, fp)
-        with open(os.path.join(metrics_folder, focus +'_Matching table.txt'), 'wb') as fp:
-            pickle.dump(match, fp)
-        with open(os.path.join(metrics_folder, focus +'_Time difference.txt'), 'wb') as fp:
-            pickle.dump(offset, fp)  
-        if self.call_analysis == "call_type_by_call_type":
-            with open(os.path.join(metrics_folder, focus +'_call match.p'), 'wb') as fp:
-                pickle.dump(call_match, fp)
-            with open(os.path.join(metrics_folder, focus +'_pred match.p'), 'wb') as fp:
-                pickle.dump(pred_match, fp)
-        if self.call_analysis in self.true_call:
-            match2.to_csv(os.path.join(metrics_folder, focus + self.call_analysis + ' match.csv'))
+        # Prec.to_csv(os.path.join(metrics_folder, focus +'_Precision.csv'))
+        # lenient_Prec.to_csv(os.path.join(metrics_folder, focus +'_LenientPrecision.csv'))
+        # Rec.to_csv(os.path.join(metrics_folder, focus +'_Recall.csv'))
+        # lenient_Rec.to_csv(os.path.join(metrics_folder, focus +'_LenientRecall.csv'))
+        # cat_frag.to_csv(os.path.join(metrics_folder, focus +'_Category fragmentation.csv'))
+        # time_frag.to_csv(os.path.join(metrics_folder, focus +'_Time fragmentation.csv'))
+        # cm.to_csv(os.path.join(metrics_folder, focus +'_Confusion matrix.csv'))
+        # with open(os.path.join(metrics_folder, focus +'_Ground truth.p'), 'wb') as fp:
+        #     pickle.dump(gt_indices, fp)
+        # with open(os.path.join(metrics_folder, focus +'_Predictions.p'), 'wb') as fp:
+        #     pickle.dump(pred_indices, fp)
+        # with open(os.path.join(metrics_folder, focus +'_Matching table.txt'), 'wb') as fp:
+        #     pickle.dump(match, fp)
+        # with open(os.path.join(metrics_folder, focus +'_Time difference.txt'), 'wb') as fp:
+        #     pickle.dump(offset, fp)  
+        # if self.call_analysis == "call_type_by_call_type":
+        #     with open(os.path.join(metrics_folder, focus +'_call match.p'), 'wb') as fp:
+        #         pickle.dump(call_match, fp)
+        #     with open(os.path.join(metrics_folder, focus +'_pred match.p'), 'wb') as fp:
+        #         pickle.dump(pred_match, fp)
+        # if self.call_analysis in self.true_call:
+        #     match2.to_csv(os.path.join(metrics_folder, focus + self.call_analysis + ' match.csv'))
+            
+            
+        return Prec, lenient_Prec, Rec, lenient_Rec, cat_frag, time_frag, cm, gt_indices, pred_indices, match, offset, call_match, pred_match, match2
 
     def main(self):
         

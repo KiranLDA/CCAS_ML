@@ -379,8 +379,10 @@ class DataGenerator(keras.utils.Sequence):
                  label_for_other,
                  min_scaling_factor ,
                  max_scaling_factor,
-                 n_per_call ,
-                 other_ignored_in_training):
+                 n_per_call,
+                 other_ignored_in_training,
+                 mask_value,
+                 mask_vector):
         
         '''
         call_table_dict:
@@ -440,9 +442,14 @@ class DataGenerator(keras.utils.Sequence):
             maximum of the range of the scaling.
         n_per_call:
             the number of times a call is used in a batch, by default would recommend 3.
+        mask_values:
+            what values to give the spectrogram mask when other ignored in training.
+        mask_vector:
+            true fasle for whether or not it should be a vector
         '''
         
         # self.call_table_dict = call_table_dict # (callype, start, stop, filelocations)
+        self.call_table_dict = call_dict.copy()
         self.label_table = label_table # (rename so it is clear it is label)
         self.spec_window_size = spec_window_size
         self.label_for_noise = label_for_noise
@@ -454,13 +461,14 @@ class DataGenerator(keras.utils.Sequence):
         self.normalise = normalise
         self.min_scaling_factor = min_scaling_factor
         self.max_scaling_factor = max_scaling_factor
-        self.n_per_call = n_per_call
-        self.call_table_dict = call_dict.copy()
+        self.n_per_call = n_per_call        
         self.other_ignored_in_training = other_ignored_in_training
+        self.mask_value = mask_value
+        self.mask_vector = mask_vector
         
         # remove other from batch generations if necessary
         if self.other_ignored_in_training:
-            del self.call_table_dict[self.label_for_other ]
+            del self.call_table_dict[self.label_for_other]
         
         # setup indexing given different calls have different sample sizes        
         self.indexes = dict()
@@ -480,9 +488,6 @@ class DataGenerator(keras.utils.Sequence):
         self.mean_sample_size, self.sample_size = self.sampling_strategy() 
         self.batch_size = self.n_per_call * len(self.call_table_dict.keys())
         self.tot_batch_number = int(np.floor(self.mean_sample_size / self.batch_size))
-        
-         
-        
     
     def __len__(self):
         """len() - Number of batches in data"""
@@ -532,12 +537,11 @@ class DataGenerator(keras.utils.Sequence):
             
             # extract noise call
             noise_event = self.call_table_dict[self.label_for_noise].iloc[self.indexes[self.label_for_noise][self.next_sample[self.label_for_noise]]]            
-            # noise_event =  self.mega_noise_table.sample()
+            # noise_event = call_table_dict[label_for_noise].iloc[indexes[label_for_noise][next_sample[label_for_noise]]]            
             
-            #randomise the start and stop so the same section is never being used for the augmentation
+            # randomise the start and stop so the same section is never being used for the augmentation
             noise_start = round(float(np.random.uniform(noise_event.loc["Start"], 
                                                         (noise_event.loc["End"]-self.spec_window_size),1)),3)
-            # noise_stop = round(noise_start + self.spec_window_size,3 )    
         
             y_noise = self.pool.get_seconds(noise_event["wav_path"], noise_start, self.spec_window_size)
             sr = self.pool.get_Fs(noise_event["wav_path"])
@@ -554,71 +558,68 @@ class DataGenerator(keras.utils.Sequence):
                                                              self.spec_window_size, 
                                                              self.n_mels, self.window, 
                                                              self.fft_win , self.fft_hop , self.normalise)
-            # subset the label table
-            label_subset = self.label_table[self.label_table['wav_path'].isin([call["wav_path"]])]
-
-            #***
-            # generate label
-            augmented_label = pre.create_label_matrix(label_subset, augmented_spectrogram,
-                                                      self.call_table_dict, call_start, call_stop, 
-                                                      self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
-            # augmented_call_matrix = pre.create_call_matrix(label_subset, augmented_spectrogram, 
-            #                                                call_start, call_stop,  
-            #                                                self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
-
         else:
             # generate spectrogram
             augmented_spectrogram = pre.generate_mel_spectrogram(data_subset, sr, 0, 
                                                              self.spec_window_size, 
                                                              self.n_mels, self.window, 
                                                              self.fft_win , self.fft_hop , self.normalise)
-            # subset the label table
-            label_subset = self.label_table[self.label_table['wav_path'].isin([call["wav_path"]])]
+        # subset the label table
+        label_subset = self.label_table[self.label_table['wav_path'].isin([call["wav_path"]])]
+        
+        
+        # add mask to spectrogram for other values        
+        if self.other_ignored_in_training:
+            #we were originally adding a mask to the spectrogram, however, we are no parsing a boolean
+            # augmented_spectrogram = pre.create_spectrogram_mask(augmented_spectrogram,label_subset, call_start, call_stop,
+            #                                         self.mask_value, self.label_for_other)
+            augmented_mask = pre.create_boolean_mask(augmented_spectrogram, label_subset, 
+                                                     call_start, call_stop, self.label_for_other, True)
+        else:
+            if self.mask_vector == True:
+                augmented_mask = [False for i in range(augmented_spectrogram.shape[1])]
+            else:
+                augmented_mask = np.full(augmented_spectrogram.shape, False)
+               
 
-            # generate label
-            augmented_label = pre.create_label_matrix(label_subset , augmented_spectrogram,
-                                                      self.call_table_dict, call_start, call_stop, 
-                                                      self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
-            # augmented_call_matrix = pre.create_call_matrix(label_subset, augmented_spectrogram, 
-            #                                                call_start, call_stop,  
-            #                                                self.label_for_noise, self.label_for_other, self.other_ignored_in_training)
-        
-        return augmented_spectrogram, augmented_label#, augmented_call_matrix
+        # generate label
+        augmented_label = pre.create_label_matrix(label_subset , augmented_spectrogram,
+                                                  self.call_table_dict, call_start, call_stop, 
+                                                  self.label_for_noise, self.label_for_other, 
+                                                  self.other_ignored_in_training)
+        # augmented_call_matrix = pre.create_call_matrix(label_subset, augmented_spectrogram, 
+        #                                                call_start, call_stop,  
+        #                                                self.label_for_noise, self.label_for_other,
+        #                                                self.other_ignored_in_training)
     
-    def __getitem__(self, batch_number):
+        # augmented_outputs = [augmented_label, augmented_call_matrix]
         
-        # Batch number is not yet defined anywhere but is part of user interfact
-        
-        # keep track of batch
-        '''
-        start_idx = batch_number * self.n_per_call
-        stop_idx = (batch_number + 1) * self.n_per_call 
-        '''
+        return augmented_spectrogram, augmented_label, augmented_mask
+    
+    # def __getitem__(self, batch_number):
+    def __next__(self):
               
-        
-        #########
-        
-        # empty the batch at the beginning
+        # initialise empty batches
         batch_label_data = []
         batch_spec_data = []
+        # batch_call_data = []
+        batch_mask_data = []
         
         # loop over every call   
         for calltype in self.call_table_dict:
             
             # except if we have reached the end of the indexes, 
             # in which case they will need to be reshuffled
-            if (self.next_sample[calltype] + self.n_per_call) > len(self.indexes[calltype]) :
+            if (self.next_sample[calltype] + self.n_per_call) > (len(self.indexes[calltype])-1) :
                 np.random.shuffle(self.indexes[calltype])  # reshuffle the data
                 self.next_sample[calltype] = 0 #reset the index
             start_idx = self.next_sample[calltype] #readjust the start
             stop_idx = self.next_sample[calltype] + self.n_per_call 
             
-            # move to the next sample for the next batch
-            # self.next_sample[calltype] = stop_idx
             
             # for each call to be put in the batch generate an example            
             for call_num in range(start_idx, stop_idx):
-                                # call_num = start_idx
+                # call_num = start_idx
                 # calltype= "sn"
                 
                 # do a weighted coin flip
@@ -629,41 +630,41 @@ class DataGenerator(keras.utils.Sequence):
                 # determine whether or not the call is to be augmented based on the coin flip
                 to_augment = True if augment == 1 else False
                 
-                # map call number to actual call number                  
-                # call_num = call_num % indexes[calltype].size
-                
-                # extract that call
-                # call = self.call_table_dict[calltype].iloc[(indexes[calltype][call_num] ) 
-                
+              
                 # generate the label and spectrogram
-                spec, label = self.generate_example(calltype, call_num, to_augment) 
+                spec, label, mask = self.generate_example(calltype, call_num, to_augment) 
                 
                 # need to deal with noise index
                 if calltype != self.label_for_noise and to_augment:
                     self.next_sample[self.label_for_noise] += 1 
-                    if self.next_sample[self.label_for_noise]  > len(self.indexes[self.label_for_noise]) :
+                    if self.next_sample[self.label_for_noise]  > (len(self.indexes[self.label_for_noise]) -1) :
                         np.random.shuffle(self.indexes[self.label_for_noise])  # reshuffle the data
                         self.next_sample[self.label_for_noise] = 0 #reset the index
                 
                 # compile the batch
                 batch_label_data.append(np.asarray(label).T)
                 batch_spec_data.append(spec.T)
-                # batch_call_data.append(call_matrix.T)
-                # add weight? decided no so that there are the same numbers of samples used in the training
+                # batch_call_data.append(np.asarray(call_matrix).T)
+                if self.mask_vector == True:
+                    batch_mask_data.append(mask)
+                else:
+                    batch_mask_data.append(mask.T)
                 
                 # move to the next sample for the next batch
                 self.next_sample[calltype] += 1
        
-        # # compute indecies /calls per batch calc (Batch size * call number)
-        # mean_sample_size, sample_size = sampling_strategy()
-        # sampling_strategy = sample_size["prop_to_augment"]
-        # next_sample = call_num  # indexes[calltype][call_num]
+        # Put everything into arrays
         spectros = np.asarray(batch_spec_data)
         spectros = spectros[..., np.newaxis]      
         labels = np.asarray(batch_label_data) 
         # callmats =  np.asarray(batch_call_data) 
+        masks =  np.asarray(batch_mask_data)
+          
+        # setup the x and the y data
+        x_data = [spectros, masks]
+        y_data = [labels]
         
-        return spectros, labels#, callmats
+        return x_data, y_data #spectros, labels, callmats
 
     def sampling_strategy(self):      
         '''
@@ -709,6 +710,7 @@ class DataGenerator(keras.utils.Sequence):
             for calltype in self.indexes.keys():
                 np.random.shuffle(self.indexes[calltype])  # reshuffle the data
                 self.next_sample[calltype] = 0
-            
+
+
 
      
