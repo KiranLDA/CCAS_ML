@@ -14,7 +14,7 @@ import os
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
-github_dir = "/home/kiran/Documents/github/CCAS_ML"
+
 results_dir = '/media/kiran/D0-P1/animal_data/meerkat'
 
 min_scaling_factor = 0.3

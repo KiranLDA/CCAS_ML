@@ -129,6 +129,48 @@ class BuildNetwork():
         
         return model
     
+    def build_masked_rnn(self):
+        
+        inp_aud = Input(shape=(self.x_train[0].shape[1], self.x_train[0].shape[2], self.x_train[0].shape[3]))
+        inp_mask = Input(shape=(self.x_train[1].shape[1],))
+                
+
+        # Convolutional layers (conv - maxpool x3 )
+        c_1 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(inp_aud) # would be (mask)
+        mp_1 = MaxPooling2D(pool_size=(1,5))(c_1)
+        c_2 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(mp_1)
+        mp_2 = MaxPooling2D(pool_size=(1,2))(c_2)
+        c_3 = Conv2D(self.filters, (3,3), padding='same', activation='relu')(mp_2)
+        mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)
+        
+        
+        # reshape
+        reshape_1 = Reshape((self.x_train[0].shape[-3], -1))(mp_3)
+                
+        # bidirectional gated recurrent unit x2
+        rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
+                                  recurrent_dropout=self.dropout,return_sequences=True), merge_mode='mul')(reshape_1, mask = inp_mask)#mask_tensor)
+        rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
+                                  recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(rnn_1)
+        
+        # 3x relu
+        dense_1  = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(rnn_2)
+        drop_1 = Dropout(rate=self.dropout)(dense_1)
+        dense_2 = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_1)
+        drop_2 = Dropout(rate=self.dropout)(dense_2)
+        
+        # split into two to get two outputs
+        dense_3 = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
+        drop_3 = Dropout(rate=self.dropout)(dense_3)
+        
+        # Fork into two outputs
+        output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='softmax'), name="output_calltype")(drop_3)
+
+        # build model
+        model = Model([inp_aud, inp_mask], [output_calltype])
+                
+        return model
+    
     def build_forked_rnn(self):
         
         inp = Input(shape=(self.x_train.shape[1], self.x_train.shape[2], self.x_train.shape[3]))

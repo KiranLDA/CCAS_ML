@@ -6,18 +6,23 @@ Created on Thu Apr 15 10:15:59 2021
 @author: kiran
 """
 
+is_forked = True
+
+
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 #          IMPORT LIBRARIES
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
-# import all the params for this model
-import example_params
+github_dir = "/home/kiran/Documents/github/CCAS_ML"
 
 # add path to local functions
 import os
 os.chdir(github_dir)
+
+# import all the params for this model
+from example_params import *
 
 # import own functions
 import preprocess.preprocess_functions as pre
@@ -242,28 +247,50 @@ validation_label_dict[label_for_noise] = validation_label_table[["Label", "Start
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
 
-# initiate the data generator
-train_generator = bg.ForkedDataGenerator(training_label_dict,
-                                         training_label_table, 
-                                         spec_window_size,
-                                         n_mels, 
-                                         window, 
-                                         fft_win , 
-                                         fft_hop , 
-                                         normalise,
-                                         label_for_noise,
-                                         label_for_other,
-                                         min_scaling_factor,
-                                         max_scaling_factor,
-                                         n_per_call,
-                                         other_ignored_in_training,
-                                         mask_value,
-                                         mask_vector)
-
+if is_forked == True:
+    # initiate the data generator
+    train_generator = bg.ForkedDataGenerator(training_label_dict,
+                                             training_label_table, 
+                                             spec_window_size,
+                                             n_mels, 
+                                             window, 
+                                             fft_win , 
+                                             fft_hop , 
+                                             normalise,
+                                             label_for_noise,
+                                             label_for_other,
+                                             min_scaling_factor,
+                                             max_scaling_factor,
+                                             n_per_call,
+                                             other_ignored_in_training,
+                                             mask_value,
+                                             mask_vector)
     
-# generate an example spectrogram and label  
-spec, label, callmat, mask = train_generator.generate_example("sn", 0, True)
-
+        
+    # generate an example spectrogram and label  
+    spec, label, callmat, mask = train_generator.generate_example("sn", 0, True)
+else:
+    # initiate the data generator
+    train_generator = bg.DataGenerator(training_label_dict,
+                                             training_label_table, 
+                                             spec_window_size,
+                                             n_mels, 
+                                             window, 
+                                             fft_win , 
+                                             fft_hop , 
+                                             normalise,
+                                             label_for_noise,
+                                             label_for_other,
+                                             min_scaling_factor,
+                                             max_scaling_factor,
+                                             n_per_call,
+                                             other_ignored_in_training,
+                                             mask_value,
+                                             mask_vector)
+    
+        
+    # generate an example spectrogram and label  
+    spec, label, mask = train_generator.generate_example("sn", 0, True)
 #----------------------------------------------------------------------------------------------------
 # Do some plotting to ensure it makes sense
 
@@ -271,76 +298,131 @@ spec, label, callmat, mask = train_generator.generate_example("sn", 0, True)
 label_list = list(call_types.keys())
 if other_ignored_in_training:
     label_list.remove(label_for_other)
-  
-# plot spectrogram
-plt.figure(figsize=(10, 10))
-plt.subplot(411)
-yaxis = range(0, np.flipud(spec).shape[0]+1)
-xaxis = range(0, np.flipud(spec).shape[1]+1)
-librosa.display.specshow(spec,  y_axis='mel', x_coords = label.columns)#, x_axis= "time",sr=sr, x_coords = label.columns)
-plt.ylabel('Frequency (Hz)')
-plt.clim(-35, 35)
-plt.colorbar(format='%+2.0f dB')
 
-# plot LABEL
-plt.subplot(412)
-xaxis = range(0, np.flipud(label).shape[1]+1)
-yaxis = range(0, np.flipud(label).shape[0]+1)
-plt.yticks(np.arange(0.5, len(label_list)+0.5 ,1 ),reversed(label_list))
-plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
-           list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
-plt.pcolormesh(xaxis, yaxis, np.flipud(label))
-plt.xlabel('Time (s)')
-plt.ylabel('Calltype')
-plt.colorbar(label="Label")
-
-
-# plot call matrix
-plt.subplot(413)
-xaxis = range(0, np.flipud(label).shape[1]+1)
-yaxis = range(0, np.flipud(callmat).shape[0]+1)
-plt.yticks(np.arange(0.5, callmat.shape[0]+0.5 ,1 ), reversed(callmat.index.values))
-plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
-           list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
-plt.pcolormesh(xaxis, yaxis, np.flipud(callmat))
-plt.xlabel('Time (s)')
-plt.ylabel('Call / No Call')
-plt.colorbar(label="Label")
-# 
-
-plt.subplot(414)
-# plot the mask
-if mask_vector == True:
-    test = np.asarray([int(x == True) for x in mask])
-    # test = np.hstack(test)
-    test = test[np.newaxis, ...]
-    # plt.imshow(mask, aspect='auto', cmap=plt.cm.gray)
+if is_forked == True:
+    # plot spectrogram
+    plt.figure(figsize=(10, 10))
+    plt.subplot(411)
+    yaxis = range(0, np.flipud(spec).shape[0]+1)
+    xaxis = range(0, np.flipud(spec).shape[1]+1)
+    librosa.display.specshow(spec,  y_axis='mel', x_coords = label.columns)#, x_axis= "time",sr=sr, x_coords = label.columns)
+    plt.ylabel('Frequency (Hz)')
+    plt.clim(-35, 35)
+    plt.colorbar(format='%+2.0f dB')
+    
+    # plot LABEL
+    plt.subplot(412)
     xaxis = range(0, np.flipud(label).shape[1]+1)
-    yaxis = range(0, np.flipud(test).shape[0]+1)
-    # yaxis = range(0, 1)
-    # plt.yticks(np.arange(0.5, 1 ,1 ), "oth")
-    plt.yticks(np.arange(0.5, test.shape[0]+0.5 ,1 ), reversed(["oth"]))
+    yaxis = range(0, np.flipud(label).shape[0]+1)
+    plt.yticks(np.arange(0.5, len(label_list)+0.5 ,1 ),reversed(label_list))
     plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
                list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
-    plt.pcolormesh(xaxis, yaxis, np.flipud(test))
+    plt.pcolormesh(xaxis, yaxis, np.flipud(label))
     plt.xlabel('Time (s)')
-    plt.ylabel('True/False')
+    plt.ylabel('Calltype')
     plt.colorbar(label="Label")
-    plt.clim(0, 1)
-    plt.show()
-else:
-
-    xaxis = range(0, np.flipud(mask).shape[1]+1)
-    yaxis = range(0, np.flipud(mask).shape[0]+1)
-    # plt.yticks(np.arange(0.5, np.flipud(mask).shape[0]+0.5 ,1 ),reversed(label_list))
-    plt.xticks(np.arange(0, np.flipud(mask).shape[1]+1,50),
-               list(label.columns[np.arange(0, np.flipud(mask).shape[1]+1,50)]))
-    plt.pcolormesh(xaxis, yaxis, np.flipud(mask))
+    
+    
+    # plot call matrix
+    plt.subplot(413)
+    xaxis = range(0, np.flipud(label).shape[1]+1)
+    yaxis = range(0, np.flipud(callmat).shape[0]+1)
+    plt.yticks(np.arange(0.5, callmat.shape[0]+0.5 ,1 ), reversed(callmat.index.values))
+    plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
+               list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
+    plt.pcolormesh(xaxis, yaxis, np.flipud(callmat))
     plt.xlabel('Time (s)')
-    plt.ylabel('Spectrogram Channels')
-    plt.colorbar(label="Other or not")
-    plt.show()
-
+    plt.ylabel('Call / No Call')
+    plt.colorbar(label="Label")
+    # 
+    
+    plt.subplot(414)
+    # plot the mask
+    if mask_vector == True:
+        test = np.asarray([int(x == True) for x in mask])
+        # test = np.hstack(test)
+        test = test[np.newaxis, ...]
+        # plt.imshow(mask, aspect='auto', cmap=plt.cm.gray)
+        xaxis = range(0, np.flipud(label).shape[1]+1)
+        yaxis = range(0, np.flipud(test).shape[0]+1)
+        # yaxis = range(0, 1)
+        # plt.yticks(np.arange(0.5, 1 ,1 ), "oth")
+        plt.yticks(np.arange(0.5, test.shape[0]+0.5 ,1 ), reversed(["oth"]))
+        plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
+                   list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
+        plt.pcolormesh(xaxis, yaxis, np.flipud(test))
+        plt.xlabel('Time (s)')
+        plt.ylabel('True/False')
+        plt.colorbar(label="Label")
+        plt.clim(0, 1)
+        plt.show()
+    else:
+    
+        xaxis = range(0, np.flipud(mask).shape[1]+1)
+        yaxis = range(0, np.flipud(mask).shape[0]+1)
+        # plt.yticks(np.arange(0.5, np.flipud(mask).shape[0]+0.5 ,1 ),reversed(label_list))
+        plt.xticks(np.arange(0, np.flipud(mask).shape[1]+1,50),
+                   list(label.columns[np.arange(0, np.flipud(mask).shape[1]+1,50)]))
+        plt.pcolormesh(xaxis, yaxis, np.flipud(mask))
+        plt.xlabel('Time (s)')
+        plt.ylabel('Spectrogram Channels')
+        plt.colorbar(label="Other or not")
+        plt.show()
+else:
+    # plot spectrogram
+    plt.figure(figsize=(10, 10))
+    plt.subplot(311)
+    yaxis = range(0, np.flipud(spec).shape[0]+1)
+    xaxis = range(0, np.flipud(spec).shape[1]+1)
+    librosa.display.specshow(spec,  y_axis='mel', x_coords = label.columns)#, x_axis= "time",sr=sr, x_coords = label.columns)
+    plt.ylabel('Frequency (Hz)')
+    plt.clim(-35, 35)
+    plt.colorbar(format='%+2.0f dB')
+    
+    # plot LABEL
+    plt.subplot(312)
+    xaxis = range(0, np.flipud(label).shape[1]+1)
+    yaxis = range(0, np.flipud(label).shape[0]+1)
+    plt.yticks(np.arange(0.5, len(label_list)+0.5 ,1 ),reversed(label_list))
+    plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
+               list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
+    plt.pcolormesh(xaxis, yaxis, np.flipud(label))
+    plt.xlabel('Time (s)')
+    plt.ylabel('Calltype')
+    plt.colorbar(label="Label")
+    
+    
+    plt.subplot(313)
+    # plot the mask
+    if mask_vector == True:
+        test = np.asarray([int(x == True) for x in mask])
+        # test = np.hstack(test)
+        test = test[np.newaxis, ...]
+        # plt.imshow(mask, aspect='auto', cmap=plt.cm.gray)
+        xaxis = range(0, np.flipud(label).shape[1]+1)
+        yaxis = range(0, np.flipud(test).shape[0]+1)
+        # yaxis = range(0, 1)
+        # plt.yticks(np.arange(0.5, 1 ,1 ), "oth")
+        plt.yticks(np.arange(0.5, test.shape[0]+0.5 ,1 ), reversed(["oth"]))
+        plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
+                   list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
+        plt.pcolormesh(xaxis, yaxis, np.flipud(test))
+        plt.xlabel('Time (s)')
+        plt.ylabel('True/False')
+        plt.colorbar(label="Label")
+        plt.clim(0, 1)
+        plt.show()
+    else:
+        xaxis = range(0, np.flipud(mask).shape[1]+1)
+        yaxis = range(0, np.flipud(mask).shape[0]+1)
+        # plt.yticks(np.arange(0.5, np.flipud(mask).shape[0]+0.5 ,1 ),reversed(label_list))
+        plt.xticks(np.arange(0, np.flipud(mask).shape[1]+1,50),
+                   list(label.columns[np.arange(0, np.flipud(mask).shape[1]+1,50)]))
+        plt.pcolormesh(xaxis, yaxis, np.flipud(mask))
+        plt.xlabel('Time (s)')
+        plt.ylabel('Spectrogram Channels')
+        plt.colorbar(label="Other or not")
+        plt.show()
 
 
 #----------------------------------------------------------------------------------------------------
@@ -349,50 +431,90 @@ else:
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
 
-
-# get a batch to estimate rnn parameters
-x_train, y_train = train_generator.__next__()#__getitem__(0)
-
-# initial parameters
-num_calltypes = y_train[0].shape[2]
-gru_units = y_train[0].shape[1] 
-
-# initialise the training data generator and validation data generator
-train_generator = bg.ForkedDataGenerator(training_label_dict,
-                                         training_label_table, 
-                                         spec_window_size,
-                                         n_mels, 
-                                         window, 
-                                         fft_win , 
-                                         fft_hop , 
-                                         normalise,
-                                         label_for_noise,
-                                         label_for_other,
-                                         min_scaling_factor,
-                                         max_scaling_factor,
-                                         n_per_call,
-                                         other_ignored_in_training,
-                                         mask_value,
-                                         mask_vector)
-
-val_generator = bg.ForkedDataGenerator(validation_label_dict,
-                                       validation_label_table, 
-                                       spec_window_size,
-                                       n_mels, 
-                                       window, 
-                                       fft_win , 
-                                       fft_hop , 
-                                       normalise,
-                                       label_for_noise,
-                                       label_for_other,
-                                       min_scaling_factor,
-                                       max_scaling_factor,
-                                       n_per_call,
-                                       other_ignored_in_training,
-                                       mask_value,
-                                       mask_vector)
+if is_forked == True:
+    # get a batch to estimate rnn parameters
+    x_train, y_train = train_generator.__next__()#__getitem__(0)
+    
+    # initial parameters
+    num_calltypes = y_train[0].shape[2]
+    gru_units = y_train[0].shape[1] 
 
 
+    # initialise the training data generator and validation data generator
+    train_generator = bg.ForkedDataGenerator(training_label_dict,
+                                             training_label_table, 
+                                             spec_window_size,
+                                             n_mels, 
+                                             window, 
+                                             fft_win , 
+                                             fft_hop , 
+                                             normalise,
+                                             label_for_noise,
+                                             label_for_other,
+                                             min_scaling_factor,
+                                             max_scaling_factor,
+                                             n_per_call,
+                                             other_ignored_in_training,
+                                             mask_value,
+                                             mask_vector)
+    
+    val_generator = bg.ForkedDataGenerator(validation_label_dict,
+                                           validation_label_table, 
+                                           spec_window_size,
+                                           n_mels, 
+                                           window, 
+                                           fft_win , 
+                                           fft_hop , 
+                                           normalise,
+                                           label_for_noise,
+                                           label_for_other,
+                                           min_scaling_factor,
+                                           max_scaling_factor,
+                                           n_per_call,
+                                           other_ignored_in_training,
+                                           mask_value,
+                                           mask_vector)
+    
+else:
+    x_train, y_train = train_generator.__next__()#__getitem__(0)
+    
+    # initial parameters
+    num_calltypes = y_train[0].shape[2]
+    gru_units = y_train[0].shape[1] 
+    
+    train_generator = bg.DataGenerator(training_label_dict,
+                                             training_label_table, 
+                                             spec_window_size,
+                                             n_mels, 
+                                             window, 
+                                             fft_win , 
+                                             fft_hop , 
+                                             normalise,
+                                             label_for_noise,
+                                             label_for_other,
+                                             min_scaling_factor,
+                                             max_scaling_factor,
+                                             n_per_call,
+                                             other_ignored_in_training,
+                                             mask_value,
+                                             mask_vector)
+    
+    val_generator = bg.DataGenerator(validation_label_dict,
+                                           validation_label_table, 
+                                           spec_window_size,
+                                           n_mels, 
+                                           window, 
+                                           fft_win , 
+                                           fft_hop , 
+                                           normalise,
+                                           label_for_noise,
+                                           label_for_other,
+                                           min_scaling_factor,
+                                           max_scaling_factor,
+                                           n_per_call,
+                                           other_ignored_in_training,
+                                           mask_value,
+                                           mask_vector)    
 
 
 
@@ -404,8 +526,11 @@ val_generator = bg.ForkedDataGenerator(validation_label_dict,
 model = rnn.BuildNetwork(x_train, num_calltypes, filters, gru_units, dense_neurons, dropout, mask_value)
 
 # build the model
-RNN_model = model.build_forked_masked_rnn()
-
+if is_forked == True:
+    RNN_model = model.build_forked_masked_rnn()
+else:
+    RNN_model = model.build_masked_rnn()
+    
 # Adam optimiser
 adam = optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
