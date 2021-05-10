@@ -8,81 +8,8 @@ Created on Tue May  4 14:27:13 2021
 
 import os
 
-#----------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------
-#          PARAMETERS - will likely put them in another directory
-#----------------------------------------------------------------------------------
-#----------------------------------------------------------------------------------
 
 
-results_dir = '/media/kiran/D0-P1/animal_data/meerkat'
-
-min_scaling_factor = 0.3
-max_scaling_factor = 0.8
-run_name = "NoiseAugmented_"+ str(min_scaling_factor)+"_" +str(max_scaling_factor)+"_NotWeighted_MaskedOther_Forked"
-
-#------------------
-# File paths
-#------------------
-# label_dirs = ["/home/kiran/Documents/ML/meerkats_2017/labels_CSV", #2017 meerkats
-#             "/home/kiran/Documents/ML/meerkats_2019/labels_csv"]
-label_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic/total_synched_call_tables"]
-
-
-# audio_dirs= ["/media/kiran/Kiran Meerkat/Kalahari2017",
-#              "/media/kiran/Kiran Meerkat/Meerkat data 2019"]
-audio_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/archive/rawdata/MEERKAT_RAW_DATA"]
-
-acoustic_data_path = ["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic"]
-
-
-# basically the root directory for train, test and model
-save_data_path = os.path.join(results_dir, run_name)
-if not os.path.isdir(save_data_path):
-        os.makedirs(save_data_path)
-
-#####
-# Note that the lines below don't need to be modified 
-# unless you have a different file structure
-# They will create a specific file sub directory pattern in save_data_path
-#####
-
-
-# Test folders
-test_path = os.path.join(save_data_path, 'test_data')
-if not os.path.isdir(test_path):
-        os.makedirs(test_path)
-        
-
-save_pred_test_path = os.path.join(test_path , "predictions")
-if not os.path.isdir(save_pred_test_path):
-        os.makedirs(save_pred_test_path)
-
-save_pred_stack_test_path = os.path.join(save_pred_test_path,"stacks")
-if not os.path.isdir(save_pred_stack_test_path):
-        os.makedirs(save_pred_stack_test_path)        
-
-save_pred_table_test_path = os.path.join(save_pred_test_path,"pred_table")
-if not os.path.isdir(save_pred_table_test_path):
-        os.makedirs(save_pred_table_test_path)
-        
-save_label_table_test_path = os.path.join(test_path, 'label_table')
-if not os.path.isdir(save_label_table_test_path):
-        os.makedirs(save_label_table_test_path)
-
-save_metrics_path = os.path.join(test_path , "metrics")
-if not os.path.isdir(save_metrics_path):
-        os.makedirs(save_metrics_path)
-        
-
-# Model folder
-save_model_path = os.path.join(save_data_path, 'trained_model')
-if not os.path.isdir(save_model_path):
-        os.makedirs(save_model_path)
-        
-save_tensorboard_path = os.path.join(save_model_path, 'tensorboard_logs')
-if not os.path.isdir(save_tensorboard_path):
-    os.makedirs(save_tensorboard_path)      
 
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
@@ -91,19 +18,6 @@ if not os.path.isdir(save_tensorboard_path):
 #----------------------------------------------------------------------------------
 
 other_ignored_in_training = True
-
-#------------------
-# rolling window parameters
-spec_window_size = 1
-slide = 0.5
-
-#------------------
-# fast fourier parameters for mel spectrogram generation
-fft_win = 0.01 #0.03
-fft_hop = fft_win/2
-n_mels = 30 #128
-window = "hann"
-normalise = True
 
 #------------------
 #### ML parameters
@@ -115,15 +29,39 @@ filters = 128 #y_train.shape[1] #
 
 #------------------
 # split between the training and the test set
-train_test_split = 0.95
+train_test_split = 0.80
 train_val_split = 0.80
 
 #------------------
-# data augmentation parameters
+# parameters for noise augmentation and data generator
+n_per_call = 3
+mask_value = False
+mask_vector = True
+min_scaling_factor = 0.3
+max_scaling_factor = 0.8
 # n_steps = -2 # for pitch shift
 # stretch_factor = 0.99 #If rate > 1, then the signal is sped up. If rate < 1, then the signal is slowed down.
-# scaling_factor = 0.1
 # random_range = 0.1
+
+#------------------
+# new  parameters for meerkat code (since on the server)
+group_IDs = ["HM2017", "HM2019", "L2019"]
+encoding = "ISO-8859-1" # used to be "utf-8"
+columns_to_keep  = ['wavFileName', 'csvFileName', 'date', 'ind', 'group',
+                    'callType', 'isCall', 'focalType', 'hybrid', 'noisy', 'unsureType']
+
+#------------------
+# rolling window parameters for spectrogram generation
+spec_window_size = 1
+slide = 0.5
+
+#------------------
+# fast fourier parameters for mel spectrogram generation
+fft_win = 0.01 #0.03
+fft_hop = fft_win/2
+n_mels = 30 #128
+window = "hann"
+normalise = True
 
 #-----------------------------
 # thresholding parameters
@@ -141,7 +79,6 @@ label_for_other = "oth"
 label_for_noise = "noise"
 label_for_startstop = ['start', 'stop', 'skip', 'end']
 multiclass_forbidden = True
-
 
 #------------------
 # call dictionary - 
@@ -176,14 +113,75 @@ call_types = {
 # 'nf':["nf","nonfoc"]
 
 
-# new  parameters for meerkat code
-group_IDs = ["HM2017", "HM2019", "L2019"]
-encoding = "ISO-8859-1" # used to be "utf-8"
-columns_to_keep  = ['wavFileName', 'csvFileName', 'date', 'ind', 'group',
-                    'callType', 'isCall', 'focalType', 'hybrid', 'noisy', 'unsureType']
 
-# parameters for  noise augmentation and data generator
-n_per_call = 3
-mask_value = False
-mask_vector = True
+#----------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
+#                 File paths
+#----------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
 
+
+# label_dirs = ["/home/kiran/Documents/ML/meerkats_2017/labels_CSV", #2017 meerkats
+#             "/home/kiran/Documents/ML/meerkats_2019/labels_csv"] #2019 meerkats
+label_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic/total_synched_call_tables"]
+
+
+# audio_dirs= ["/media/kiran/Kiran Meerkat/Kalahari2017",
+#              "/media/kiran/Kiran Meerkat/Meerkat data 2019"]
+audio_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/archive/rawdata/MEERKAT_RAW_DATA"]
+
+acoustic_data_path = ["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic"]
+
+
+# 
+results_dir = '/media/kiran/D0-P1/animal_data/meerkat'
+run_name = "EXAMPLE_NoiseAugmented_"+ str(min_scaling_factor)+"_" +str(max_scaling_factor)+"_NotWeighted_MaskedOther_Forked"
+
+
+# basically the root directory for train, test and model
+save_data_path = os.path.join(results_dir, run_name)
+if not os.path.isdir(save_data_path):
+    os.makedirs(save_data_path)
+
+#####
+# Note that the lines below don't need to be modified 
+# unless you have a different file structure
+# They will create a specific file sub directory pattern in save_data_path
+#####
+
+
+# Test folders
+test_path = os.path.join(save_data_path, 'test_data')
+if not os.path.isdir(test_path):
+    os.makedirs(test_path)
+        
+
+save_pred_test_path = os.path.join(test_path , "predictions")
+if not os.path.isdir(save_pred_test_path):
+    os.makedirs(save_pred_test_path)
+
+save_pred_stack_test_path = os.path.join(save_pred_test_path,"stacks")
+if not os.path.isdir(save_pred_stack_test_path):
+    os.makedirs(save_pred_stack_test_path)        
+
+save_pred_table_test_path = os.path.join(save_pred_test_path,"pred_table")
+if not os.path.isdir(save_pred_table_test_path):
+    os.makedirs(save_pred_table_test_path)
+        
+save_label_table_test_path = os.path.join(test_path, 'label_table')
+if not os.path.isdir(save_label_table_test_path):
+    os.makedirs(save_label_table_test_path)
+
+save_metrics_path = os.path.join(test_path , "metrics")
+if not os.path.isdir(save_metrics_path):
+    os.makedirs(save_metrics_path)
+        
+
+# Model folder
+save_model_path = os.path.join(save_data_path, 'trained_model')
+if not os.path.isdir(save_model_path):
+    os.makedirs(save_model_path)
+        
+save_tensorboard_path = os.path.join(save_model_path, 'tensorboard_logs')
+if not os.path.isdir(save_tensorboard_path):
+    os.makedirs(save_tensorboard_path)      

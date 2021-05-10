@@ -14,7 +14,7 @@ tf.Session(config=config)
 # another comment
 
 class Evaluate:
-    def __init__(self, label_list, prediction_list, model, run, noise_label = "noise", IoU_threshold = 0.5, low_thresh = "", high_thresh = "", call_analysis = "normal", GT_proportion_cut = 0):
+    def __init__(self, label_list, prediction_list, noise_label = "noise", IoU_threshold = 0.5, call_analysis = "normal", GT_proportion_cut = 0, no_call = set(["noise", "beep", "synch"])):
         '''
         label_list: list of the paths to the label files
         prediction_list: list of the paths to the prediction files
@@ -31,7 +31,7 @@ class Evaluate:
             and they are considered as accurate predictions if they are predicted as any true call.
             - "normal": normal analysis, with separation of focal and non-focal
         '''
-        
+        # model, run,low_thresh = "", high_thresh = "",
         all_files = [label_list, prediction_list]
         self.headers = set(['Label', 'Duration', 'Start', 'End'])
         
@@ -62,15 +62,19 @@ class Evaluate:
             self.noise_label = noise_label
         else:
             raise ValueError("Unknown noise label %s"%(noise_label))
-        self.no_call = set(["noise", "beep", "synch"])
+        self.no_call = no_call #set(["noise", "beep", "synch"])
         self.true_call= set(self.call_types.difference(self.no_call))
-        self.low_thresh = low_thresh
-        self.high_thresh = high_thresh
+        #self.low_thresh = low_thresh
+        #self.high_thresh = high_thresh
         
         self.call_analysis = call_analysis
-        self.model = model
-        self.run = run
+        #self.model = model
+        #self.run = run
         self.min_call_length = {}
+        if len(self.min_call_length.keys()) ==  0:
+            for call in self.true_call:
+                self.min_call_length[call] = 0
+                
         # self.min_call_length = {"agg":7, "al":9, "cc":16, "ld":24, "mo":15, "sn":5, "soc":10}
         self.frame_rate = 200
         self.GT_proportion_cut = GT_proportion_cut
@@ -92,7 +96,7 @@ class Evaluate:
         calls_indices = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))
         non_foc_gt = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))
         
-        #Determine the minimum length authorised for a prediction (so 0 for the GT, any length is authorised)
+        # Determine the minimum length authorised for a prediction (so 0 for the GT, any length is authorised)
         all_min_call_length = {}
         if data_type == "pred":
             for call in self.call_types:
@@ -290,7 +294,7 @@ class Evaluate:
         '''Precision is TP / (TP+FP)'''
         Prec = dict.fromkeys(self.call_types,0)
         for call in self.call_types:
-            Prec[call] = TPos.at[0,call] / (TPos.at[0,call] + FPos.at[0,call])
+            Prec[call] = TPos.at[0,call] / ((TPos.at[0,call] + FPos.at[0,call]) +0.0000001)
             if(np.isnan(Prec[call])): # If the call was never predicted, the precision is set to 1.0 by convention.
                 Prec[call] = 1.0
         Prec = pd.DataFrame(Prec, index=[0])
@@ -306,7 +310,7 @@ class Evaluate:
             if all_preds == 0:
                 Prec2[call] = np.nan
             else:
-                Prec2[call] = (all_preds - cm.at[self.noise_label,call]) / all_preds
+                Prec2[call] = (all_preds - cm.at[self.noise_label,call]) / (all_preds+0.0000001)
             if(np.isnan(Prec2[call])): # If the call was never predicted, the precision is set to 1.0 by convention.
                 Prec2[call] = 1.0
         Prec2 = pd.DataFrame(Prec2, index=[0])
@@ -316,7 +320,7 @@ class Evaluate:
         '''Recall is TP / (TP+FN)'''
         Rec = dict.fromkeys(self.call_types,0)
         for call in self.call_types:
-            Rec[call] = TPos.at[0,call] / (TPos.at[0,call] + FNeg.at[0,call])
+            Rec[call] = TPos.at[0,call] / ((TPos.at[0,call] + FNeg.at[0,call])+0.000000001)
             if(np.isnan(Rec[call])): # If the call is not present in the labelled data, the precision is set to 1.0 by convention.
                 Rec[call] = 1.0 
         Rec = pd.DataFrame(Rec, index=[0])
@@ -332,7 +336,7 @@ class Evaluate:
             if GT == 0:
                 Rec2[call] = np.nan
             else:
-                Rec2[call] = (GT - cm.at[call, 'FN']) / GT
+                Rec2[call] = (GT - cm.at[call, 'FN']) / (GT+0.0000000001)
             if(np.isnan(Rec2[call])): # If the call is not present in the labelled data, the precision is set to 1.0 by convention.
                 Rec2[call] = 1.0 
         Rec2 = pd.DataFrame(Rec2, index=[0])
@@ -599,7 +603,7 @@ class Evaluate:
     
     def category_fragmentation(self, match, gt_indices, pred_indices):
         '''For every call, how many call types is it detected as?'''
-        cat_frag = pd.DataFrame(columns = self.call_types, index=range(len(label_list)))
+        cat_frag = pd.DataFrame(columns = self.call_types, index=range(len(self.GT_path)))#label_list)))
         for idx in range(len(cat_frag)):    
             for call in self.call_types:
                 cat_frag.at[idx,call] = []
@@ -673,8 +677,7 @@ class Evaluate:
             self.call_analysis = "call_type_by_call_type"
 
 
-        if self.call_analysis in self.true_call:
-            match2 = self.match_specific_call(gt_indices, pred_indices, match, non_foc_gt, non_foc_pred)
+        
         cm = self.get_confusion_matrix(match)
         self.call_types.remove(self.noise_label) # As the noise is also the label for the false positives, it would cause problems to leave it in the data at this point.
         FPos = cm.loc[self.noise_label]
@@ -704,11 +707,34 @@ class Evaluate:
         
         # preparing the metrics for saving
         for i in range(len(gt_indices)):
-            time_frag.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
-            cat_frag.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
-            gt_indices.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
-            pred_indices.rename(index={i: os.path.basename(prediction_list[i])}, inplace=True)
+            time_frag.rename(index={i: os.path.basename(self.pred_path[i])}, inplace=True)#prediction_list[i])}, inplace=True)
+            cat_frag.rename(index={i: os.path.basename(self.pred_path[i])}, inplace=True)#prediction_list[i])}, inplace=True)
+            gt_indices.rename(index={i: os.path.basename(self.pred_path[i])}, inplace=True)#prediction_list[i])}, inplace=True)
+            pred_indices.rename(index={i: os.path.basename(self.pred_path[i])}, inplace=True)#prediction_list[i])}, inplace=True)
         
+        # store the outputs    
+        output = dict()
+        output["Precision"] = Prec
+        output["Lenient_Precision"] = lenient_Prec
+        output["Recall"] = Rec
+        output["Lenient_Recall"] = lenient_Rec
+        output["Category_Fragmentation"] = cat_frag
+        output["Time_Fragmentation"] = time_frag
+        output["Confution_Matrix"] = cm
+        output["Label_Indices"] = gt_indices
+        output["Prediction_Indices"] = pred_indices
+        output["Matching_Table"] = match
+        output["Time_Difference"] = offset
+        if self.call_analysis == "call_type_by_call_type":
+            output["Call_Match"] = call_match
+            output["Prediction_Match"] = pred_match
+        if self.call_analysis in self.true_call:
+            match2 = self.match_specific_call(gt_indices, pred_indices, match, non_foc_gt, non_foc_pred)
+            output["Match"] = match2    
+        
+        return output
+        
+
         # Creating the metrics folder
         # main_dir =  os.path.join("/media/mathieu/Elements/code/KiranLDA/results/", self.model, self.run, "metrics")
         # metrics_folder = os.path.join(main_dir, self.call_analysis, str(self.GT_proportion_cut), str(self.low_thresh), str(self.high_thresh))
@@ -719,7 +745,8 @@ class Evaluate:
         #                 metrics_folder]
         # for diri in directories:
         #     if not os.path.exists(diri):
-        #         os.mkdir(diri)                
+        #         os.mkdir(diri)
+        
         
         # Saving the metrics
         # Prec.to_csv(os.path.join(metrics_folder, focus +'_Precision.csv'))
@@ -745,8 +772,7 @@ class Evaluate:
         # if self.call_analysis in self.true_call:
         #     match2.to_csv(os.path.join(metrics_folder, focus + self.call_analysis + ' match.csv'))
             
-            
-        return Prec, lenient_Prec, Rec, lenient_Rec, cat_frag, time_frag, cm, gt_indices, pred_indices, match, offset, call_match, pred_match, match2
+
 
     def main(self):
         
@@ -771,11 +797,11 @@ class Evaluate:
                     focus = "nonfoc"
                 else:
                     focus = "foc"
-                self.evaluation(gt_indices[foc], pred_indices, focus, [])
+                output = self.evaluation(gt_indices[foc], pred_indices, focus, [])
         else:
-            self.evaluation(gt_indices, pred_indices, "", non_foc_gt)      
+            output = self.evaluation(gt_indices, pred_indices, "", non_foc_gt)      
 
-
+        return output
 
 
 def list_files(directory, ext=".txt"):
@@ -824,7 +850,8 @@ if __name__=="__main__":
                         raise ValueError("Numbers of files don't match")
                     # for CALL in true_calls:
                         # evaluate = Evaluate(label_list, prediction_list, noise_label = "noise", IoU_threshold = 0.5, gap_threshold = 5, high_thresh = thresh, call_analysis = "oth")
-                    evaluate = Evaluate(label_list, prediction_list, model = model, run = run, low_thresh = low_thresh, high_thresh = thresh, call_analysis = "call_type_by_call_type", GT_proportion_cut = GT_proportion_cut)
+                    evaluate = Evaluate(label_list, prediction_list,  call_analysis = "call_type_by_call_type", GT_proportion_cut = GT_proportion_cut)
+                    #model = model, run = run, low_thresh = low_thresh, high_thresh = thresh,
                     '''call_analysis can be: 
                         - "all_types_combined": all call_types except noise are treated as the same call type
                         - "NAME_OF_CALL_TYPE": only calls of type NAME_OF_CALL_TYPE will be processed
