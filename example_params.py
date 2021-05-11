@@ -22,7 +22,7 @@ other_ignored_in_training = True
 #------------------
 #### ML parameters
 batch = 32
-epochs = 100 #16 #16
+epochs = 200 #16 #16
 dense_neurons = 1024
 dropout = 0.5
 filters = 128 #y_train.shape[1] #
@@ -182,6 +182,4 @@ save_model_path = os.path.join(save_data_path, 'trained_model')
 if not os.path.isdir(save_model_path):
     os.makedirs(save_model_path)
         
-save_tensorboard_path = os.path.join(save_model_path, 'tensorboard_logs')
-if not os.path.isdir(save_tensorboard_path):
-    os.makedirs(save_tensorboard_path)      
+   

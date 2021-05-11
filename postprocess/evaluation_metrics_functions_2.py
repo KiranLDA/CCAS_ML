@@ -117,6 +117,8 @@ class Evaluate:
         calls.sort()
         total_examples = 0
         for i in range(len(tablenames)):
+            print("*********************************************************")
+            print("File being processed: " + tablenames[i])
             skipped = 0
             extract = 0
             table = pd.read_csv(tablenames[i], delimiter=';') 

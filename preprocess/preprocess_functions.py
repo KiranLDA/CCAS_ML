@@ -241,12 +241,18 @@ def create_meerkat_table(table, call_types, sep, start_column, duration_column, 
         for old_label in call_types[true_label]:
             label_table.loc[label_table["Label"].str.contains(old_label, regex=True, case = False) == True, true_label] = True
     
+    label_table = label_table.reset_index()
+
     # Check which columns are in no category and allocate them to other
     df = label_table[list(call_types.keys())]
     unclassed = df.apply(lambda row: True if not any(row) else False if True in list(row) else np.nan, axis=1)
     if any(unclassed == True):
-        warnings.warn("These values will be classed as other : " + str(list(label_table["Label"][list(unclassed)])))
-        label_table.loc[list(unclassed), label_for_other] = True
+        to_track = [i for i, x in enumerate(unclassed) if x]
+        for i in to_track:
+            warnings.warn("This label '" + label_table.loc[i,"Label"] + "' on line "+ str(i)+" will be classed as 'oth'" )
+            label_table.loc[i, label_for_other] = True
+        #warnings.warn("These values will be classed as other : " + str(list(label_table["Label"][list(unclassed)])))
+        #label_table.loc[list(unclassed), label_for_other] = True
 
     # ensure that each call is not allocated to two categories
     if multiclass_forbidden:
