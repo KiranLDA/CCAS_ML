@@ -138,7 +138,8 @@ def create_table(label_path, call_types, sep, start_column, duration_column,
         f = lambda x: try_time(x[start_column])
         label_table["Start"] = raw_table.apply(f, axis=1)
         
-        f = lambda x: get_sec_short(x[duration_column])
+        #f = lambda x: get_sec_short(x[duration_column])
+        f = lambda x: try_time(x[duration_column])
         label_table["Duration"] = raw_table.apply(f, axis=1)
         
     # add an end time
@@ -152,9 +153,11 @@ def create_table(label_path, call_types, sep, start_column, duration_column,
         for old_label in call_types[true_label]:
             label_table.loc[label_table["Label"].str.contains(old_label, regex=True, case = False), true_label] = True
     
+    
     # Check which columns are in no category and allocate them to other
     df = label_table[list(call_types.keys())]
     unclassed = df.apply(lambda row: True if not any(row) else False if True in list(row) else np.nan, axis=1)
+    warnings.formatwarning = custom_formatwarning
     if any(unclassed == True):
         warnings.warn("These values will be classed as other : " + str(list(label_table["Label"][list(unclassed)])))
         label_table.loc[list(unclassed), label_for_other] = True
@@ -176,6 +179,12 @@ def create_table(label_path, call_types, sep, start_column, duration_column,
 
 
     return label_table
+
+
+def custom_formatwarning(msg, *args, **kwargs):
+    # ignore everything except the message
+    return str(msg) + '\n'
+
 
 def create_meerkat_table(table, call_types, sep, start_column, duration_column, columns_to_keep,
                          label_column, convert_to_seconds, label_for_other,
@@ -220,14 +229,14 @@ def create_meerkat_table(table, call_types, sep, start_column, duration_column, 
     label_table["Label"] = table[label_column].copy(deep=True)
     label_table["Start"] = table[start_column].copy(deep=True)
     label_table["Duration"] = table[duration_column].copy(deep=True)
-    
-    
+        
     # if time is not in seconds, convert to sectonds
     if convert_to_seconds:
         f = lambda x: try_time(x["Start"])
         label_table["Start"] = label_table.apply(f, axis=1)
         
-        f = lambda x: get_sec_short(x["Duration"])
+        #f = lambda x: get_sec_short(x["Duration"])
+        f = lambda x: try_time(x["Duration"])
         label_table["Duration"] = label_table.apply(f, axis=1)
         
     # add an end time
@@ -242,6 +251,7 @@ def create_meerkat_table(table, call_types, sep, start_column, duration_column, 
             label_table.loc[label_table["Label"].str.contains(old_label, regex=True, case = False) == True, true_label] = True
     
     label_table = label_table.reset_index()
+    warnings.formatwarning = custom_formatwarning
 
     # Check which columns are in no category and allocate them to other
     df = label_table[list(call_types.keys())]
@@ -249,10 +259,12 @@ def create_meerkat_table(table, call_types, sep, start_column, duration_column, 
     if any(unclassed == True):
         to_track = [i for i, x in enumerate(unclassed) if x]
         for i in to_track:
-            warnings.warn("This label '" + label_table.loc[i,"Label"] + "' on line "+ str(i)+" will be classed as 'oth'" )
+            warnings.warn("This label '" + str(label_table.loc[i,"Label"]) + "' on line "+ str(i)+" will be classed as 'oth'" )
             label_table.loc[i, label_for_other] = True
-        #warnings.warn("These values will be classed as other : " + str(list(label_table["Label"][list(unclassed)])))
-        #label_table.loc[list(unclassed), label_for_other] = True
+        '''
+        warnings.warn("These values will be classed as other : " + str(list(label_table["Label"][list(unclassed)])))
+        label_table.loc[list(unclassed), label_for_other] = True
+        '''
 
     # ensure that each call is not allocated to two categories
     if multiclass_forbidden:

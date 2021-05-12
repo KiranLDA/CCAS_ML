@@ -703,8 +703,8 @@ for file_ID in testing_filenames:
                 save_pred_table_filename = file_ID + "_CALLTYPE_PRED_TABLE_thr_" + str(low_thr) + "-" + str(high_thr) + ".txt"
                 
                 # if the file exists, pass to the next iteration of the loop
-                if os.path.exists(os.path.join(save_pred_table_test_path, save_pred_table_filename)):
-                    continue
+                #if os.path.exists(os.path.join(save_pred_table_test_path, save_pred_table_filename)):
+                #    continue
                 
                 print("*****************************************************************") 
                 print ("Low Threshold: " + str(low_thr))    
