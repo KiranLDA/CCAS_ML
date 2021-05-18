@@ -34,7 +34,7 @@ class Evaluate:
         # model, run,low_thresh = "", high_thresh = "",
         all_files = [label_list, prediction_list]
         self.headers = set(['Label', 'Duration', 'Start', 'End'])
-        
+        #self.true_call = true_call
         # Checking that all files have the same call types
         self.call_types = None
         for l in range(len(all_files)):
@@ -90,7 +90,7 @@ class Evaluate:
         The output is that table of calls, as well as a table of which is focal
         or non-focal.
         '''
-        
+        print("Getting call ranges...")
         nonfoc_tags = ["NONFOC", "nf", "*"]  # presence of any of these strings in the Label column indicates a non-focal call (in the third case, a call that is ambiguous). This is only possible in the ground truth.   
         skipped = 0
         calls_indices = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))
@@ -117,8 +117,9 @@ class Evaluate:
         calls.sort()
         total_examples = 0
         for i in range(len(tablenames)):
-            print("*********************************************************")
-            print("File being processed: " + tablenames[i])
+            print(idx)
+            #print("*********************************************************")
+            #print("File being processed: " + tablenames[i])
             skipped = 0
             extract = 0
             table = pd.read_csv(tablenames[i], delimiter=';') 
@@ -207,7 +208,7 @@ class Evaluate:
         different tables. The non-focal calls are marked as such in the label 
         tables. There is no distinction of focal and non-focal for prediction
         files.'''
-        
+        print("Finding non focal and focal calls")
         nonfoc_tags = ["NONFOC", "nf", "*"]    
         skipped = 0
         
@@ -390,10 +391,13 @@ class Evaluate:
         # so a labeled call cannot be paired with a simultaneous prediction if a better prediction has already been made.
         # This is why the matching starts with the true positives.
         paired_pred = pd.DataFrame(columns = self.call_types, index = range(pred_indices.shape[0]))
+        print("Matching predictions ...")
         for idx in range(np.size(pred_indices,0)):
+            print(idx)
             for pred in self.call_types:
+                #print(str(idx) + " " + str(pred) + " " + str(isinstance(pred_indices.at[idx,pred], list)))
                 if isinstance(pred_indices.at[idx,pred], list):
-                    paired_pred.at[idx,pred] = np.zeros(len(pred_indices.at[idx,pred]), dtype = bool)
+                    paired_pred.at[idx,pred] = np.zeros(len(pred_indices.at[idx,pred]), dtype = bool)                    
                 else:
                     paired_pred.at[idx,pred] = []
         paired_call = pd.DataFrame(columns = self.call_types, index = range(gt_indices.shape[0]))
@@ -405,7 +409,8 @@ class Evaluate:
                     paired_call.at[idx,call] = []
         
         # Finding the true positives
-        for idx in range(np.size(gt_indices,0)):
+        print("Finding true positives:")
+        for idx in range(np.size(gt_indices,0)):            
             print(idx)
             match[idx] = pd.DataFrame(columns = col, index = row)
             loose_match[idx] = pd.DataFrame(columns = col, index = row)
@@ -439,7 +444,8 @@ class Evaluate:
                                             match[idx].at[pred,pred].append((call_nb,pred_nb))
         
         # Finding the wrong detections and false negatives:
-        for idx in range(np.size(gt_indices,0)):
+        print("Finding false negatives:")
+        for idx in range(np.size(gt_indices,0)):            
             print(idx)
             for call in self.call_types:
                 if isinstance(gt_indices.at[idx,call], list):
@@ -476,16 +482,24 @@ class Evaluate:
                                                 
         # At this point all labelled calls have been matched or classified as false negatives.
         # Only the false positives still need to be marked.        
+        print("Marking False positives")
         for idx in range(np.size(pred_indices,0)):
             for pred in self.call_types:
+                print(str(idx) + " " + pred + " : " + str(isinstance(pred_indices.at[idx,pred], list)))
                 if isinstance(pred_indices.at[idx,pred], list):
-                    for pred_nb in range(len(pred_indices.at[idx,pred])):
-                        if not paired_pred.at[idx,pred][pred_nb]:
+                    #print(range(len(pred_indices.at[idx,pred])))
+                    for pred_nb in range(len(pred_indices.at[idx,pred])):                        
+                        if not paired_pred.at[idx,pred][pred_nb]:                            
                             match[idx].at[self.noise_label,pred].append((np.nan,pred_nb))  
                             loose_match[idx].at[self.noise_label,pred].append((np.nan,pred_nb))  
                             # FP are sorted in noise. One consequence of that is that the call type noise 
                             # can be properly identified and still increase the number of false positives.
-                            
+                
+                
+        #print("Finished FP marking!") 
+        #print(match)
+        #print(loose_match)
+        
         return match, loose_match
     
     
@@ -659,7 +673,7 @@ class Evaluate:
     
 
             
-    def evaluation(self, gt_indices, pred_indices, focus, non_foc_gt):
+    def evaluation(self, gt_indices, pred_indices, focus, non_foc_gt, output):
         # Matches the labelled data with the predicted calls. loose_match is equivalent to a match with an intersection of union threshold of 0.
         match, loose_match = self.match_prediction_to_labels(gt_indices, pred_indices)
         if(self.call_analysis in self.call_types):
@@ -668,12 +682,12 @@ class Evaluate:
                     # For a one call analysis, the labelled data for the other calls are discarded after the matching so false positives can be assessed accurately.
                     gt_indices.loc[:,call] = np.nan    
         if self.call_analysis == "call_type_by_call_type":
-            true_calls = {'agg', 'al', 'cc', 'ld', 'mo', 'sn', 'soc'}
-            call_match = pd.DataFrame(columns = true_calls, index=range(len(gt_indices)))
-            pred_match = pd.DataFrame(columns = true_calls, index=range(len(gt_indices)))
+            #true_calls = self.true_call #{'agg', 'al', 'cc', 'ld', 'mo', 'sn', 'soc'}
+            call_match = pd.DataFrame(columns = self.true_call, index=range(len(gt_indices)))
+            pred_match = pd.DataFrame(columns = self.true_call, index=range(len(gt_indices)))
             non_foc_pred = self.non_focal_prediction(pred_indices, non_foc_gt, match)
                 
-            for CALL in true_calls:
+            for CALL in self.true_call:
                 self.call_analysis = CALL
                 call_match[CALL], pred_match[CALL] = self.match_specific_call(gt_indices, pred_indices, match, non_foc_gt, non_foc_pred)
             self.call_analysis = "call_type_by_call_type"
@@ -715,24 +729,24 @@ class Evaluate:
             pred_indices.rename(index={i: os.path.basename(self.pred_path[i])}, inplace=True)#prediction_list[i])}, inplace=True)
         
         # store the outputs    
-        output = dict()
-        output["Precision"] = Prec
-        output["Lenient_Precision"] = lenient_Prec
-        output["Recall"] = Rec
-        output["Lenient_Recall"] = lenient_Rec
-        output["Category_Fragmentation"] = cat_frag
-        output["Time_Fragmentation"] = time_frag
-        output["Confution_Matrix"] = cm
-        output["Label_Indices"] = gt_indices
-        output["Prediction_Indices"] = pred_indices
-        output["Matching_Table"] = match
-        output["Time_Difference"] = offset
+        #output = dict()
+        output[focus +"_Precision"] = Prec
+        output[focus +"_Lenient_Precision"] = lenient_Prec
+        output[focus +"_Recall"] = Rec
+        output[focus +"_Lenient_Recall"] = lenient_Rec
+        output[focus +"_Category_Fragmentation"] = cat_frag
+        output[focus +"_Time_Fragmentation"] = time_frag
+        output[focus +"_Confution_Matrix"] = cm
+        output[focus +"_Label_Indices"] = gt_indices
+        output[focus +"_Prediction_Indices"] = pred_indices
+        output[focus +"_Matching_Table"] = match
+        output[focus +"_Time_Difference"] = offset
         if self.call_analysis == "call_type_by_call_type":
-            output["Call_Match"] = call_match
-            output["Prediction_Match"] = pred_match
+            output[focus +"_Call_Match"] = call_match
+            output[focus +"_Prediction_Match"] = pred_match
         if self.call_analysis in self.true_call:
             match2 = self.match_specific_call(gt_indices, pred_indices, match, non_foc_gt, non_foc_pred)
-            output["Match"] = match2    
+            output[focus +"_Match"] = match2    
         
         return output
         
@@ -778,15 +792,7 @@ class Evaluate:
 
     def main(self):
         
-        # Generating tables of calls and predictions.
-        if(self.call_analysis == "normal"): 
-            gt_indices = self.get_nonfoc_and_foc_calls(self.GT_path)
-            pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
-            pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
-        else:            
-            gt_indices, non_foc_gt = self.get_call_ranges(self.GT_path, "GT")
-            self.get_min_call_length(gt_indices)
-            pred_indices, _ = self.get_call_ranges(self.pred_path, "pred") 
+        output = dict()    
         
         if(self.call_analysis == "all_types_combined"):
             # reducing the call types to a binary classification.
@@ -794,14 +800,26 @@ class Evaluate:
             self.noise_label = "noncall"
         
         if(self.call_analysis == "normal"): 
+            gt_indices = self.get_nonfoc_and_foc_calls(self.GT_path)
+            pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
+            pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
             for foc in [0,1]:
+                pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
+                pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
+            
                 if(foc == 0):
                     focus = "nonfoc"
                 else:
                     focus = "foc"
-                output = self.evaluation(gt_indices[foc], pred_indices, focus, [])
+                print( "Evaluating " + focus + " calls...")
+                #output = self.evaluation(gt_indices[foc], pred_indices, focus, [], output)
+                output = self.evaluation(gt_indices[foc], pred_indices[foc], focus, [], output)
         else:
-            output = self.evaluation(gt_indices, pred_indices, "", non_foc_gt)      
+            gt_indices, non_foc_gt = self.get_call_ranges(self.GT_path, "GT")
+            self.get_min_call_length(gt_indices)
+            pred_indices, _ = self.get_call_ranges(self.pred_path, "pred") 
+            
+            output = self.evaluation(gt_indices, pred_indices, "allcalls", non_foc_gt, output)      
 
         return output
 
@@ -843,7 +861,7 @@ if __name__=="__main__":
                     'synch'), a noise class, and an other class ('oth') for the 
                     calls that couldn't be properly labelled'''
                     
-                    true_calls = {'agg', 'al', 'cc', 'ld', 'mo', 'sn', 'soc'}
+                    #true_calls = {'agg', 'al', 'cc', 'ld', 'mo', 'sn', 'soc'}
                     
                     results_dir = os.path.join(main_dir, "results_per_threshold", str(low_thresh), str(thresh))
                     prediction_list = list_files(results_dir) #list of the paths where the prediction are stored, each file corresponds to one recording session for one animal.
