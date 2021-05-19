@@ -1,10 +1,10 @@
-
 import numpy as np
 import glob
 import os
 import tensorflow as tf
 import pandas as pd
 import pickle
+import ntpath
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"  # select GPU
 config = tf.ConfigProto()
@@ -14,7 +14,15 @@ tf.Session(config=config)
 # another comment
 
 class Evaluate:
-    def __init__(self, label_list, prediction_list, noise_label = "noise", IoU_threshold = 0.5, call_analysis = "normal", GT_proportion_cut = 0, no_call = set(["noise", "beep", "synch"])):
+    def __init__(self, label_list, 
+                 prediction_list, 
+                 noise_label = "noise", 
+                 IoU_threshold = 0.5, 
+                 call_analysis = "normal", 
+                 GT_proportion_cut = 0, 
+                 no_call = set(["noise", "beep", "synch"]),
+                 headers = set(['Label', 'Duration', 'Start', 'End']),
+                 nonfoc_tags =["NONFOC", "nf", "*"]):
         '''
         label_list: list of the paths to the label files
         prediction_list: list of the paths to the prediction files
@@ -31,10 +39,11 @@ class Evaluate:
             and they are considered as accurate predictions if they are predicted as any true call.
             - "normal": normal analysis, with separation of focal and non-focal
         '''
-        # model, run,low_thresh = "", high_thresh = "",
+        
         all_files = [label_list, prediction_list]
-        self.headers = set(['Label', 'Duration', 'Start', 'End'])
-        #self.true_call = true_call
+        self.headers = headers
+        self.nonfoc_tags = nonfoc_tags  # presence of any of these strings in the Label column indicates a non-focal call (in the third case, a call that is ambiguous). This is only possible in the ground truth.
+        
         # Checking that all files have the same call types
         self.call_types = None
         for l in range(len(all_files)):
@@ -91,7 +100,7 @@ class Evaluate:
         or non-focal.
         '''
         print("Getting call ranges...")
-        nonfoc_tags = ["NONFOC", "nf", "*"]  # presence of any of these strings in the Label column indicates a non-focal call (in the third case, a call that is ambiguous). This is only possible in the ground truth.   
+        
         skipped = 0
         calls_indices = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))
         non_foc_gt = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))
@@ -117,9 +126,9 @@ class Evaluate:
         calls.sort()
         total_examples = 0
         for i in range(len(tablenames)):
-            print(idx)
+            #print(i)
             #print("*********************************************************")
-            #print("File being processed: " + tablenames[i])
+            #print("Processing: " + ntpath.basename(tablenames[i]))
             skipped = 0
             extract = 0
             table = pd.read_csv(tablenames[i], delimiter=';') 
@@ -158,7 +167,7 @@ class Evaluate:
                         # the beginning and end times for that call are added to the list 
                         if table.Duration[row] > all_min_call_length[actual_call]: # / (self.frame_rate - 1):
                             calls_indices[actual_call][i].append((table.Start[row], table.End[row]))
-                            if any(word in table.Label[row] for word in nonfoc_tags):
+                            if any(word in table.Label[row] for word in self.nonfoc_tags):
                                 non_foc_gt[actual_call][i].append(True)
                             else:
                                 non_foc_gt[actual_call][i].append(False)
@@ -170,7 +179,7 @@ class Evaluate:
             while(row < len(table)):
                 skipped += 1
                 row += 1  
-            print(str(skipped) + " out of " + str(len(table)) + " entries were skipped.")
+            print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
             
             if(self.call_analysis == "all_types_combined"): # converts the specific call types into call/noncalls
                 calls_combined = pd.DataFrame(columns = ["call", "noncall"], index = range(len(calls_indices)))
@@ -208,8 +217,8 @@ class Evaluate:
         different tables. The non-focal calls are marked as such in the label 
         tables. There is no distinction of focal and non-focal for prediction
         files.'''
-        print("Finding non focal and focal calls")
-        nonfoc_tags = ["NONFOC", "nf", "*"]    
+        #print("Finding non focal and focal calls")
+        #nonfoc_tags = ["NONFOC", "nf", "*"]    
         skipped = 0
         
         foc = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))         # table that sorts the focal calls by file and call type
@@ -251,8 +260,10 @@ class Evaluate:
                     if(to_be_skipped):
                         skipped += 1
                     else:
-                        # the beginning and end times for that call are added to the appropriate list (or the list is created if this is the first call of that type in the file), depending on whether a nonfocal tag is present in the label.
-                        if any(word in table.Label[row] for word in nonfoc_tags):
+                        # the beginning and end times for that call are added to the appropriate list 
+                        # (or the list is created if this is the first call of that type in the file), 
+                        # depending on whether a nonfocal tag is present in the label.
+                        if any(word in table.Label[row] for word in self.nonfoc_tags):
                             if(nonfoc[calls[cidx0]][i] != nonfoc[calls[cidx0]][i]):
                                 nonfoc[calls[cidx0]][i] = [(table.Start[row], table.End[row])]
                             else:
@@ -339,6 +350,7 @@ class Evaluate:
             if GT == 0:
                 Rec2[call] = np.nan
             else:
+                # Rec2[call] = (GT - cm.at[call, self.noise_label]) / (GT+0.0000000001)
                 Rec2[call] = (GT - cm.at[call, 'FN']) / (GT+0.0000000001)
             if(np.isnan(Rec2[call])): # If the call is not present in the labelled data, the precision is set to 1.0 by convention.
                 Rec2[call] = 1.0 
@@ -409,7 +421,7 @@ class Evaluate:
                     paired_call.at[idx,call] = []
         
         # Finding the true positives
-        print("Finding true positives:")
+        print("Finding true positives...")
         for idx in range(np.size(gt_indices,0)):            
             print(idx)
             match[idx] = pd.DataFrame(columns = col, index = row)
@@ -479,13 +491,16 @@ class Evaluate:
                         if not matched_call:
                             match[idx].at[call,'FN'].append((call_nb,np.nan))
                             loose_match[idx].at[call,'FN'].append((call_nb,np.nan)) 
+                            #match[idx].at[call,self.noise_label].append((call_nb,np.nan))
+                            #loose_match[idx].at[call,self.noise_label].append((call_nb,np.nan)) 
                                                 
         # At this point all labelled calls have been matched or classified as false negatives.
         # Only the false positives still need to be marked.        
         print("Marking False positives")
         for idx in range(np.size(pred_indices,0)):
+            print(str(idx))
             for pred in self.call_types:
-                print(str(idx) + " " + pred + " : " + str(isinstance(pred_indices.at[idx,pred], list)))
+               # print(str(idx) + " " + pred + " : " + str(isinstance(pred_indices.at[idx,pred], list)))
                 if isinstance(pred_indices.at[idx,pred], list):
                     #print(range(len(pred_indices.at[idx,pred])))
                     for pred_nb in range(len(pred_indices.at[idx,pred])):                        
@@ -803,23 +818,22 @@ class Evaluate:
             gt_indices = self.get_nonfoc_and_foc_calls(self.GT_path)
             pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
             pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
-            for foc in [0,1]:
-                pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
-                pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
-            
+            #pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
+            #pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
+            for foc in [0,1]:              
                 if(foc == 0):
                     focus = "nonfoc"
                 else:
                     focus = "foc"
                 print( "Evaluating " + focus + " calls...")
-                #output = self.evaluation(gt_indices[foc], pred_indices, focus, [], output)
-                output = self.evaluation(gt_indices[foc], pred_indices[foc], focus, [], output)
+                output = self.evaluation(gt_indices[foc], pred_indices, focus, [], output)
+                #output = self.evaluation(gt_indices[foc], pred_indices[foc], focus, [], output)
         else:
             gt_indices, non_foc_gt = self.get_call_ranges(self.GT_path, "GT")
             self.get_min_call_length(gt_indices)
             pred_indices, _ = self.get_call_ranges(self.pred_path, "pred") 
             
-            output = self.evaluation(gt_indices, pred_indices, "allcalls", non_foc_gt, output)      
+            output = self.evaluation(gt_indices, pred_indices, "", non_foc_gt, output)      
 
         return output
 
