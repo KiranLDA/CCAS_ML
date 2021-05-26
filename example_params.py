@@ -112,7 +112,14 @@ call_types = {
 # 'overlap':["%"]
 # 'nf':["nf","nonfoc"]
 
+#------------------
+# evaluation parameters
+no_call = set(["noise", "beep", "synch"])
+true_call= set(set(call_types.keys()).difference(no_call))
 
+# will go in params
+eval_analysis = "normal"#"call_type_by_call_type" #
+#true_call= set(list(call_types.keys()).difference(no_call))
 
 #----------------------------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
@@ -176,6 +183,10 @@ save_metrics_path = os.path.join(test_path , "metrics")
 if not os.path.isdir(save_metrics_path):
     os.makedirs(save_metrics_path)
         
+save_metrics_path_eval = os.path.join(save_metrics_path, eval_analysis)
+if not os.path.isdir(save_metrics_path_eval):
+    os.makedirs(save_metrics_path_eval)
+
 
 # Model folder
 save_model_path = os.path.join(save_data_path, 'trained_model')

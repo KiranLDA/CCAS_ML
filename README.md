@@ -37,6 +37,7 @@ import model.specgen_batch_generator as bg
 import model.network_class as rnn
 # import postprocess.visualise_prediction_functions as pp
 from model.callback_functions import LossHistory
+import model.audiopool as audiopool
 
 # import normal packages used in pre-processing
 import numpy as np
@@ -77,6 +78,7 @@ import seaborn as sn
 # import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import csv
+
 ```
 
 ----------------------------------------------------------------------
@@ -12357,29 +12359,9 @@ for file in pred_tables:
 ```python
 import importlib
 importlib.reload(metrics)
-```
 
-
-
-
-    <module 'postprocess.evaluation_metrics_functions' from '/home/kiran/Documents/github/CCAS_ML/postprocess/evaluation_metrics_functions.py'>
-
-
-
-
-```python
-no_call = set(["noise", "beep", "synch"])
-true_call= set(set(call_types.keys()).difference(no_call))
 file_ID_list = [file_ID.split(".")[0] for file_ID in testing_filenames if file_ID not in skipped_files]
 label_list =  [os.path.join(save_label_table_test_path,file_ID.split(".")[0]  + "_LABEL_TABLE.txt" ) for file_ID in file_ID_list]
-
-# will go in params
-eval_analysis = "normal"#"call_type_by_call_type" #
-#true_call= set(list(call_types.keys()).difference(no_call))
-save_metrics_path_eval = os.path.join(save_metrics_path, eval_analysis)
-if not os.path.isdir(save_metrics_path_eval):
-    os.makedirs(save_metrics_path_eval)
-
 
 # because of new file format, need to only keep certain columns
 column_names = ["Label","Start","Duration","End"]
@@ -12433,67 +12415,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.1-0.3
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 2694 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4084 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3250 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    2 out of 2597 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    2 out of 2879 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    2 out of 2757 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 2514 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3054 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 2260 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3122 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 2882 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 7088 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4008 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 5664 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4292 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    3 out of 2536 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 5650 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 1786 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    3 out of 2332 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4356 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    2 out of 3940 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4404 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3686 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3608 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    4 out of 1783 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4124 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    519 out of 2373 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 5320 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    719 out of 2736 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3854 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12503,36 +12425,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 2694 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4084 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3250 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    2 out of 2597 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    2 out of 2879 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    2 out of 2757 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 2514 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3054 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 2260 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3122 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 2882 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 7088 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4008 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 5664 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4292 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    3 out of 2536 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 5650 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 1786 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    3 out of 2332 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4356 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    2 out of 3940 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4404 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3686 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3608 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    4 out of 1783 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 4124 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    519 out of 2373 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 5320 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    719 out of 2736 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
-    0 out of 3854 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.3.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12545,67 +12437,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.1-0.4
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 1852 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2848 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2520 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    2 out of 1930 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    2 out of 2038 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    2 out of 1950 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 1586 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2156 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 1542 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2124 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2274 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 4976 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2950 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 4016 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2866 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    3 out of 1637 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 4162 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 1108 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    3 out of 1574 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2972 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    310 out of 1637 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 3190 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2584 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2576 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    4 out of 1215 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2886 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    409 out of 1713 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 3594 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    544 out of 2015 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2700 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12615,36 +12447,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 1852 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2848 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2520 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    2 out of 1930 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    2 out of 2038 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    2 out of 1950 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 1586 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2156 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 1542 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2124 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2274 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 4976 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2950 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 4016 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2866 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    3 out of 1637 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 4162 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 1108 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    3 out of 1574 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2972 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    310 out of 1637 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 3190 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2584 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2576 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    4 out of 1215 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2886 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    409 out of 1713 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 3594 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    544 out of 2015 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
-    0 out of 2700 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.4.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12657,67 +12459,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.1-0.5
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 2043 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3294 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3132 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2405 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2595 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2369 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1599 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2469 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1692 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2256 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2820 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 5520 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3552 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 4581 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3069 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    5 out of 2090 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 4863 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1194 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    5 out of 2168 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3060 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    411 out of 1935 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3621 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2967 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2943 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    7 out of 1547 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3204 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    669 out of 2243 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3777 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    911 out of 2809 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2907 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12727,36 +12469,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 2043 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3294 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3132 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2405 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2595 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2369 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1599 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2469 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1692 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2256 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2820 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 5520 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3552 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 4581 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3069 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    5 out of 2090 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 4863 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1194 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    5 out of 2168 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3060 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    411 out of 1935 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3621 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2967 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2943 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    7 out of 1547 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3204 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    669 out of 2243 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3777 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    911 out of 2809 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2907 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12769,67 +12481,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.1-0.6
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 1012 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1816 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1816 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    2 out of 1326 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    2 out of 1185 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    2 out of 1166 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 798 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1312 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 826 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1028 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1596 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 2588 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1952 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 2312 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1486 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    3 out of 722 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 2568 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 582 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    3 out of 853 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1398 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    148 out of 719 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1852 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1604 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1602 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    4 out of 765 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1580 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    276 out of 1004 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1830 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    404 out of 1373 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1436 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12839,36 +12491,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 1012 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1816 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1816 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    2 out of 1326 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    2 out of 1185 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    2 out of 1166 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 798 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1312 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 826 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1028 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1596 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 2588 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1952 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 2312 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1486 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    3 out of 722 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 2568 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 582 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    3 out of 853 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1398 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    148 out of 719 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1852 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1604 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1602 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    4 out of 765 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1580 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    276 out of 1004 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1830 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    404 out of 1373 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
-    0 out of 1436 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.6.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12881,67 +12503,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.1-0.5
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 2043 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3294 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3132 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2405 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2595 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2369 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1599 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2469 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1692 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2256 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2820 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 5520 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3552 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 4581 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3069 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    5 out of 2090 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 4863 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1194 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    5 out of 2168 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3060 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    411 out of 1935 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3621 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2967 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2943 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    7 out of 1547 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3204 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    669 out of 2243 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3777 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    911 out of 2809 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2907 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12951,36 +12513,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 2043 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3294 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3132 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2405 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2595 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    3 out of 2369 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1599 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2469 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1692 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2256 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2820 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 5520 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3552 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 4581 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3069 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    5 out of 2090 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 4863 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 1194 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    5 out of 2168 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3060 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    411 out of 1935 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3621 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2967 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2943 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    7 out of 1547 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3204 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    669 out of 2243 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 3777 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    911 out of 2809 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
-    0 out of 2907 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -12993,67 +12525,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.1-0.7
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 694 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1548 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1586 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    2 out of 1172 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    2 out of 921 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    2 out of 955 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 568 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1088 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 594 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 636 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1368 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1746 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1686 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1710 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1068 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    3 out of 453 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1970 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 424 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    3 out of 616 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 922 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    117 out of 489 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1442 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1248 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1328 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    4 out of 622 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1220 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    226 out of 764 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1366 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    361 out of 1174 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 930 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13063,36 +12535,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 694 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1548 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1586 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    2 out of 1172 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    2 out of 921 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    2 out of 955 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 568 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1088 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 594 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 636 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1368 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1746 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1686 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1710 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1068 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    3 out of 453 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1970 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 424 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    3 out of 616 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 922 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    117 out of 489 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1442 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1248 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1328 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    4 out of 622 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1220 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    226 out of 764 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 1366 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    361 out of 1174 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
-    0 out of 930 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.7.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13105,67 +12547,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.1-0.8
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 474 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1322 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1372 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    2 out of 1037 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    2 out of 722 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    2 out of 777 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 424 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 900 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 428 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 314 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1146 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1112 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1432 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1152 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 714 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    3 out of 295 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1438 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 324 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    3 out of 412 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 558 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    89 out of 321 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1130 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1020 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1104 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    4 out of 512 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 882 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    181 out of 582 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1038 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    313 out of 956 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 558 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13175,36 +12557,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 474 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1322 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1372 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    2 out of 1037 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    2 out of 722 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    2 out of 777 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 424 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 900 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 428 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 314 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1146 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1112 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1432 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1152 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 714 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    3 out of 295 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1438 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 324 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    3 out of 412 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 558 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    89 out of 321 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1130 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1020 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1104 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    4 out of 512 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 882 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    181 out of 582 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 1038 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    313 out of 956 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
-    0 out of 558 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.8.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13217,67 +12569,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.1-0.9
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 254 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 1108 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 1156 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    2 out of 924 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    2 out of 493 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    2 out of 540 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 324 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 678 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 300 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 150 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 934 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 644 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 1224 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 786 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 402 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    3 out of 192 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 886 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 234 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    3 out of 274 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 376 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    72 out of 226 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 850 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 752 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 874 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    4 out of 389 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 616 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    127 out of 407 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 706 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    272 out of 785 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 192 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13287,36 +12579,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 254 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 1108 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 1156 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    2 out of 924 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    2 out of 493 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    2 out of 540 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 324 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 678 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 300 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 150 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 934 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 644 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 1224 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 786 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 402 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    3 out of 192 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 886 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 234 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    3 out of 274 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 376 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    72 out of 226 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 850 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 752 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 874 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    4 out of 389 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 616 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    127 out of 407 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 706 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    272 out of 785 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
-    0 out of 192 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.9.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13329,67 +12591,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.1-0.95
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 144 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 986 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 1016 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    2 out of 852 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    2 out of 367 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    2 out of 369 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 242 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 502 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 248 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 122 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 766 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 482 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 1090 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 650 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 290 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    3 out of 133 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 636 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 182 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    3 out of 229 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 300 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    55 out of 172 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 624 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 612 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 702 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    4 out of 266 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 398 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    91 out of 291 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 484 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    229 out of 630 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 84 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13399,36 +12601,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 144 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 986 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 1016 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    2 out of 852 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    2 out of 367 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    2 out of 369 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 242 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 502 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 248 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 122 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 766 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 482 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 1090 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 650 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 290 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    3 out of 133 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 636 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 182 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    3 out of 229 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 300 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    55 out of 172 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 624 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 612 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 702 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    4 out of 266 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 398 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    91 out of 291 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 484 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    229 out of 630 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
-    0 out of 84 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.1-0.95.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13441,67 +12613,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.2-0.3
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 3002 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4234 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3390 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    2 out of 2695 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    2 out of 3055 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    2 out of 2941 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 2686 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3252 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 2522 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3504 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3194 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 8446 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4234 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 6486 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4602 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    3 out of 2808 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 6460 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 1876 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    3 out of 2648 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4880 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    497 out of 2778 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4894 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3950 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3980 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    4 out of 1899 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4454 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    552 out of 2562 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 5698 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    781 out of 2953 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4436 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13511,36 +12623,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 3002 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4234 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3390 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    2 out of 2695 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    2 out of 3055 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    2 out of 2941 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 2686 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3252 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 2522 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3504 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3194 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 8446 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4234 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 6486 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4602 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    3 out of 2808 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 6460 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 1876 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    3 out of 2648 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4880 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    497 out of 2778 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4894 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3950 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 3980 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    4 out of 1899 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4454 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    552 out of 2562 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 5698 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    781 out of 2953 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
-    0 out of 4436 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.3.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13553,67 +12635,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.2-0.4
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 1960 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2920 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2588 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    2 out of 1976 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    2 out of 2101 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    2 out of 2032 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 1652 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2238 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 1654 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2304 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2428 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 5604 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3050 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 4364 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2986 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    3 out of 1728 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 4668 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 1144 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    3 out of 1708 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3204 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    329 out of 1790 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3378 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2690 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2744 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    4 out of 1261 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3008 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    426 out of 1793 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3770 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    577 out of 2120 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2922 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13623,36 +12645,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 1960 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2920 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2588 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    2 out of 1976 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    2 out of 2101 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    2 out of 2032 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 1652 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2238 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 1654 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2304 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2428 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 5604 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3050 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 4364 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2986 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    3 out of 1728 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 4668 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 1144 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    3 out of 1708 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3204 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    329 out of 1790 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3378 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2690 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2744 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    4 out of 1261 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3008 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    426 out of 1793 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 3770 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    577 out of 2120 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
-    0 out of 2922 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.4.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13665,67 +12657,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.2-0.5
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 2133 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3336 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3186 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2441 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2646 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2456 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1632 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2550 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1788 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2418 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2967 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 6063 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3645 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 4851 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3174 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    5 out of 2174 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 5397 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1224 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    5 out of 2329 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3252 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    427 out of 2067 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3786 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3048 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3078 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    7 out of 1591 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3294 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    695 out of 2334 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3888 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    957 out of 2926 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3054 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13735,36 +12667,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 2133 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3336 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3186 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2441 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2646 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2456 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1632 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2550 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1788 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2418 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2967 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 6063 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3645 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 4851 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3174 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    5 out of 2174 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 5397 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1224 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    5 out of 2329 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3252 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    427 out of 2067 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3786 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3048 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3078 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    7 out of 1591 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3294 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    695 out of 2334 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3888 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    957 out of 2926 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3054 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13777,67 +12679,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.2-0.6
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 1032 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1834 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1840 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    2 out of 1342 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    2 out of 1205 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    2 out of 1206 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 814 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1342 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 858 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1086 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1660 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 2802 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1994 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 2408 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1528 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    3 out of 750 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 2820 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 598 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    3 out of 902 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1472 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    153 out of 755 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1914 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1640 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1668 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    4 out of 780 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1612 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    287 out of 1042 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1882 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    420 out of 1420 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1490 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13847,36 +12689,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 1032 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1834 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1840 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    2 out of 1342 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    2 out of 1205 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    2 out of 1206 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 814 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1342 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 858 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1086 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1660 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 2802 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1994 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 2408 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1528 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    3 out of 750 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 2820 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 598 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    3 out of 902 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1472 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    153 out of 755 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1914 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1640 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1668 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    4 out of 780 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1612 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    287 out of 1042 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1882 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    420 out of 1420 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
-    0 out of 1490 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.6.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13889,67 +12701,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.2-0.5
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 2133 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3336 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3186 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2441 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2646 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2456 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1632 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2550 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1788 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2418 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2967 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 6063 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3645 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 4851 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3174 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    5 out of 2174 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 5397 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1224 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    5 out of 2329 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3252 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    427 out of 2067 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3786 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3048 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3078 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    7 out of 1591 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3294 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    695 out of 2334 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3888 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    957 out of 2926 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3054 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -13959,36 +12711,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 2133 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3336 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3186 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2441 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2646 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    3 out of 2456 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1632 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2550 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1788 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2418 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 2967 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 6063 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3645 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 4851 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3174 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    5 out of 2174 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 5397 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 1224 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    5 out of 2329 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3252 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    427 out of 2067 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3786 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3048 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3078 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    7 out of 1591 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3294 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    695 out of 2334 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3888 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    957 out of 2926 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
-    0 out of 3054 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14001,67 +12723,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.2-0.7
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 704 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1558 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1602 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    2 out of 1180 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    2 out of 937 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    2 out of 984 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 572 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1102 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 610 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 666 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1412 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1864 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1714 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1756 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1094 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    3 out of 463 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 2148 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 436 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    3 out of 646 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 956 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    121 out of 511 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1478 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1272 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1370 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    4 out of 633 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1238 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    233 out of 783 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1392 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    374 out of 1213 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 950 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14071,36 +12733,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 704 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1558 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1602 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    2 out of 1180 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    2 out of 937 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    2 out of 984 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 572 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1102 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 610 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 666 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1412 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1864 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1714 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1756 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1094 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    3 out of 463 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 2148 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 436 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    3 out of 646 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 956 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    121 out of 511 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1478 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1272 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1370 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    4 out of 633 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1238 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    233 out of 783 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 1392 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    374 out of 1213 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
-    0 out of 950 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.7.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14113,67 +12745,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.2-0.8
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 476 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1328 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1376 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    2 out of 1041 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    2 out of 730 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    2 out of 792 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 426 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 906 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 432 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 324 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1174 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1154 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1448 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1164 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 732 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    3 out of 298 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1534 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 332 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    3 out of 427 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 572 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    90 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1148 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1040 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1126 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    4 out of 520 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 884 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    187 out of 596 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1054 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    323 out of 984 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 566 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14183,36 +12755,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 476 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1328 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1376 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    2 out of 1041 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    2 out of 730 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    2 out of 792 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 426 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 906 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 432 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 324 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1174 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1154 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1448 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1164 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 732 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    3 out of 298 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1534 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 332 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    3 out of 427 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 572 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    90 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1148 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1040 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1126 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    4 out of 520 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 884 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    187 out of 596 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 1054 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    323 out of 984 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
-    0 out of 566 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.8.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14225,67 +12767,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.2-0.9
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 254 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 1110 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 1158 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    2 out of 926 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    2 out of 499 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    2 out of 548 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 324 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 682 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 302 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 150 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 946 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 650 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 1236 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 790 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 404 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    3 out of 195 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 902 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 238 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    3 out of 275 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 380 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    72 out of 227 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 852 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 764 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 882 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    4 out of 394 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 618 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    129 out of 412 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 716 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    281 out of 810 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 194 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14295,36 +12777,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 254 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 1110 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 1158 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    2 out of 926 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    2 out of 499 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    2 out of 548 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 324 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 682 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 302 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 150 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 946 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 650 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 1236 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 790 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 404 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    3 out of 195 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 902 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 238 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    3 out of 275 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 380 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    72 out of 227 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 852 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 764 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 882 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    4 out of 394 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 618 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    129 out of 412 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 716 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    281 out of 810 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
-    0 out of 194 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.9.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14337,67 +12789,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.2-0.95
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 144 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 986 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 1018 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    2 out of 852 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    2 out of 369 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    2 out of 374 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 242 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 506 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 248 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 122 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 772 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 486 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 1096 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 650 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 290 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    3 out of 134 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 642 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 184 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    3 out of 230 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 300 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    55 out of 172 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 626 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 614 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 702 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    4 out of 268 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 398 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    92 out of 293 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 488 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    237 out of 648 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 84 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14407,36 +12799,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 144 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 986 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 1018 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    2 out of 852 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    2 out of 369 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    2 out of 374 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 242 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 506 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 248 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 122 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 772 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 486 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 1096 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 650 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 290 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    3 out of 134 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 642 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 184 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    3 out of 230 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 300 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    55 out of 172 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 626 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 614 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 702 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    4 out of 268 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 398 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    92 out of 293 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 488 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    237 out of 648 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
-    0 out of 84 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.2-0.95.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14452,67 +12814,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.3-0.4
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 2136 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3010 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2646 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    2 out of 2035 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    2 out of 2201 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    2 out of 2103 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 1728 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2334 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 1784 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2532 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2596 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 6250 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3134 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 4796 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3120 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    3 out of 1840 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 5212 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 1186 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    3 out of 1905 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3446 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    351 out of 1951 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3594 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2820 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2918 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    4 out of 1353 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3172 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    443 out of 1869 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3950 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    596 out of 2211 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3220 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14522,36 +12824,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 2136 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3010 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2646 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    2 out of 2035 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    2 out of 2201 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    2 out of 2103 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 1728 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2334 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 1784 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2532 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2596 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 6250 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3134 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 4796 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3120 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    3 out of 1840 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 5212 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 1186 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    3 out of 1905 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3446 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    351 out of 1951 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3594 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2820 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 2918 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    4 out of 1353 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3172 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    443 out of 1869 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3950 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    596 out of 2211 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
-    0 out of 3220 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.4.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14564,67 +12836,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.3-0.5
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 2190 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3402 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3219 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2476 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2709 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2520 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1656 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 2616 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1839 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 2592 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3063 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 6459 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3720 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 5055 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3258 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    5 out of 2233 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 5838 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1248 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    5 out of 2481 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3408 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    439 out of 2159 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3915 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3102 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3180 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    7 out of 1650 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3366 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    719 out of 2404 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3999 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    975 out of 3001 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3189 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14634,36 +12846,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 2190 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3402 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3219 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2476 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2709 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2520 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1656 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 2616 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1839 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 2592 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3063 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 6459 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3720 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 5055 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3258 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    5 out of 2233 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 5838 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1248 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    5 out of 2481 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3408 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    439 out of 2159 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3915 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3102 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3180 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    7 out of 1650 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3366 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    719 out of 2404 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3999 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    975 out of 3001 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3189 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14676,67 +12858,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.3-0.6
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 1044 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1850 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1858 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    2 out of 1354 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    2 out of 1220 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    2 out of 1235 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 818 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1370 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 876 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1150 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1686 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 2942 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 2016 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 2478 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1554 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    3 out of 767 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 3004 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 608 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    3 out of 940 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1518 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    157 out of 775 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1952 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1658 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1702 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    4 out of 798 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1646 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    293 out of 1062 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1916 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    423 out of 1438 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1518 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14746,36 +12868,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 1044 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1850 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1858 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    2 out of 1354 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    2 out of 1220 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    2 out of 1235 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 818 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1370 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 876 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1150 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1686 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 2942 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 2016 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 2478 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1554 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    3 out of 767 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 3004 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 608 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    3 out of 940 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1518 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    157 out of 775 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1952 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1658 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1702 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    4 out of 798 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1646 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    293 out of 1062 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1916 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    423 out of 1438 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
-    0 out of 1518 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.6.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14788,67 +12880,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.3-0.5
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 2190 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3402 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3219 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2476 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2709 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2520 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1656 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 2616 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1839 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 2592 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3063 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 6459 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3720 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 5055 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3258 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    5 out of 2233 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 5838 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1248 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    5 out of 2481 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3408 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    439 out of 2159 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3915 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3102 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3180 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    7 out of 1650 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3366 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    719 out of 2404 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3999 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    975 out of 3001 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3189 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14858,36 +12890,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 2190 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3402 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3219 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2476 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2709 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    3 out of 2520 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1656 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 2616 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1839 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 2592 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3063 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 6459 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3720 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 5055 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3258 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    5 out of 2233 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 5838 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 1248 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    5 out of 2481 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3408 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    439 out of 2159 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3915 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3102 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3180 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    7 out of 1650 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3366 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    719 out of 2404 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3999 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    975 out of 3001 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
-    0 out of 3189 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.5.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14900,67 +12902,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.3-0.7
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 708 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1570 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1608 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    2 out of 1182 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    2 out of 947 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    2 out of 1000 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 572 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1120 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 622 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 694 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1418 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1924 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1728 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1792 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1104 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    3 out of 466 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 2234 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 444 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    3 out of 664 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 968 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    123 out of 521 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1504 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1280 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1394 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    4 out of 644 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1252 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    235 out of 794 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1412 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    376 out of 1221 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 966 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -14970,36 +12912,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 708 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1570 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1608 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    2 out of 1182 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    2 out of 947 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    2 out of 1000 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 572 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1120 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 622 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 694 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1418 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1924 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1728 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1792 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1104 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    3 out of 466 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 2234 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 444 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    3 out of 664 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 968 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    123 out of 521 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1504 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1280 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1394 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    4 out of 644 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1252 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    235 out of 794 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 1412 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    376 out of 1221 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
-    0 out of 966 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.7.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -15012,67 +12924,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.3-0.8
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 476 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1336 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1376 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    2 out of 1041 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    2 out of 737 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    2 out of 803 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 426 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 918 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 432 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 332 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1174 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1168 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1454 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1180 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 736 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    3 out of 301 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1564 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 340 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    3 out of 431 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 576 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    91 out of 331 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1164 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1042 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1138 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    4 out of 526 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 892 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    187 out of 598 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1062 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    325 out of 991 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 574 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -15082,36 +12934,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 476 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1336 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1376 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    2 out of 1041 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    2 out of 737 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    2 out of 803 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 426 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 918 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 432 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 332 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1174 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1168 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1454 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1180 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 736 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    3 out of 301 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1564 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 340 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    3 out of 431 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 576 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    91 out of 331 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1164 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1042 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1138 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    4 out of 526 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 892 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    187 out of 598 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 1062 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    325 out of 991 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
-    0 out of 574 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.8.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -15124,67 +12946,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.3-0.9
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 254 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 1116 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 1158 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    2 out of 926 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    2 out of 502 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    2 out of 550 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 324 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 686 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 302 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 152 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 946 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 652 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 1238 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 790 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 406 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    3 out of 196 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 906 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 242 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    3 out of 276 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 380 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    72 out of 228 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 866 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 764 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 884 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    4 out of 394 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 622 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    129 out of 413 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 720 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    283 out of 814 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 198 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -15194,36 +12956,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 254 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 1116 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 1158 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    2 out of 926 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    2 out of 502 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    2 out of 550 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 324 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 686 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 302 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 152 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 946 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 652 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 1238 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 790 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 406 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    3 out of 196 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 906 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 242 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    3 out of 276 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 380 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    72 out of 228 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 866 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 764 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 884 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    4 out of 394 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 622 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    129 out of 413 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 720 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    283 out of 814 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
-    0 out of 198 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.9.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -15236,67 +12968,7 @@ for low_thr in [0.1,0.2,0.3]:
     Thresholds: 0.3-0.95
     **********************************************************
     Evaluating ground truths...
-    0 out of 224 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_LABEL_TABLE.txt
-    0 out of 646 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_LABEL_TABLE.txt
-    1 out of 676 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    2 out of 598 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    2 out of 626 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 431 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    1 out of 180 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_LABEL_TABLE.txt
-    1 out of 438 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    1 out of 195 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    1 out of 90 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    1 out of 609 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 297 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_LABEL_TABLE.txt
-    0 out of 633 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    0 out of 355 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_LABEL_TABLE.txt
-    1 out of 428 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    8 out of 232 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 499 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_LABEL_TABLE.txt
-    0 out of 222 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_LABEL_TABLE.txt
-    0 out of 326 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_LABEL_TABLE.txt
-    0 out of 327 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_LABEL_TABLE.txt
-    2 out of 249 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_LABEL_TABLE.txt
-    0 out of 644 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_LABEL_TABLE.txt
-    0 out of 793 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    0 out of 527 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    1 out of 377 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 686 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
-    29 out of 633 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_LABEL_TABLE.txt
-    0 out of 607 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_LABEL_TABLE.txt
-    7 out of 917 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_LABEL_TABLE.txt
-    0 out of 210 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_LABEL_TABLE.txt
     Evaluating nonfoc calls...
-    0 out of 144 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 988 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 1018 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    2 out of 852 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    2 out of 370 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    2 out of 375 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 242 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 510 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 248 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 124 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 772 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 488 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 1098 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 650 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 290 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    3 out of 134 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 642 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 184 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    3 out of 230 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 300 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    55 out of 173 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 636 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 614 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 704 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    4 out of 268 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 400 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    92 out of 294 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 492 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    239 out of 652 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 86 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -15306,36 +12978,6 @@ for low_thr in [0.1,0.2,0.3]:
     Marking False positives
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Evaluating foc calls...
-    0 out of 144 entries were skipped in HM_VCVM001_HMB_R11_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221163_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 988 entries were skipped in HM_VHMF001_HTB_R07_20170802-20170815_file_5_(2017_08_06-06_44_59)_ASWMUX221092_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 1018 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    2 out of 852 entries were skipped in HM_VHMF001_HTB_R20_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    2 out of 370 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    2 out of 375 entries were skipped in HM_VHMF015_RTTB_R05_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 242 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_10_(2019_07_16-11_44_59)_165944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 510 entries were skipped in HM_VHMF019_MBTB_R25_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 248 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 124 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 772 entries were skipped in HM_VHMF022_MBRS_R22_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 488 entries were skipped in HM_VHMM002_HRT_R09_20170821-20170825_file_5_(2017_08_24-06_44_59)_ASWMUX221110_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 1098 entries were skipped in HM_VHMM006_RT_R10_20170903-20170908_file_2_(2017_09_03-05_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 650 entries were skipped in HM_VHMM006_RT_R12_20170821-20170825_file_6_(2017_08_25-06_44_59)_ASWMUX221102_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 290 entries were skipped in HM_VHMM007_LSLT_R17_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    3 out of 134 entries were skipped in HM_VHMM008_SHTB_R14_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 642 entries were skipped in HM_VHMM016_LTTB_R29_20190707-20190719_file_7_(2019_07_13-11_44_59)_135944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 184 entries were skipped in HM_VHMM017_RSTB_R23_20190708-20190720_file_11_(2019_07_17-11_44_59)_175944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    3 out of 230 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_12_(2019_07_18-11_44_59)_185944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 300 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_13_(2019_07_19-11_44_59)_195944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    55 out of 173 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_6_(2019_07_12-11_44_59)_125944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 636 entries were skipped in HM_VHMM021_MBLT_R01_20190707-20190719_file_8_(2019_07_14-11_44_59)_145944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 614 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 704 entries were skipped in L_VLF235_RSRTTBL_R26_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    4 out of 268 entries were skipped in L_VLF244_HTBL_R02_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 400 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    92 out of 294 entries were skipped in L_VLF246_LTTBL_R14_20190805-20190812_file_9_(2019_08_08-07_44_59)_85944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 492 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_10_(2019_08_09-07_44_59)_95944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    239 out of 652 entries were skipped in L_VLM234_SHMBTBL_R11_20190805-20190812_file_7_(2019_08_06-07_44_59)_65944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
-    0 out of 86 entries were skipped in L_VLM239_HTB_R10_20190805-20190812_file_8_(2019_08_07-07_44_59)_75944_CALLTYPE_PRED_TABLE_thr_0.3-0.95.txt
     Matching predictions ...
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
     Finding true positives...
@@ -15350,7 +12992,7 @@ for low_thr in [0.1,0.2,0.3]:
 
 
 ```python
-import model.audiopool as audiopool
+
 pool = audiopool.AudioPool() 
 
 # Find a call
@@ -15398,7 +13040,7 @@ label = pre.create_label_matrix(label_subset,
                                 label_for_other, 
                                 other_ignored_in_training)
 # plot spectrogram
-plt.figure(figsize=(10, 5))
+plt.figure(figsize=(10,4))
 #plt.subplot(411)
 yaxis = range(0, np.flipud(spectrogram).shape[0]+1)
 xaxis = range(0, np.flipud(spectrogram).shape[1]+1)
@@ -15413,13 +13055,14 @@ plt.show()
 # plot LABEL
 #plt.subplot(412)
 #print(label.shape)
-plt.figure(figsize=(10, 5))
+plt.figure(figsize=(10, 4))
 xaxis = range(0, np.flipud(label).shape[1]+1)
 yaxis = range(0, np.flipud(label).shape[0]+1)
 plt.yticks(np.arange(0.5, len(label_list)+0.5 ,1 ),reversed(label_list))
 plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
            list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
 plt.pcolormesh(xaxis, yaxis, np.flipud(label))
+plt.clim(0, 1)
 plt.xlabel('Time (s)')
 plt.ylabel('Calltype')
 plt.colorbar(label="Label")
@@ -15453,13 +13096,14 @@ pred = calltype_pred[0].T
 
 #print(pred.shape)
 #plot calltype prediction
-plt.figure(figsize=(10, 5))
+plt.figure(figsize=(10, 4))
 xaxis = range(0, np.flipud(label).shape[1]+1)
 yaxis = range(0, np.flipud(label).shape[0]+1)
 plt.yticks(np.arange(0.5, len(label_list)+0.5 ,1 ),reversed(label_list))
 plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
            list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
 plt.pcolormesh(xaxis, yaxis, np.flipud(pred))
+plt.clim(0, 1)
 plt.xlabel('Time (s)')
 plt.ylabel('Calltype Prediction')
 plt.colorbar(label="Label")
@@ -15469,30 +13113,29 @@ plt.show()
 if is_forked:  
     # plot call matrix
     #plt.subplot(413)
-    print(callmat.shape)
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(10, 1))
     xaxis = range(0, np.flipud(label).shape[1]+1)
     yaxis = range(0, np.flipud(callmat).shape[0]+1)
     plt.yticks(np.arange(0.5, callmat.shape[0]+0.5 ,1 ), reversed(callmat.index.values))
     plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
                list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
     plt.pcolormesh(xaxis, yaxis, np.flipud(callmat))
+    plt.clim(0, 1)
     plt.xlabel('Time (s)')
     plt.ylabel('Call / No Call')
     plt.colorbar(label="Label")
     plt.show()
     
     pred = callpresence_pred[0].T
-    print(pred.shape)
-
     #plot prediction
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=(10, 1))
     xaxis = range(0, np.flipud(label).shape[1]+1)
     yaxis = range(0, np.flipud(callmat).shape[0]+1)
     plt.yticks(np.arange(0.5, callmat.shape[0]+0.5 ,1 ), reversed(callmat.index.values))
     plt.xticks(np.arange(0, np.flipud(label).shape[1]+1,50),
                list(label.columns[np.arange(0, np.flipud(label).shape[1]+1,50)]))
     plt.pcolormesh(xaxis, yaxis, np.flipud(pred))
+    plt.clim(0, 1)
     plt.xlabel('Time (s)')
     plt.ylabel('Call / No Call prediction')
     plt.colorbar(label="Label")
@@ -15502,29 +13145,23 @@ if is_forked:
 ```
 
 
-![png](output_44_0.png)
+![png](output_43_0.png)
 
 
 
-![png](output_44_1.png)
+![png](output_43_1.png)
 
 
 
-![png](output_44_2.png)
-
-
-    (2, 201)
+![png](output_43_2.png)
 
 
 
-![png](output_44_4.png)
-
-
-    (2, 201)
+![png](output_43_3.png)
 
 
 
-![png](output_44_6.png)
+![png](output_43_4.png)
 
 
 # Plot the confusion matrix
@@ -15632,107 +13269,107 @@ for low_thr in [0.1,0.2,0.3]:
 ```
 
 
-![png](output_46_0.png)
+![png](output_45_0.png)
 
 
 
-![png](output_46_1.png)
+![png](output_45_1.png)
 
 
 
-![png](output_46_2.png)
+![png](output_45_2.png)
 
 
 
-![png](output_46_3.png)
+![png](output_45_3.png)
 
 
 
-![png](output_46_4.png)
+![png](output_45_4.png)
 
 
 
-![png](output_46_5.png)
+![png](output_45_5.png)
 
 
 
-![png](output_46_6.png)
+![png](output_45_6.png)
 
 
 
-![png](output_46_7.png)
+![png](output_45_7.png)
 
 
 
-![png](output_46_8.png)
+![png](output_45_8.png)
 
 
 
-![png](output_46_9.png)
+![png](output_45_9.png)
 
 
 
-![png](output_46_10.png)
+![png](output_45_10.png)
 
 
 
-![png](output_46_11.png)
+![png](output_45_11.png)
 
 
 
-![png](output_46_12.png)
+![png](output_45_12.png)
 
 
 
-![png](output_46_13.png)
+![png](output_45_13.png)
 
 
 
-![png](output_46_14.png)
+![png](output_45_14.png)
 
 
 
-![png](output_46_15.png)
+![png](output_45_15.png)
 
 
 
-![png](output_46_16.png)
+![png](output_45_16.png)
 
 
 
-![png](output_46_17.png)
+![png](output_45_17.png)
 
 
 
-![png](output_46_18.png)
+![png](output_45_18.png)
 
 
 
-![png](output_46_19.png)
+![png](output_45_19.png)
 
 
 
-![png](output_46_20.png)
+![png](output_45_20.png)
 
 
 
-![png](output_46_21.png)
+![png](output_45_21.png)
 
 
 
-![png](output_46_22.png)
+![png](output_45_22.png)
 
 
 
-![png](output_46_23.png)
+![png](output_45_23.png)
 
 
 
-![png](output_46_24.png)
+![png](output_45_24.png)
 
 
 
-![png](output_46_25.png)
+![png](output_45_25.png)
 
 
 

@@ -281,7 +281,7 @@ class Evaluate:
             while(row < len(table)):
                 skipped += 1
                 row += 1
-            print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
+            #print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
             
             nonfocfoc = [nonfoc,foc]
             
