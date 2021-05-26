@@ -497,6 +497,9 @@ class Evaluate:
         # At this point all labelled calls have been matched or classified as false negatives.
         # Only the false positives still need to be marked.        
         print("Marking False positives")
+        #print(self.call_types)
+        # KD added?
+        #self.call_types.add(self.noise_label)
         for idx in range(np.size(pred_indices,0)):
             print(str(idx))
             for pred in self.call_types:
@@ -689,6 +692,7 @@ class Evaluate:
 
             
     def evaluation(self, gt_indices, pred_indices, focus, non_foc_gt, output):
+        
         # Matches the labelled data with the predicted calls. loose_match is equivalent to a match with an intersection of union threshold of 0.
         match, loose_match = self.match_prediction_to_labels(gt_indices, pred_indices)
         if(self.call_analysis in self.call_types):
@@ -736,6 +740,9 @@ class Evaluate:
         cat_frag = self.category_fragmentation(loose_match, gt_indices, pred_indices)
         time_frag = self.time_fragmentation(loose_match, gt_indices, pred_indices, 100)
         
+        # KD added?
+        self.call_types.add(self.noise_label)
+        
         # preparing the metrics for saving
         for i in range(len(gt_indices)):
             time_frag.rename(index={i: os.path.basename(self.pred_path[i])}, inplace=True)#prediction_list[i])}, inplace=True)
@@ -762,6 +769,7 @@ class Evaluate:
         if self.call_analysis in self.true_call:
             match2 = self.match_specific_call(gt_indices, pred_indices, match, non_foc_gt, non_foc_pred)
             output[focus +"_Match"] = match2    
+        
         
         return output
         
@@ -816,8 +824,6 @@ class Evaluate:
         
         if(self.call_analysis == "normal"): 
             gt_indices = self.get_nonfoc_and_foc_calls(self.GT_path)
-            pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
-            pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
             #pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
             #pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
             for foc in [0,1]:              
@@ -826,7 +832,10 @@ class Evaluate:
                 else:
                     focus = "foc"
                 print( "Evaluating " + focus + " calls...")
-                output = self.evaluation(gt_indices[foc], pred_indices, focus, [], output)
+                pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
+                #pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
+                output = self.evaluation(gt_indices[foc], pred_indices[foc], focus, [], output)
+                
                 #output = self.evaluation(gt_indices[foc], pred_indices[foc], focus, [], output)
         else:
             gt_indices, non_foc_gt = self.get_call_ranges(self.GT_path, "GT")
