@@ -369,8 +369,8 @@ def create_label_matrix(label_table, spectro, call_types, start, stop,
     timesteps = spectro.shape[1] # find number of columns for matrix
     colnames = np.linspace(start, stop, num=timesteps)#np.arange(start=start, stop=stop, step=(stop-start)/timesteps)
     rownames = list(call_types.copy().keys())   
-    if other_ignored_in_training and label_for_other in rownames:
-        rownames = rownames.remove(label_for_other)
+    if (other_ignored_in_training and (label_for_other in rownames)):
+        rownames.remove(label_for_other)
     # timesteps_per_second = timesteps / spec_window_size 
     
     # create an empty matrix where each row represents a call type 

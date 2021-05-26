@@ -281,6 +281,7 @@ class Evaluate:
             while(row < len(table)):
                 skipped += 1
                 row += 1
+            print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
             
             nonfocfoc = [nonfoc,foc]
             
@@ -404,14 +405,16 @@ class Evaluate:
         # This is why the matching starts with the true positives.
         paired_pred = pd.DataFrame(columns = self.call_types, index = range(pred_indices.shape[0]))
         print("Matching predictions ...")
+        tracker = []
         for idx in range(np.size(pred_indices,0)):
-            print(idx)
+            tracker.append(idx)#print(idx)
             for pred in self.call_types:
                 #print(str(idx) + " " + str(pred) + " " + str(isinstance(pred_indices.at[idx,pred], list)))
                 if isinstance(pred_indices.at[idx,pred], list):
                     paired_pred.at[idx,pred] = np.zeros(len(pred_indices.at[idx,pred]), dtype = bool)                    
                 else:
                     paired_pred.at[idx,pred] = []
+        print(tracker)
         paired_call = pd.DataFrame(columns = self.call_types, index = range(gt_indices.shape[0]))
         for idx in range(np.size(gt_indices,0)):
             for call in self.call_types:
@@ -422,8 +425,10 @@ class Evaluate:
         
         # Finding the true positives
         print("Finding true positives...")
+        tracker = []
         for idx in range(np.size(gt_indices,0)):            
-            print(idx)
+            #print(idx)
+            tracker.append(idx)
             match[idx] = pd.DataFrame(columns = col, index = row)
             loose_match[idx] = pd.DataFrame(columns = col, index = row)
             for c in col:
@@ -454,11 +459,14 @@ class Evaluate:
                                             paired_pred.at[idx,pred][pred_nb] = True
                                             paired_call.at[idx,pred][call_nb] = True   
                                             match[idx].at[pred,pred].append((call_nb,pred_nb))
+        print(tracker)
         
         # Finding the wrong detections and false negatives:
         print("Finding false negatives:")
+        tracker = []
         for idx in range(np.size(gt_indices,0)):            
-            print(idx)
+            #print(idx)
+            tracker.append(idx)
             for call in self.call_types:
                 if isinstance(gt_indices.at[idx,call], list):
                     for call_nb in range(len(gt_indices.at[idx,call])):
@@ -493,6 +501,7 @@ class Evaluate:
                             loose_match[idx].at[call,'FN'].append((call_nb,np.nan)) 
                             #match[idx].at[call,self.noise_label].append((call_nb,np.nan))
                             #loose_match[idx].at[call,self.noise_label].append((call_nb,np.nan)) 
+        print(tracker)
                                                 
         # At this point all labelled calls have been matched or classified as false negatives.
         # Only the false positives still need to be marked.        
@@ -500,8 +509,10 @@ class Evaluate:
         #print(self.call_types)
         # KD added?
         #self.call_types.add(self.noise_label)
+        tracker = []
         for idx in range(np.size(pred_indices,0)):
-            print(str(idx))
+            #print(str(idx))
+            tracker.append(idx)
             for pred in self.call_types:
                # print(str(idx) + " " + pred + " : " + str(isinstance(pred_indices.at[idx,pred], list)))
                 if isinstance(pred_indices.at[idx,pred], list):
@@ -512,7 +523,7 @@ class Evaluate:
                             loose_match[idx].at[self.noise_label,pred].append((np.nan,pred_nb))  
                             # FP are sorted in noise. One consequence of that is that the call type noise 
                             # can be properly identified and still increase the number of false positives.
-                
+        print(tracker)    
                 
         #print("Finished FP marking!") 
         #print(match)
@@ -758,7 +769,7 @@ class Evaluate:
         output[focus +"_Lenient_Recall"] = lenient_Rec
         output[focus +"_Category_Fragmentation"] = cat_frag
         output[focus +"_Time_Fragmentation"] = time_frag
-        output[focus +"_Confution_Matrix"] = cm
+        output[focus +"_Confusion_Matrix"] = cm
         output[focus +"_Label_Indices"] = gt_indices
         output[focus +"_Prediction_Indices"] = pred_indices
         output[focus +"_Matching_Table"] = match
@@ -823,6 +834,7 @@ class Evaluate:
             self.noise_label = "noncall"
         
         if(self.call_analysis == "normal"): 
+            print( "Evaluating ground truths...")
             gt_indices = self.get_nonfoc_and_foc_calls(self.GT_path)
             #pred_indices = self.get_nonfoc_and_foc_calls(self.pred_path)  
             #pred_indices = pred_indices[1] # at this stage there is no disctinction of focal or non-focal calls, so the empty non-focal prediction table is removed. 
@@ -838,8 +850,10 @@ class Evaluate:
                 
                 #output = self.evaluation(gt_indices[foc], pred_indices[foc], focus, [], output)
         else:
+            print( "Evaluating ground truths...")
             gt_indices, non_foc_gt = self.get_call_ranges(self.GT_path, "GT")
             self.get_min_call_length(gt_indices)
+            print( "Evaluating predictions...")
             pred_indices, _ = self.get_call_ranges(self.pred_path, "pred") 
             
             output = self.evaluation(gt_indices, pred_indices, "", non_foc_gt, output)      
