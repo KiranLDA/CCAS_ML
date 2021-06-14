@@ -824,7 +824,7 @@ column_names = ["Label","Start","Duration","End"]
 column_names.extend(list(testing_label_dict.keys()))
 for file in label_list :
     df = pd.read_csv(file, delimiter=';') 
-    # df = df.drop_duplicates(keep=False)
+    df = df.drop_duplicates(keep='first')
     df = df[column_names]
     df.to_csv(file, header=True, index=None, sep=';', mode = 'w')
 

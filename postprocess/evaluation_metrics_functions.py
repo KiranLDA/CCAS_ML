@@ -142,12 +142,21 @@ class Evaluate:
             # main loop
             table_end = False # whether we've reached the 'End' label
             while(row < len(table) and not table_end):
-                if table.Label[row] in ['skipon', 'SKIPON']: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
-                    while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
+                if "skipon" in table.Label[row].lower():
+                #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipon']]:
+                #if table.Label[row].str.contains("skipon", regex=True, case = False):
+                #if table.Label[row] in ['skipon', 'SKIPON']: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
+                    while "skipoff" not in table.Label[row].lower():
+                    #while True not in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipoff']]:
+                    #while table.Label[row].str.contains("skipoff", regex=True, case = False) == False:
+                    #while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
                         row += 1
                         skipped += 1
                 else:
-                    if table.Label[row] in ['END', 'STOP']:
+                    if True in [x in table.Label[row].lower() for x in ["end", "stop"]]:
+                    #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']]:
+                    #if table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']:
+                    # if table.Label[row] in ['END', 'STOP', 'stop']:
                         table_end = True
                         
                     # Determining the call type for that row
@@ -238,12 +247,23 @@ class Evaluate:
             # main loop
             table_end = False # whether we've reached the 'End' label
             while(row < len(table) and not table_end):
-                if table.Label[row] in ['skipon', 'SKIPON']: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
-                    while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
+                if "skipon" in table.Label[row].lower():
+                #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipon']]:
+                #if table.Label[row].str.contains("skipon", regex=True, case = False):
+                #if table.Label[row] in ['skipon', 'SKIPON']: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
+                    while "skipoff" not in table.Label[row].lower():
+                    #while True not in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipoff']]:
+                    #while table.Label[row].str.contains("skipoff", regex=True, case = False) == False:
+                    #while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
                         row += 1
                         skipped += 1
                 else:
-                    if table.Label[row] in ['END', 'STOP']:
+                    if True in [x in table.Label[row].lower() for x in ["end", "stop"]]:
+                    #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']]:
+                    #if pd.DataFrame[table.Label[row].str.contains(x,  regex=True, case = False) for x in ['END', 'STOP', 'stop']].any() :
+
+                    #if table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']:
+                    #if table.Label[row] in ['END', 'STOP', 'stop']:
                         table_end = True
                     cidx0 = None
                     to_be_skipped = False # There should be one 'True' per line. In any other case, the line will be skipped and counted as such.
