@@ -139,7 +139,6 @@ audio_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/archive/rawdat
 
 acoustic_data_path = ["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic"]
 
-
 # 
 results_dir = '/media/kiran/D0-P1/animal_data/meerkat'
 run_name = "EXAMPLE_NoiseAugmented_"+ str(min_scaling_factor)+"_" +str(max_scaling_factor)+"_NotWeighted_MaskedOther_Forked"
