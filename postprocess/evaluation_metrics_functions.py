@@ -61,7 +61,8 @@ class Evaluate:
                         list_of_calls = [s for s in self.call_types]
                         err_calls = " ".join(list_of_calls)
                         raise ValueError("Call types inconsistent in " + file + ", expected " + err_calls)
-                if(len(self.headers.intersection(set(column_names))) != len(self.headers)):
+                if(len(self.headers.intersection(set(column_names)).union({"scores"})) != len(self.headers.union({"scores"}))):
+                #if(len(self.headers.intersection(set(column_names))) != len(self.headers)):
                     raise ValueError("File %s missing headers %s"%(file, self.headers - set(column_names))) # checks that all the headers are there
         
         self.GT_path = sorted(label_list)
@@ -87,7 +88,7 @@ class Evaluate:
         # self.min_call_length = {"agg":7, "al":9, "cc":16, "ld":24, "mo":15, "sn":5, "soc":10}
         self.frame_rate = 200
         self.GT_proportion_cut = GT_proportion_cut
-        
+        self.total_skipped = 0
         
     def get_call_ranges(self, tablenames, data_type):
         '''
@@ -138,6 +139,7 @@ class Evaluate:
             while(row < len(table) and not table.Label[row] in ['START','start']):
                 row += 1
                 skipped += 1
+                self.total_skipped += 1
                 
             # main loop
             table_end = False # whether we've reached the 'End' label
@@ -152,6 +154,7 @@ class Evaluate:
                     #while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
                         row += 1
                         skipped += 1
+                        self.total_skipped += 1
                 else:
                     if True in [x in table.Label[row].lower() for x in ["end", "stop"]]:
                     #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']]:
@@ -172,6 +175,7 @@ class Evaluate:
                         to_be_skipped = True
                     if(to_be_skipped):
                         skipped += 1
+                        self.total_skipped += 1
                     else:
                         # the beginning and end times for that call are added to the list 
                         if table.Duration[row] > all_min_call_length[actual_call]: # / (self.frame_rate - 1):
@@ -187,6 +191,7 @@ class Evaluate:
             # Everything after the end is skipped
             while(row < len(table)):
                 skipped += 1
+                self.total_skipped += 1
                 row += 1  
             print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
             
@@ -244,6 +249,7 @@ class Evaluate:
             while(row < len(table) and not table.Label[row] in ['START','start']):
                 row += 1
                 skipped += 1
+                self.total_skipped += 1
             # main loop
             table_end = False # whether we've reached the 'End' label
             while(row < len(table) and not table_end):
@@ -257,6 +263,7 @@ class Evaluate:
                     #while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
                         row += 1
                         skipped += 1
+                        self.total_skipped += 1
                 else:
                     if True in [x in table.Label[row].lower() for x in ["end", "stop"]]:
                     #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']]:
@@ -279,6 +286,7 @@ class Evaluate:
                         to_be_skipped = True
                     if(to_be_skipped):
                         skipped += 1
+                        self.total_skipped += 1
                     else:
                         # the beginning and end times for that call are added to the appropriate list 
                         # (or the list is created if this is the first call of that type in the file), 
@@ -300,6 +308,7 @@ class Evaluate:
             # Everything after the end is skipped
             while(row < len(table)):
                 skipped += 1
+                self.total_skipped += 1
                 row += 1
             #print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
             
@@ -878,7 +887,7 @@ class Evaluate:
             
             output = self.evaluation(gt_indices, pred_indices, "", non_foc_gt, output)      
 
-        return output
+        return output, self.total_skipped
 
 
 def list_files(directory, ext=".txt"):
