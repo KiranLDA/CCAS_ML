@@ -177,7 +177,6 @@ def create_table(label_path, call_types, sep, start_column, duration_column,
         label_table.loc[((df == True).sum(axis=1) == 1) & (label_table[label_for_other]==True), calls] = False# label_for_other] = False
         label_table.loc[((df == True).sum(axis=1) == 1) & (label_table[label_for_noise]==True), calls+[label_for_other]] = False
 
-
     return label_table
 
 

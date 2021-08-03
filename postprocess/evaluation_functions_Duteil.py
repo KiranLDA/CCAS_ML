@@ -1,8 +1,7 @@
-
-"""
-Created on Thu Jul 22 13:55:39 2021
-@author: kiran
-"""
+'''
+'''
+import sys
+sys.path.append("/home/mathieu/Documents/Git/CCAS_ML")
 
 import numpy as np
 import glob
@@ -12,22 +11,19 @@ import pandas as pd
 import pickle
 import ntpath
 
+from predation_params import *
 
 
 class Evaluate:
     def __init__(self, label_list, 
                  prediction_list, 
+                 model,
+                 data, 
+                 low_thresh,
+                 high_thresh,
                  noise_label = "noise", 
                  IoU_threshold = 0.5,  
-                 GT_proportion_cut = 0,
-                 no_call = set(["noise", "beep", "synch"]),
-                 category_list = set(["cc", "sn", "mo", "agg", "ld", "soc", "al", "beep", "synch","oth", "noise"]),
-                 headers = set(['Label', 'Duration', 'Start', 'End']),
-                 nonfoc_tags =["NONFOC", "nf", "*"],
-                 start_labels = ['START','start'], 
-                 stop_labels = ['END', 'STOP', 'stop'], 
-                 skipon_labels = ['skipon', 'SKIPON'], 
-                 skipoff_labels = ['skipoff', 'SKIPOFF']
+                 GT_proportion_cut = 0, 
                  ):
         '''
         label_list: list of the paths to the label files
@@ -46,17 +42,13 @@ class Evaluate:
             - "normal": normal analysis, with separation of focal and non-focal
         '''
         
+        from predation_params import headers
+        
         all_files = [label_list, prediction_list]
-        self.headers = headers        
-        self.nonfoc_tags = nonfoc_tags #KD  # presence of any of these strings in the Label column indicates a non-focal call (in the third case, a call that is ambiguous). This is only possible in the ground truth.
-        self.start_labels = start_labels 
-        self.stop_labels = stop_labels 
-        self.skipon_labels = skipon_labels
-        self.skipoff_labels = skipoff_labels
+        self.headers = headers
         
         # Checking that all files have the same call types
-        #self.call_types = None
-        self.call_types = category_list
+        self.call_types = None
         for l in range(len(all_files)):
             if l == 1:
                 (self.headers).add('scores')
@@ -64,19 +56,16 @@ class Evaluate:
                 table = pd.read_csv(file, delimiter=';')
                 table = table.loc[table["Label"] != "Label"] #eliminates the headers
                 column_names = table.columns.tolist()
-                if any(call not in column_names for call in self.call_types):
-                    raise ValueError("File %s has inconsistent call types %s"%(file, [x for x, y in zip(self.call_types, [call not in column_names for call in self.call_types]) if y == True]))
-
-                # self.call_types = set(column_names) - self.headers
-                # if self.call_types is None: # defines the recognised call types
-                #     self.call_types = call_types
-                # else: # checks that the call types used are the same in all files.
-                #     if self.call_types != call_types:
-                #         list_of_calls = [s for s in self.call_types]
-                #         err_calls = " ".join(list_of_calls)
-                #         raise ValueError("Call types inconsistent in " + file + ", expected " + err_calls)
-                # if(len(self.headers.intersection(set(column_names)).union({"scores"})) != len(self.headers.union({"scores"}))):
-                #     raise ValueError("File %s missing headers %s"%(file, self.headers - set(column_names))) # checks that all the headers are there. There have been issues with the 'scores' column being absent in some files, so scores is ignored here. 
+                call_types = set(column_names) - self.headers
+                if self.call_types is None: # defines the recognised call types
+                    self.call_types = call_types
+                else: # checks that the call types used are the same in all files.
+                    if self.call_types != call_types:
+                        list_of_calls = [s for s in self.call_types]
+                        err_calls = " ".join(list_of_calls)
+                        raise ValueError("Call types inconsistent in " + file + ", expected " + err_calls)
+                if(len(self.headers.intersection(set(column_names)).union({"scores"})) != len(self.headers.union({"scores"}))):
+                    raise ValueError("File %s missing headers %s"%(file, self.headers - set(column_names))) # checks that all the headers are there. There have been issues with the 'scores' column being absent in some files, so scores is ignored here. 
         
         self.GT_path = sorted(label_list)
         self.pred_path = sorted(prediction_list)
@@ -85,11 +74,11 @@ class Evaluate:
             self.noise_label = noise_label
         else:
             raise ValueError("Unknown noise label %s"%(noise_label))
+        self.low_thresh = low_thresh
+        self.high_thresh = high_thresh
         
-        self.no_call = no_call #set(["noise", "beep", "synch"])
-        self.true_call= set(self.call_types.difference(self.no_call))
-        #self.call_types= set(self.call_types.difference(self.no_call))
-
+        self.model = model
+        self.data = data
         self.min_call_length = {}
         if len(self.min_call_length.keys()) ==  0:
             for call in self.call_types:
@@ -98,7 +87,6 @@ class Evaluate:
         # self.min_call_length = {"agg":7, "al":9, "cc":16, "ld":24, "mo":15, "sn":5, "soc":10}
         self.frame_rate = 200
         self.GT_proportion_cut = GT_proportion_cut
-        self.total_skipped = 0
     
 
     
@@ -109,22 +97,12 @@ class Evaluate:
         tables. There is no distinction of focal and non-focal for prediction
         files.'''
         
-        #from predation_params import nonfoc_tags, start_labels, stop_labels, skipon_labels, skipoff_labels
-        
-        print("Getting call ranges...")
-        
-        skipped = 0
-        # This table is defined for both ground truth and prediction. 
-        # In both cases, rows represent recording files, columsn represent call types, 
-        # and each cell is a list of tuples representing the beginning and end 
-        # of each call of that type in that file  
-        calls_indices = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))  
-        # This table represents wheter the calls defined above are focal or not. 
-        # Since only the ground truth can be non-focal, only the GT version is used.
-        foc = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))   
-        
+        from predation_params import nonfoc_tags, start_labels, stop_labels, skipon_labels, skipoff_labels
+     
+        calls_indices = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))   # This table is defined for both ground truth and prediction. In both cases, rows represent recording files, columsn represent call types, and each cell is a list of tuples representing the beginning and end of each call of that type in that file  
+        foc = pd.DataFrame(columns = self.call_types, index=range(len(tablenames)))          # This table represents wheter the calls defined above are focal or not. Since only the ground truth can be non-focal, only the GT version is used.
         for i in range(len(tablenames)):
-            for call in self.call_types:
+            for call in call_types:
                 calls_indices.at[i,call] = []
                 foc.at[i,call] = []
         
@@ -132,27 +110,20 @@ class Evaluate:
             skipped = 0
             table = pd.read_csv(tablenames[i], delimiter=';') 
             row = 0
-            
             # go to Start
-            while(row < len(table) and not table.Label[row] in self.start_labels): # All calls before start are skipped
+            while(row < len(table) and not table.Label[row] in start_labels): # All calls before start are skipped
                 row += 1
                 skipped += 1
-                self.total_skipped += 1
+                
             # main loop
             table_end = False # whether we've reached the 'End' label
             while(row < len(table) and not table_end):
-                if "skipon" in table.Label[row].lower():
-                #if any(substring in table.Label[row].lower() for substring in self.skipon_labels):
-                #if table.Label[row] in self.skipon_labels: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
-                    while (("skipoff" not in table.Label[row].lower()) and row < len(table) and not table_end):
-                    #while ((any(substring in table.Label[row].lower() for substring in self.skipoff_labels) ) and row < len(table) and not table_end):
-                    #while(table.Label[row] not in self.skipoff_labels and row < len(table) and not table_end):
+                if table.Label[row] in skipon_labels: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
+                    while(table.Label[row] not in  skipoff_labels and row < len(table) and not table_end):
                         row += 1
                         skipped += 1
-                        self.total_skipped += 1
                 else:
-                    if table.Label[row] in self.stop_labels:
-                    #if any(substring in  table.Label[row].lower() for substring in self.stop_labels):
+                    if table.Label[row] in stop_labels:
                         table_end = True
                         
                     # Determining the call type for that row
@@ -168,13 +139,12 @@ class Evaluate:
                         to_be_skipped = True
                     if(to_be_skipped):
                         skipped += 1
-                        self.total_skipped += 1
                     else:
                         # the beginning and end times for that call are added to the appropriate list 
                         # (or the list is created if this is the first call of that type in the file), 
                         # depending on whether a nonfocal tag is present in the label.
                         calls_indices.at[i,actual_call].append((table.Start[row], table.End[row]))
-                        if any(word in table.Label[row] for word in self.nonfoc_tags):
+                        if any(word in table.Label[row] for word in nonfoc_tags):
                             foc.at[i,actual_call].append(False)
                         else:
                             foc.at[i,actual_call].append(True)                        
@@ -184,8 +154,7 @@ class Evaluate:
             while(row < len(table)):
                 skipped += 1
                 row += 1
-                self.total_skipped += 1
-            # print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
+            #print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
             
         return [calls_indices,foc]
     
@@ -193,16 +162,12 @@ class Evaluate:
 
     def get_min_call_length(self, gt_indices):
         for call in self.call_types:
-            #print(self.min_call_length)
             if call in self.min_call_length.keys():
-                duration = []                
-                for idx in range(len(gt_indices)):  
-                    if len(gt_indices.at[idx,call]) > 0 :
-                        for call_num in range(len(gt_indices.at[idx,call])):
-                            duration.append(gt_indices.at[idx,call][call_num][1] - gt_indices.at[idx,call][call_num][0])
-                    else:
-                        duration.append(0)
-                duration.sort()           
+                duration = []
+                for idx in range(len(gt_indices)):
+                    for call_num in range(len(gt_indices.at[idx,call])):
+                        duration.append(gt_indices.at[idx,call][call_num][1] - gt_indices.at[idx,call][call_num][0])
+                duration.sort()
                 shortest_call_allowed = int(len(duration) * self.GT_proportion_cut) 
                 self.min_call_length[call] = duration[shortest_call_allowed]   
                 
@@ -257,16 +222,13 @@ class Evaluate:
         # so a labeled call cannot be paired with a simultaneous prediction if a better prediction has already been made.
         # This is why the matching starts with the true positives.
         paired_pred = pd.DataFrame(columns = self.call_types, index = range(pred_indices.shape[0]))
-        print("Matching predictions...")
-        tracker = []
+        print("Matching predictions ...")
         for idx in range(np.size(pred_indices,0)):
-            tracker.append(idx)
             for pred in self.call_types:
                 if isinstance(pred_indices.at[idx,pred], list):
                     paired_pred.at[idx,pred] = np.zeros(len(pred_indices.at[idx,pred]), dtype = bool)                    
                 else:
                     paired_pred.at[idx,pred] = []
-        print(tracker)
         paired_call = pd.DataFrame(columns = self.call_types, index = range(gt_indices.shape[0]))
         for idx in range(np.size(gt_indices,0)):
             for call in self.call_types:
@@ -277,9 +239,9 @@ class Evaluate:
         
         # Finding the true positives
         print("Finding true positives...")
-        tracker = []
+        # for idx in [0,1]:
         for idx in range(np.size(gt_indices,0)):            
-            tracker.append(idx)
+            #print(idx)
             match[idx] = pd.DataFrame(columns = col, index = row)
             loose_match[idx] = pd.DataFrame(columns = col, index = row)
             for c in col:
@@ -290,7 +252,7 @@ class Evaluate:
             for pred in self.call_types:
                 if pred in self.min_call_length.keys():
                     min_length = self.min_call_length[pred]
-                    #min_length = 0 #KD
+                    min_length = 0
                 else:
                     min_length = 0
                 if isinstance(pred_indices.at[idx,pred], list):
@@ -310,14 +272,12 @@ class Evaluate:
                                         paired_pred.at[idx,pred][pred_nb] = True
                                         paired_call.at[idx,pred][call_nb] = True   
                                         match[idx].at[pred,pred].append((call_nb,pred_nb))
-        print(tracker)
-        
         
         # Finding the wrong detections and false negatives:
-        print("Finding false negatives...")
-        tracker = []
+        print("Finding false negatives:")
+        # for idx in [0,1]:
         for idx in range(np.size(gt_indices,0)):            
-            tracker.append(idx)
+            #print(idx)
             for call in self.call_types:
                 if isinstance(gt_indices.at[idx,call], list):
                     for call_nb in range(len(gt_indices.at[idx,call])):
@@ -352,14 +312,12 @@ class Evaluate:
                             call_end = gt_indices.at[idx,call][call_nb][1]                            
                             if foc.at[idx,call][call_nb]:
                                 match[idx].at[call,'FN'].append((call_nb,np.nan))
-        print(tracker)
-                                        
+                                                
         # At this point all labelled calls have been matched or classified as false negatives.
         # Only the false positives still need to be marked.        
-        print("Marking false positives...")
-        tracker = []
+        print("Marking false positives")
+        # for idx in [0,1]:
         for idx in range(np.size(pred_indices,0)):
-            tracker.append(idx)
             for pred in self.call_types:
                 if isinstance(pred_indices.at[idx,pred], list):
                     if pred in self.min_call_length.keys():
@@ -375,8 +333,8 @@ class Evaluate:
                                 match[idx].at[self.noise_label,pred].append((np.nan,pred_nb))
                             # FP are sorted in noise. One consequence of that is that the call type noise 
                             # can be properly identified and still increase the number of false positives.
-        print(tracker)       
-        # print("Finished FP marking!") 
+                
+        print("Finished FP marking!") 
         
         return match, loose_match 
     
@@ -562,8 +520,6 @@ class Evaluate:
     
 
     def main(self):
-        
-        output = dict()
            
         print( "Formatting ground truths...")
         gt_indices, foc = self.get_call_ranges(self.GT_path)
@@ -638,25 +594,23 @@ class Evaluate:
             cat_frag.rename(index={i: os.path.basename(self.pred_path[i])}, inplace=True)
             time_frag.rename(index={i: os.path.basename(self.pred_path[i])}, inplace=True) 
         
-        # store the outputs    
-        output["Label_Indices"] = gt_indices
-        output["Prediction_Indices"] = pred_indices
-        output["Focal"] = foc
-        output["Matching_Table"] = match
-        output["Matching_Table-Labels_Sorted"] = call_match
-        output["Matching_Table-Predictions_Sorted"] = pred_match
-        output["Confusion_Matrix"] = cm
-        output["Precision"] = Prec
-        output["Lenient_Precision"] = lenient_Prec
-        output["Recall"] = Rec
-        output["Lenient_Recall"] = lenient_Rec
-        output["Time_Difference"] = offset
-        output["Category_Fragmentation"] = cat_frag
-        output["Time_Fragmentation"] = time_frag     
-        
-        return output, self.total_skipped
-    
-        '''
+        # # store the outputs    
+        # output = dict()
+        # output["Label_Indices"] = gt_indices
+        # output["Prediction_Indices"] = pred_indices
+        # output["Focal"] = foc
+        # output["Matching_Table"] = match
+        # output["Matching_Table-Labels_Sorted"] = call_match
+        # output["Matching_Table-Predictions_Sorted"] = pred_match
+        # output["Confusion_Matrix"] = cm
+        # output["Precision"] = Prec
+        # output["Lenient_Precision"] = lenient_Prec
+        # output["Recall"] = Rec
+        # output["Lenient_Recall"] = lenient_Rec
+        # output["Time_Difference"] = offset
+        # output["Category_Fragmentation"] = cat_frag
+        # output["Time_Fragmentation"] = time_frag        
+
         # Creating the metrics folder
         main_dir =  os.path.join("/media/mathieu/Elements/code/KiranLDA/results/", self.model, self.data, "metrics")
         metrics_folder = os.path.join(main_dir, str(self.GT_proportion_cut), str(self.low_thresh), str(self.high_thresh))
@@ -673,8 +627,8 @@ class Evaluate:
         output_files = self.output(gt_indices, foc, pred_indices, match, call_match, pred_match, cm, prec, lenient_prec, rec, lenient_rec, offset, cat_frag, pred_indices)
         with open(os.path.join(metrics_folder, 'Label_Indices.p'), 'wb') as fp:
             pickle.dump(gt_indices, fp)
-       # with open(os.path.join(metrics_folder, 'Label_Indices.p'), 'wb') as fp:
-       #     pickle.dump(gt_indices, fp)
+        with open(os.path.join(metrics_folder, 'Label_Indices.p'), 'wb') as fp:
+            pickle.dump(gt_indices, fp)
         with open(os.path.join(metrics_folder, 'Prediction_Indices.p'), 'wb') as fp:
             pickle.dump(pred_indices, fp)
         with open(os.path.join(metrics_folder, 'Focal.p'), 'wb') as fp:
@@ -700,7 +654,6 @@ class Evaluate:
             pickle.dump(cat_frag, fp)
         with open(os.path.join(metrics_folder, 'Time_Fragmentation.p'), 'wb') as fp:
             pickle.dump(time_frag, fp)
-        '''
 
 
         # return output
@@ -716,7 +669,7 @@ def list_files(directory, ext=".txt"):
 if __name__=="__main__":
     # model = "NoiseAugmented_ProportionallyWeighted_NoOther_2020-10-14_03:12:32.817594"
     # model = "EXAMPLE_NoiseAugmented_0.3_0.8_NotWeighted_MaskedOther_Forked/"
-    # from predation_params import run_name, test_path, data, low_thresholds, high_thresholds, short_GT_removed
+    from predation_params import run_name, test_path, data, low_thresholds, high_thresholds, short_GT_removed
     # run = "new_run"
     # main_dir =  os.path.join("/media/mathieu/Elements/code/KiranLDA/results", model, run)
     main_dir =  test_path
@@ -767,4 +720,4 @@ if __name__=="__main__":
                         - "normal": normal analysis, with separation of focal and non-focal
                         By default, the analysis is set to normal.
                     '''
-                    output, skipped = evaluate.main()
+                    evaluate.main()
