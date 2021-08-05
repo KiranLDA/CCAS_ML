@@ -1,3 +1,7 @@
+# BEFORE STARTING
+
+Please do not use this software without informing @KiranLDA
+
 # OVERVIEW AND BACKGROUND
 
 Understanding group decision-making in mobile species is a complex challenge. The integration of both GPS and acoustic sensors into tags deployed on multiple individuals in groups can help us systematically quantify communication between individuals as well as their movement responses - based on who is calling, the context of the call, and how the group reacts. However, the resulting datasets are very large, and the manual identification and classification of calls is both time and labor consuming. 
