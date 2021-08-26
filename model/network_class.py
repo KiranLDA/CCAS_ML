@@ -189,8 +189,8 @@ class BuildNetwork():
         drop_3B = Dropout(rate=self.dropout)(dense_3B)
         
         # Fork into two outputs
-        output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='sigmoid'), name="output_calltype")(drop_3A)
-        output_callpresence = TimeDistributed(Dense(2, activation='softmax'), name="output_callpresence")(drop_3B)
+        output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='sigmoid'), name="calltype")(drop_3A)
+        output_callpresence = TimeDistributed(Dense(2, activation='softmax'), name="callpresence")(drop_3B)
 
         
         # build model
