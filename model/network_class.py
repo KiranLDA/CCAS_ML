@@ -94,17 +94,16 @@ class BuildNetwork():
         c_2 = Conv2D(self.filters, neighborhood, padding='same', activation='relu')(mp_1)
         mp_2 = MaxPooling2D(pool_size=(1,2))(c_2)
         c_3 = Conv2D(self.filters, neighborhood, padding='same', activation='relu')(mp_2)
-        mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)     f   
+        mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)       
         
-        # Reshape
-        
-        # reshape_1 = Reshape((self.x_train[0].shape[-3], -1))(mp_3)  
+        # Reshape   
         
         # frequency information axis has been reduced by max pooling
         # Last CNN output is time X freq_info X self.filters
         # Stack the filters:  time X (freq_info * self.filters)
         # Time steps will depend on the example or batch, so we use -1
         cnn_out = Reshape((-1, np.prod(mp_3.shape[-2:])))(mp_3)
+        # reshape_1 = Reshape((self.x_train[0].shape[-3], -1))(mp_3)  
         
         # Determine which time slices should be ignored by computing a binary mask that
         # will be passed directly to the recurrent layers as a mask argument.
@@ -171,9 +170,11 @@ class BuildNetwork():
         # bidirectional gated recurrent unit x2
         # mask goes here
         rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
-                                  recurrent_dropout=self.dropout,return_sequences=True), merge_mode='mul')(reshape_1, mask = inp_mask)#mask_tensor)
+                                  #recurrent_dropout=self.dropout,
+                                  return_sequences=True), merge_mode='mul')(reshape_1, mask = inp_mask)#mask_tensor)
         rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
-                                  recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(rnn_1)
+                                  #recurrent_dropout=self.dropout, 
+                                  return_sequences=True), merge_mode='mul')(rnn_1, mask = inp_mask)
         
         # 3x relu
         dense_1  = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(rnn_2)
@@ -221,17 +222,15 @@ class BuildNetwork():
         rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
                                   recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(rnn_1)
         
-        # 3x relu
+        # 3x dense layers
         dense_1  = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(rnn_2)
         drop_1 = Dropout(rate=self.dropout)(dense_1)
         dense_2 = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_1)
         drop_2 = Dropout(rate=self.dropout)(dense_2)
-        
-        # split into two to get two outputs
         dense_3 = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
         drop_3 = Dropout(rate=self.dropout)(dense_3)
         
-        # Fork into two outputs
+        # Output
         output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='softmax'), name="output_calltype")(drop_3)
 
         # build model
