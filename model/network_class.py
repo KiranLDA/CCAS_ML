@@ -111,11 +111,18 @@ class BuildNetwork():
         mask = Masking()
         mask_val = mask.compute_mask(inp_aud)
         
-        # bidirectional gated recurrent unit x2
-        rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
-                                  recurrent_dropout=self.dropout,return_sequences=True), merge_mode='mul')(reshape_1, mask = inp_mask)#mask_tensor)
-        rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
-                                  recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(rnn_1)
+        # bidirectional gated recurrent unit layers
+        # Initial implementation had reucrrent_dropout=self.dropout for these layers,
+        # but this prevents the use of the GRU implementation in the cuDNN library
+        # which is an order of magnitude faster.
+        gru_1 = GRU(units=self.gru_units, activation='tanh', dropout=self.dropout,return_sequences=True)
+        rnn_1 = Bidirectional(gru_1, merge_mode='mul')(cnn_out, mask=mask_val)
+        # rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
+        #                           recurrent_dropout=self.dropout,return_sequences=True), merge_mode='mul')(reshape_1, mask = inp_mask)#mask_tensor)
+        gru_2 = GRU(units=self.gru_units, activation='tanh', dropout=self.dropout,return_sequences=True)
+        rnn_2 = Bidirectional(gru_2, merge_mode='mul')(rnn_1, mask=mask_val)
+        # rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
+        #                           recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(rnn_1)
         
         # 3x relu
         dense_1  = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(rnn_2)
@@ -130,8 +137,8 @@ class BuildNetwork():
         drop_3B = Dropout(rate=self.dropout)(dense_3B)
         
         # Fork into two outputs
-        output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='sigmoid'), name="output_calltype")(drop_3A)
-        output_callpresence = TimeDistributed(Dense(2, activation='softmax'), name="output_callpresence")(drop_3B)
+        output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='sigmoid'), name="calltype")(drop_3A)
+        output_callpresence = TimeDistributed(Dense(2, activation='softmax'), name="callpresence")(drop_3B)
         
         # build model
         model = Model([inp_aud], [output_calltype, output_callpresence])
