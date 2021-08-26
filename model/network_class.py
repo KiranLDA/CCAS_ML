@@ -74,6 +74,74 @@ class BuildNetwork():
         
         return model
     
+
+
+    
+    def build_fast_forked_masked_rnn(self):
+        
+        N, time, freqN = self.x_train.shape
+        # inp_aud = Input(shape=(self.x_train[0].shape[1], self.x_train[0].shape[2], self.x_train[0].shape[3]))
+        # inp_mask = Input(shape=(self.x_train[1].shape[1],))
+        inp_aud = Input(shape=(None,freqN))
+        
+        # Add dummy channel dimension expected for Conv2D layers
+        inp_chan = expand_dims(inp_aud, axis=-1)
+               
+        # Convolutional layers (conv - maxpool x3 )
+        neighborhood = (3, 3)  # convolutional mask size
+        c_1 = Conv2D(self.filters, neighborhood, padding='same', activation='relu')(inp_chan) #(inp_aud)
+        mp_1 = MaxPooling2D(pool_size=(1,5))(c_1)
+        c_2 = Conv2D(self.filters, neighborhood, padding='same', activation='relu')(mp_1)
+        mp_2 = MaxPooling2D(pool_size=(1,2))(c_2)
+        c_3 = Conv2D(self.filters, neighborhood, padding='same', activation='relu')(mp_2)
+        mp_3 = MaxPooling2D(pool_size=(1,2))(c_3)     f   
+        
+        # Reshape
+        
+        # reshape_1 = Reshape((self.x_train[0].shape[-3], -1))(mp_3)  
+        
+        # frequency information axis has been reduced by max pooling
+        # Last CNN output is time X freq_info X self.filters
+        # Stack the filters:  time X (freq_info * self.filters)
+        # Time steps will depend on the example or batch, so we use -1
+        cnn_out = Reshape((-1, np.prod(mp_3.shape[-2:])))(mp_3)
+        
+        # Determine which time slices should be ignored by computing a binary mask that
+        # will be passed directly to the recurrent layers as a mask argument.
+        mask = Masking()
+        mask_val = mask.compute_mask(inp_aud)
+        
+        # bidirectional gated recurrent unit x2
+        rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
+                                  recurrent_dropout=self.dropout,return_sequences=True), merge_mode='mul')(reshape_1, mask = inp_mask)#mask_tensor)
+        rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
+                                  recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(rnn_1)
+        
+        # 3x relu
+        dense_1  = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(rnn_2)
+        drop_1 = Dropout(rate=self.dropout)(dense_1)
+        dense_2 = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_1)
+        drop_2 = Dropout(rate=self.dropout)(dense_2)
+        
+        # split into two to get two outputs
+        dense_3A = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
+        drop_3A = Dropout(rate=self.dropout)(dense_3A)
+        dense_3B = TimeDistributed(Dense(self.dense_neurons, activation='relu'))(drop_2)
+        drop_3B = Dropout(rate=self.dropout)(dense_3B)
+        
+        # Fork into two outputs
+        output_calltype = TimeDistributed(Dense(self.num_calltypes, activation='sigmoid'), name="output_calltype")(drop_3A)
+        output_callpresence = TimeDistributed(Dense(2, activation='softmax'), name="output_callpresence")(drop_3B)
+        
+        # build model
+        model = Model([inp_aud], [output_calltype, output_callpresence])
+        
+        return model
+    
+    
+    
+    
+    
     def build_forked_masked_rnn(self):
         
         inp_aud = Input(shape=(self.x_train[0].shape[1], self.x_train[0].shape[2], self.x_train[0].shape[3]))
@@ -91,15 +159,10 @@ class BuildNetwork():
         
         # reshape
         reshape_1 = Reshape((self.x_train[0].shape[-3], -1))(mp_3)
-        # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (self.x_train[1].shape[1],))(inp_mask)
-        # mask_tensor = boolean_mask(reshape_1, self.x_train[1])
-        # kinda works
-        # mask_tensor = Masking(mask_value = self.mask_value, input_shape = (self.x_train[1].shape[1], self.x_train[1].shape[2])).compute_mask(reshape_1)
         
         
         # bidirectional gated recurrent unit x2
-        # rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
-        #                           recurrent_dropout=self.dropout, return_sequences=True), merge_mode='mul')(reshape_1)
+        # mask goes here
         rnn_1 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
                                   recurrent_dropout=self.dropout,return_sequences=True), merge_mode='mul')(reshape_1, mask = inp_mask)#mask_tensor)
         rnn_2 = Bidirectional(GRU(units=self.gru_units, activation='tanh', dropout=self.dropout, 
@@ -124,8 +187,6 @@ class BuildNetwork():
         
         # build model
         model = Model([inp_aud, inp_mask], [output_calltype, output_callpresence])
-        # model.add(Masking(mask_value = self.mask_value, 
-        #                   input_shape = (None,self.x_train.shape[1], self.x_train.shape[2], self.x_train.shape[3])))
         
         return model
     
