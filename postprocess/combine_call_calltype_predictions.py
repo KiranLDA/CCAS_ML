@@ -25,9 +25,9 @@ for i in call_types.keys():
     call_len_dict[i] = sum(label_table[i].astype(int))
     
 for low_thr_1 in [0.01,0.05,0.1,0.2]:
-    for high_thr_1 in [0.1,0.2,0.3,0.4,0.5,0.6,0.5,0.7,0.8,0.9,0.95]: 
+    for high_thr_1 in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95]: 
         for low_thr_2 in [0.01,0.05,0.1,0.2]:
-            for high_thr_2 in [0.1,0.2,0.3,0.4,0.5,0.6,0.5,0.7,0.8,0.9,0.95]: 
+            for high_thr_2 in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95]: 
                 if high_thr_1>low_thr_1:
                     if high_thr_2>low_thr_2:
 
@@ -189,11 +189,6 @@ for low_thr_1 in [0.01,0.05,0.1,0.2]:
                         df_cm = df_cm[list(testing_label_dict.keys())]
                         df_cm = df_cm.reindex(list(testing_label_dict.keys()))     
                         
-                        ##########################################
-                        # call length
-                        
-                        
-                            
                         
                         
                         #########################################

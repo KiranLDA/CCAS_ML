@@ -12,8 +12,6 @@ import pandas as pd
 import pickle
 import ntpath
 
-
-
 class Evaluate:
     def __init__(self, label_list, 
                  prediction_list, 
@@ -197,7 +195,7 @@ class Evaluate:
             if call in self.min_call_length.keys():
                 duration = []                
                 for idx in range(len(gt_indices)):  
-                    if len(gt_indices.at[idx,call]) > 0 :
+                    if len(gt_indices.at[idx,call]) > 0:
                         for call_num in range(len(gt_indices.at[idx,call])):
                             duration.append(gt_indices.at[idx,call][call_num][1] - gt_indices.at[idx,call][call_num][0])
                     else:
@@ -273,7 +271,7 @@ class Evaluate:
                 if isinstance(gt_indices.at[idx,call], list):
                     paired_call.at[idx,call] = np.zeros(len(gt_indices.at[idx,call]), dtype = bool)
                 else:
-                    paired_call.at[idx,call] = []
+                    paired_call.at[idx,call] = [] 
         
         # Finding the true positives
         print("Finding true positives...")
