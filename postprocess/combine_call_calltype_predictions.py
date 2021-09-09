@@ -47,7 +47,7 @@ for low_thr_1 in [0.01,0.05,0.1,0.2]:
                         calltype_table["median_score"] = calltype_table["scores"].apply(lambda x: ast.literal_eval(x) if (len(x) == 3 ) else np.median(ast.literal_eval(x)))
                         
                         #calltype_table["max_score"].plot.hist(bins=100)
-                        #calltype_table["median_score"].plot.hist(bins=100)
+                        #calltype_table["median_score "].plot.hist(bins=100)
                         
                         callpresence_table["calltype"] = "Not matched"
                         
