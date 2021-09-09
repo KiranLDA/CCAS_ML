@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Mar 19 14:31:08 2021
+
+@author: kiran
+"""
+
+
+#########################################################################
+# plot overall confusion matrix
+#########################################################################
+
+import seaborn as sn
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+import csv
+import math
+
+confusion_filename = "/home/kiran/Documents/ML/confusion_mat_Mathieu_21-03-19/0.2/0.8/_Confusion matrix.csv"
+with open(confusion_filename, newline='') as csvfile:
+    array = list(csv.reader(csvfile))
+
+df_cm = pd.DataFrame(array)#, range(6), range(6))    
+
+#get rid of the weird indentations and make rows and columns as names
+new_col = df_cm.iloc[0] #grab the first row for the header
+df_cm = df_cm[1:] #take the data less the header row
+df_cm.columns = new_col #set the header row as the df header    
+new_row = df_cm['']
+df_cm = df_cm.drop('', 1)
+df_cm.index = new_row
+df_cm.index.name= None
+df_cm.columns.name= None
+
+# # replace FP and FN with noise
+df_cm['noise'] = df_cm['FN'] 
+# df_cm.loc['noise']=df_cm.loc['FP']
+
+# remove FP and FN
+df_cm = df_cm.drop("FN", axis=1)
+# df_cm = df_cm.drop("FP", axis=0)
+####
+
+
+df_cm = df_cm.apply(pd.to_numeric)
+# #move last negatives to end
+# col_name = "FN"
+# last_col = df_cm.pop(col_name)
+# df_cm.insert(df_cm.shape[1], col_name, last_col)
+df_cm
+# # remove noi        for low_thr in [0.1,0.3]:
+    # for high_thr in [0.5,0.7,0.8,0.9,0.95]: 
+
+#normalise the confusion matrix
+if normalise == True:
+    # divide_by = df_cm.sum(axis=1)
+    # divide_by.index = new_header
+    # new_row = df_cm.index 
+    # new_col = df_cm.columns
+    df_row = df_cm.div(df_cm.sum(axis=1), axis=0).round(2)#pd.DataFrame(df_cm.values / df_cm.sum(axis=1).values).round(2)
+    df_col = df_cm.div(df_cm.sum(axis=0), axis=1).round(2)#pd.DataFrame(df_cm.values / df_cm.sum(axis=1).values).round(2)
+    
+    # df_cm.index = new_row
+    # df_cm.columns = new_col
+
+
+order = ["al","agg","cc", "mo","ld", "soc", "sn", "beep", "synch", "oth", "noise"]
+df_cm = df_cm.reindex(order)
+df_cm = df_cm.reindex(df_cm.index,axis=1)#.rename(columns=s.to_dict())
+
+df_row = df_row.reindex(order)
+df_row = df_row.reindex(df_row.index,axis=1)#.rename(columns=s.to_dict())
+
+
+df_col = df_col.reindex(order)
+df_col = df_col.reindex(df_col.index,axis=1)#.rename(columns=s.to_dict())
+
+log_norm = LogNorm(vmin=df_cm.min().min()+0.0000001, vmax=df_cm.max().max())
+ax = plt.axes()
+sn.set(font_scale=1.1) # for label size
+ax.xaxis.tick_top() # x axis on top
+ax.xaxis.set_label_position('top')
+# sn.heatmap(np.log(df_cm+0.00001), annot=True, 
+#            annot_kws={"size": 10}, fmt='g', ax= ax) # font size
+sn.heatmap((df_cm+0.000001), norm=log_norm, annot=True, 
+           annot_kws={"size": 10}, fmt='g', ax=ax) # font size
+# ax.set_title(str(low_thr) + "-" + str(high_thr) )
+# plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
+plt.show()
+# plt.colorbar(label="Label")
+
+
+ax = plt.axes()
+sn.set(font_scale=1.1) # for label size
+ax.xaxis.tick_top() # x axis on top
+ax.xaxis.set_label_position('top')
+# sn.heatmap(np.log(df_cm+0.00001), annot=True, 
+#            annot_kws={"size": 10}, fmt='g', ax= ax) # font size
+sn.heatmap((df_row), annot=True, annot_kws={"size": 10},fmt='g', ax= ax) # font size
+# ax.set_title(str(low_thr) + "-" + str(high_thr) )
+# plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
+plt.show()
+# plt.colorbar(label="Label")
+
+ax = plt.axes()
+sn.set(font_scale=1.1) # for label size
+ax.xaxis.tick_top() # x axis on top
+ax.xaxis.set_label_position('top')
+# sn.heatmap(np.log(df_cm+0.00001), annot=True, 
+#            annot_kws={"size": 10}, fmt='g', ax= ax) # font size
+sn.heatmap((df_col), annot=True, annot_kws={"size": 10},fmt='g', ax= ax) # font size
+# ax.set_title(str(low_thr) + "-" + str(high_thr) )
+# plt.savefig(os.path.join(save_metrics_path, "Confusion_mat_thr_" + str(low_thr) + "-" + str(high_thr) + '.png'))
+plt.show()
+# plt.colorbar(label="Label")
+
