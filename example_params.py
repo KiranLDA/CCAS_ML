@@ -118,7 +118,7 @@ no_call = set(["noise", "beep", "synch"])
 true_call= set(set(call_types.keys()).difference(no_call))
 
 # will go in params
-eval_analysis = "normal"#"call_type_by_call_type" #
+eval_analysis = "call_type_by_call_type" #"normal"
 #true_call= set(list(call_types.keys()).difference(no_call))
 
 #----------------------------------------------------------------------------------------------------
