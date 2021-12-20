@@ -149,7 +149,7 @@ class Evaluate:
                 #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipon']]:
                 #if table.Label[row].str.contains("skipon", regex=True, case = False):
                 #if table.Label[row] in ['skipon', 'SKIPON']: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
-                    while "skipoff" not in table.Label[row].lower():
+                    while "skipof" not in table.Label[row].lower():
                     #while True not in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipoff']]:
                     #while table.Label[row].str.contains("skipoff", regex=True, case = False) == False:
                     #while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
@@ -258,7 +258,7 @@ class Evaluate:
                 #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipon']]:
                 #if table.Label[row].str.contains("skipon", regex=True, case = False):
                 #if table.Label[row] in ['skipon', 'SKIPON']: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
-                    while "skipoff" not in table.Label[row].lower():
+                    while "skipof" not in table.Label[row].lower():
                     #while True not in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipoff']]:
                     #while table.Label[row].str.contains("skipoff", regex=True, case = False) == False:
                     #while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
