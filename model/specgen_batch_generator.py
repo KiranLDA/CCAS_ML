@@ -11,6 +11,7 @@ import pandas as pd
 import tensorflow.keras as keras
 import preprocess.preprocess_functions as pre
 import model.audiopool as audiopool
+import random
 
 class ForkedDataGenerator(keras.utils.Sequence):
     def __init__(self, 
@@ -132,8 +133,8 @@ class ForkedDataGenerator(keras.utils.Sequence):
         
         
         # calculate sample size and batch size
-        self.mean_sample_size, self.sample_size = self.sampling_strategy() 
         self.batch_size = self.n_per_call * len(self.call_table_dict.keys())
+        self.mean_sample_size, self.sample_size = self.sampling_strategy() 
         self.tot_batch_number = int(np.floor(self.mean_sample_size / self.batch_size))
         
          
@@ -260,7 +261,7 @@ class ForkedDataGenerator(keras.utils.Sequence):
             
             # except if we have reached the end of the indexes, 
             # in which case they will need to be reshuffled
-            if (self.next_sample[calltype] + self.n_per_call) > (len(self.indexes[calltype])-1) :
+            if (self.next_sample[calltype] + self.n_per_call) >= len(self.indexes[calltype]) :
                 np.random.shuffle(self.indexes[calltype])  # reshuffle the data
                 self.next_sample[calltype] = 0 #reset the index
             start_idx = self.next_sample[calltype] #readjust the start
@@ -271,6 +272,11 @@ class ForkedDataGenerator(keras.utils.Sequence):
             for call_num in range(start_idx, stop_idx):
                 # call_num = start_idx
                 # calltype= "sn"
+                
+                # If there are fewer call than n_per_call
+                if call_num > (len(self.call_table_dict[calltype]["Label"])-1):
+                    call_num = random.randint(0,len(self.call_table_dict[calltype]["Label"])-1)
+
                 
                 # do a weighted coin flip
                 augment = np.random.binomial(1, 
@@ -302,6 +308,10 @@ class ForkedDataGenerator(keras.utils.Sequence):
                 
                 # move to the next sample for the next batch
                 self.next_sample[calltype] += 1
+                if (self.next_sample[calltype] + self.n_per_call) >= len(self.indexes[calltype]) :
+                    np.random.shuffle(self.indexes[calltype])  # reshuffle the data
+                    self.next_sample[calltype] = 0 #reset the index
+                    #call_num = self.next_sample[calltype]
        
         # Put everything into arrays
         spectros = np.asarray(batch_spec_data)
@@ -332,6 +342,8 @@ class ForkedDataGenerator(keras.utils.Sequence):
                                                           columns= ["label", "sample_size", "duration"]))
         # calculate the mean sample (without including noise in the calculation)
         mean_sample_size = round(sum(sample_size["sample_size"][sample_size["label"]!= self.label_for_noise])/len(sample_size["sample_size"][sample_size["label"]!= self.label_for_noise]))
+        if mean_sample_size < (self.batch_size*4):
+            mean_sample_size = self.batch_size*4
         # Estimate how many calls are needed to reach the mean sample size
         sample_size["calls_needed"] =  mean_sample_size - sample_size["sample_size"]
         # estimate how many times a sample needs to be augmented to read the mean
@@ -485,8 +497,8 @@ class DataGenerator(keras.utils.Sequence):
         
         
         # calculate sample size and batch size
-        self.mean_sample_size, self.sample_size = self.sampling_strategy() 
         self.batch_size = self.n_per_call * len(self.call_table_dict.keys())
+        self.mean_sample_size, self.sample_size = self.sampling_strategy() 
         self.tot_batch_number = int(np.floor(self.mean_sample_size / self.batch_size))
     
     def __len__(self):
@@ -610,7 +622,7 @@ class DataGenerator(keras.utils.Sequence):
             
             # except if we have reached the end of the indexes, 
             # in which case they will need to be reshuffled
-            if (self.next_sample[calltype] + self.n_per_call) > (len(self.indexes[calltype])-1) :
+            if (self.next_sample[calltype] + self.n_per_call) >= (len(self.indexes[calltype])) :
                 np.random.shuffle(self.indexes[calltype])  # reshuffle the data
                 self.next_sample[calltype] = 0 #reset the index
             start_idx = self.next_sample[calltype] #readjust the start
@@ -622,6 +634,9 @@ class DataGenerator(keras.utils.Sequence):
                 # call_num = start_idx
                 # calltype= "sn"
                 
+                # If there are fewer call than n_per_call
+                if call_num > (len(self.call_table_dict[calltype]["Label"])-1):
+                    call_num = random.randint(0,len(self.call_table_dict[calltype]["Label"])-1)
                 # do a weighted coin flip
                 augment = np.random.binomial(1, 
                                              float(self.sample_size.loc[self.sample_size["label"] == calltype, "prop_to_augment"]), 
@@ -652,6 +667,9 @@ class DataGenerator(keras.utils.Sequence):
                 
                 # move to the next sample for the next batch
                 self.next_sample[calltype] += 1
+                if (self.next_sample[calltype] + self.n_per_call) >= len(self.indexes[calltype]) :
+                    np.random.shuffle(self.indexes[calltype])  # reshuffle the data
+                    self.next_sample[calltype] = 0 #reset the index
        
         # Put everything into arrays
         spectros = np.asarray(batch_spec_data)
@@ -682,6 +700,8 @@ class DataGenerator(keras.utils.Sequence):
                                                           columns= ["label", "sample_size", "duration"]))
         # calculate the mean sample (without including noise in the calculation)
         mean_sample_size = round(sum(sample_size["sample_size"][sample_size["label"]!= self.label_for_noise])/len(sample_size["sample_size"][sample_size["label"]!= self.label_for_noise]))
+        if mean_sample_size < (self.batch_size*4):
+            mean_sample_size = self.batch_size*4
         # Estimate how many calls are needed to reach the mean sample size
         sample_size["calls_needed"] =  mean_sample_size - sample_size["sample_size"]
         # estimate how many times a sample needs to be augmented to read the mean
