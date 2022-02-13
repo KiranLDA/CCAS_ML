@@ -22,6 +22,7 @@ class Evaluate:
                  GT_proportion_cut = 0, 
                  no_call = set(["noise", "beep", "synch"]),
                  headers = set(['Label', 'Duration', 'Start', 'End']),
+                 call_list = ['cc', 'sn', 'mo', 'agg', 'ld', 'soc', 'al', 'beep', 'synch', 'oth', 'noise'],
                  nonfoc_tags =["NONFOC", "nf", "*"]):
         '''
         label_list: list of the paths to the label files
@@ -41,6 +42,8 @@ class Evaluate:
         '''
         
         all_files = [label_list, prediction_list]
+        
+        self.call_list = call_list
         self.headers = headers
         self.nonfoc_tags = nonfoc_tags  # presence of any of these strings in the Label column indicates a non-focal call (in the third case, a call that is ambiguous). This is only possible in the ground truth.
         
@@ -55,6 +58,13 @@ class Evaluate:
                 table = table.loc[table["Label"] != "Label"] #eliminates the headers
                 column_names = table.columns.tolist()
                 call_types = set(column_names) - self.headers
+                
+                #KD
+                '''
+                if any(list(set(call_types) - set(self.call_list))):
+                    raise ValueError("Call types inconsistent in " + file + ", expected " + str(list(set(call_types) - set(self.call_list))))
+                self.call_types = call_types#set(self.call_list)
+                '''
                 if self.call_types is None: # defines the recognised call types
                     self.call_types = call_types
                 else: # checks that the call types used are the same in all files.
@@ -62,6 +72,7 @@ class Evaluate:
                         list_of_calls = [s for s in self.call_types]
                         err_calls = " ".join(list_of_calls)
                         raise ValueError("Call types inconsistent in " + file + ", expected " + err_calls)
+                
                 if(len(self.headers.intersection(set(column_names)).union({"scores"})) != len(self.headers.union({"scores"}))):
                 #if(len(self.headers.intersection(set(column_names))) != len(self.headers)):
                     raise ValueError("File %s missing headers %s"%(file, self.headers - set(column_names))) # checks that all the headers are there
@@ -136,65 +147,67 @@ class Evaluate:
             table = pd.read_csv(tablenames[i], delimiter=';') 
             row = 0
             
-            # go to Start
-            while(row < len(table) and not table.Label[row] in ['START','start']):
-                row += 1
-                skipped += 1
-                self.total_skipped += 1
-                
-            # main loop
-            table_end = False # whether we've reached the 'End' label
-            while(row < len(table) and not table_end):
-                if "skipon" in table.Label[row].lower():
-                #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipon']]:
-                #if table.Label[row].str.contains("skipon", regex=True, case = False):
-                #if table.Label[row] in ['skipon', 'SKIPON']: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
-                    while "skipof" not in table.Label[row].lower():
-                    #while True not in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipoff']]:
-                    #while table.Label[row].str.contains("skipoff", regex=True, case = False) == False:
-                    #while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
-                        row += 1
-                        skipped += 1
-                        self.total_skipped += 1
-                else:
-                    if True in [x in table.Label[row].lower() for x in ["end", "stop"]]:
-                    #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']]:
-                    #if table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']:
-                    # if table.Label[row] in ['END', 'STOP', 'stop']:
-                        table_end = True
-                        
-                    # Determining the call type for that row
-                    actual_call = None
-                    to_be_skipped = False # There should be one 'True' per line. In any other case, the line will be skipped and counted as such.
-                    for call in self.call_types:
-                        if (table.at[row,call]):  
-                            if(actual_call is None):
-                                actual_call = call
-                            else:
-                                to_be_skipped = True
-                    if(actual_call is None):
-                        to_be_skipped = True
-                    if(to_be_skipped):
-                        skipped += 1
-                        self.total_skipped += 1
-                    else:
-                        # the beginning and end times for that call are added to the list 
-                        if table.Duration[row] > all_min_call_length[actual_call]: # / (self.frame_rate - 1):
-                            calls_indices[actual_call][i].append((table.Start[row], table.End[row]))
-                            if any(word in table.Label[row] for word in self.nonfoc_tags):
-                                non_foc_gt[actual_call][i].append(True)
-                            else:
-                                non_foc_gt[actual_call][i].append(False)
-                            extract +=1
+            #KD 
+            if len(table) > 2:
+                # go to Start
+                while(row < len(table) and not table.Label[row] in ['START','start']):
                     row += 1
-            total_examples += len(table)
-            
-            # Everything after the end is skipped
-            while(row < len(table)):
-                skipped += 1
-                self.total_skipped += 1
-                row += 1  
-            print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
+                    skipped += 1
+                    self.total_skipped += 1
+
+                # main loop
+                table_end = False # whether we've reached the 'End' label
+                while(row < len(table) and not table_end):
+                    if "skipon" in table.Label[row].lower():
+                    #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipon']]:
+                    #if table.Label[row].str.contains("skipon", regex=True, case = False):
+                    #if table.Label[row] in ['skipon', 'SKIPON']: # parts of some files must be skipped. Those are surrounded by two rows with the labels 'skipon' and 'skipoff'.
+                        while "skipof" not in table.Label[row].lower():
+                        #while True not in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['skipoff']]:
+                        #while table.Label[row].str.contains("skipoff", regex=True, case = False) == False:
+                        #while(table.Label[row] not in  ['skipoff', 'SKIPOFF'] and row < len(table) and not table_end):
+                            row += 1
+                            skipped += 1
+                            self.total_skipped += 1
+                    else:
+                        if True in [x in table.Label[row].lower() for x in ["end", "stop"]]:
+                        #if True in [table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']]:
+                        #if table.Label[row].str.contains(x, regex=True, case = False) for x in ['END', 'STOP', 'stop']:
+                        # if table.Label[row] in ['END', 'STOP', 'stop']:
+                            table_end = True
+
+                        # Determining the call type for that row
+                        actual_call = None
+                        to_be_skipped = False # There should be one 'True' per line. In any other case, the line will be skipped and counted as such.
+                        for call in self.call_types:
+                            if (table.at[row,call]):  
+                                if(actual_call is None):
+                                    actual_call = call
+                                else:
+                                    to_be_skipped = True
+                        if(actual_call is None):
+                            to_be_skipped = True
+                        if(to_be_skipped):
+                            skipped += 1
+                            self.total_skipped += 1
+                        else:
+                            # the beginning and end times for that call are added to the list 
+                            if table.Duration[row] > all_min_call_length[actual_call]: # / (self.frame_rate - 1):
+                                calls_indices[actual_call][i].append((table.Start[row], table.End[row]))
+                                if any(word in table.Label[row] for word in self.nonfoc_tags):
+                                    non_foc_gt[actual_call][i].append(True)
+                                else:
+                                    non_foc_gt[actual_call][i].append(False)
+                                extract +=1
+                        row += 1
+                total_examples += len(table)
+
+                # Everything after the end is skipped
+                while(row < len(table)):
+                    skipped += 1
+                    self.total_skipped += 1
+                    row += 1  
+                print(str(skipped) + " out of " + str(len(table)) + " entries were skipped in "+ ntpath.basename(tablenames[i]))
             
             if(self.call_analysis == "all_types_combined"): # converts the specific call types into call/noncalls
                 calls_combined = pd.DataFrame(columns = ["call", "noncall"], index = range(len(calls_indices)))
