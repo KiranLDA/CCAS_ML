@@ -140,7 +140,8 @@ audio_dirs =["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/archive/rawdat
 acoustic_data_path = ["/home/kiran/Documents/MPI-Server/EAS_shared/meerkat/working/processed/acoustic"]
 
 # 
-results_dir = '/media/kiran/D0-P1/animal_data/meerkat'
+results_dir = '/media/kiran/D0-P1/animal_data/meerkat/sensitivity_analysis'
+'''
 run_name = "EXAMPLE_NoiseAugmented_"+ str(min_scaling_factor)+"_" +str(max_scaling_factor)+"_NotWeighted_MaskedOther_Forked"
 
 
@@ -191,5 +192,5 @@ if not os.path.isdir(save_metrics_path_eval):
 save_model_path = os.path.join(save_data_path, 'trained_model')
 if not os.path.isdir(save_model_path):
     os.makedirs(save_model_path)
-        
+'''       
    
